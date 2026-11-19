@@ -36,6 +36,12 @@ app.use(helmet({
 const api = express.Router();
 api.use(express.json({ limit: '4mb' })); // Vercel istek sınırı 4,5 MB; büyük dosyalar depo adaptörüyle doğrudan yüklenecek
 api.get('/saglik', (_req, res) => res.json({ ok: true, mod: config.mod, zaman: new Date().toISOString() }));
+// Veritabanı erişim denetimi (ayrıntı sızdırmaz; yalnızca hata kodu döner)
+api.get('/saglik/db', firmaCoz, async (req, res) => {
+  const t0 = Date.now();
+  try { await req.db.raw('select 1 as x'); res.json({ ok: true, ms: Date.now() - t0 }); }
+  catch (e) { console.error('saglik/db:', e.code || '', e.message); res.status(503).json({ ok: false, kod: e.code || 'HATA' }); }
+});
 api.use(firmaCoz, kimlik, csrfDenetle);
 api.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 api.use('/oturum', oturum);
