@@ -7,6 +7,7 @@ import { json } from '../db.js';
 import { yoneticiGerekli } from '../auth/middleware.js';
 import { sifreOzetle } from '../auth/sifre.js';
 import { yeniId, kullaniciDis } from '../veri.js';
+import { fonksiyonVerisiniGecmiseYaz } from '../fonksiyonSil.js';
 
 const r = Router();
 // Personel rehbere firma/kişi ve malzeme listesine yeni kayıt ekleyebilir (formda yazdığı firma rehbere düşer);
@@ -30,7 +31,8 @@ const T = {
   durumlar: { anahtar: 'id', sema: z.object({ modul_id: kimlik, ad, renk, sira: z.number().int().optional(), kapat: z.boolean().optional() }),
     silKontrol: async (db, id) => ((await db('kartlar').where({ durum_id: id }).first()) || (await db('projeler').where({ durum_id: id }).first())) && 'Bu durumda kayıt var' },
   fonksiyonlar: { anahtar: 'uid', sema: z.object({ modul_id: kimlik, tip: z.string().max(20), ad, zorunlu: z.boolean().optional(), grup: z.string().max(60).nullable().optional(), tarih_vars: z.string().max(20).optional(), sekme: z.string().max(60).optional(), kanban: z.boolean().optional(), liste: z.boolean().optional(), sira: z.number().int().optional(), yetki: z.record(z.enum(['duzenle', 'gor', 'gizli'])).optional() }), json: ['yetki'],
-    silKontrol: async (db, id) => (await db('degerler').where({ fn_uid: id }).first()) && 'Bu fonksiyonda veri var; önce verileri taşıyın' },
+    // Veri olsa da silinir: değeri olan her kaydın geçmişine son değer yazılır, sonra değerler silinir
+    silOnce: async (trx, id, u) => fonksiyonVerisiniGecmiseYaz(trx, id, u) },
   opsiyonlar: { anahtar: 'id', sema: z.object({ grup: z.string().trim().min(1).max(60), ad, varsayilan: z.boolean().optional(), tur: z.enum(['select', 'radio', 'check']).optional(), sira: z.number().int().optional() }) },
   yetki_gruplari: { anahtar: 'id', sema: z.object({ ad, sira: z.number().int().optional() }),
     silKontrol: async (db, id) => (await db('kullanicilar').where({ grup_id: id }).first()) && 'Bu grupta kullanıcı var' },
@@ -68,8 +70,12 @@ r.delete('/:tablo/:id', async (req, res) => {
   const t = tablo(req.params.tablo);
   const engel = t.silKontrol && await t.silKontrol(req.db, req.params.id);
   if (engel) throw new HttpHata(409, engel);
-  await req.db(req.params.tablo).where({ [t.anahtar]: req.params.id }).del();
-  res.json({ ok: true });
+  let ek = {};
+  await req.db.transaction(async (trx) => {
+    if (t.silOnce) ek = (await t.silOnce(trx, req.params.id, req.kullanici)) || {};
+    await trx(req.params.tablo).where({ [t.anahtar]: req.params.id }).del();
+  });
+  res.json({ ok: true, ...ek });
 });
 // Sıralama: [id, id, …] sırasıyla sira = 0..n
 r.put('/:tablo/sira/toplu', async (req, res) => {

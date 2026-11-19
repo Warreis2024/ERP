@@ -5173,8 +5173,17 @@ function bagla(){
       }
       case 'fn-sil': {
         const f=fnBul(b.dataset.uid); const m=S.moduller.find(x=>x.fn.includes(f));
+        // Veri varsa onay: son değerler her kaydın geçmişine yazılır, alan formlardan kalkar
+        const dolu=S.degerler.filter(d=>d.fnUid===f.uid&&!degerBos(f,d)), kayitSay=new Set(dolu.map(d=>d.kartId||('p:'+d.projeId))).size;
+        if(kayitSay&&!confirm(`"${f.ad}" alanında ${kayitSay} kayıtta veri var.\n\nKaldırınca alan formlardan, listeden ve kanbandan kalkar; artık bu alana veri girilemez.\nHer kaydın son değeri o kaydın Geçmiş'ine yazılır.\n\nKaldırılsın mı?`)) return;
         m.fn=m.fn.filter(x=>x.uid!==f.uid);
-        ui.cekmece={tur:'modul', id:m.id}; persist(); render(); return;
+        // Sunucu modunda değerler burada silinmez: aksi halde eşitleme kayıtları fonksiyon silinmeden önce kaydedip
+        // değerleri geçmişe yazılmadan götürebilir. Sunucu silmede geçmişe yazar ve değerleri siler; sonra ekran yenilenir.
+        if(!API.acik) S.degerler=S.degerler.filter(d=>d.fnUid!==f.uid);
+        ui.cekmece={tur:'modul', id:m.id}; persist(); render();
+        if(API.acik) setTimeout(()=>API.kuyruk.then(()=>durumYukle()).then(()=>render()).catch(()=>{}), 800);
+        if(kayitSay) toast(`"${f.ad}" kaldırıldı · ${kayitSay} kaydın son değeri geçmişe yazıldı`);
+        return;
       }
       case 'op-sil': {
         const o=S.opsiyonlar.find(x=>x.id===b.dataset.id);

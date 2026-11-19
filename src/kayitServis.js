@@ -44,7 +44,8 @@ export async function projeKisileri(db, projeIdler) {
 export function gorunurDegerler(u, tanim, satirlar, kisiler) {
   return satirlar.map(degerApi).filter((d) => {
     const m = tanim.modul(d.modulId); if (!m || !okuyabilir(u, m.id)) return false;
-    const f = m.fn.find((x) => x.uid === d.fnUid); if (f && !fnGorunur(u, f)) return false;
+    const f = m.fn.find((x) => x.uid === d.fnUid);
+    if (!f || !fnGorunur(u, f)) return false; // modülden kaldırılmış fonksiyonun değeri gönderilmez
     return dosyaGorur(u, d, kisiler.get(d.projeId)?.yonetici || []);
   });
 }

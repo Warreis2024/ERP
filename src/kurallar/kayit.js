@@ -42,7 +42,7 @@ export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId) {
   const idHarita = new Map();
   const eskiIdler = new Set(eski.map((d) => d.id));
   for (const r of gelen || []) {
-    if (!fnMap.has(r.fnUid)) { hatalar.push('Bilinmeyen fonksiyon: ' + r.fnUid); continue; }
+    if (!fnMap.has(r.fnUid)) continue; // modülden kaldırılmış fonksiyonun değeri (eski ekran durumu): yok sayılır
     if (!r.id || !eskiIdler.has(r.id)) { const n = yeniId(); if (r.id) idHarita.set(r.id, n); r.id = n; }
   }
   for (const f of fonksiyonlar) {
