@@ -66,6 +66,12 @@ async function istek(url, sec = {}) {
 }
 const q = (o) => '?' + new URLSearchParams({ ...TUM, ...o });
 
+// Tanı: Paylaşılan Drive yerine normal bir klasör/dosya paylaşılmışsa onları bulur (yanlış kurulumu açıklamak için).
+export async function paylasilanKlasorler() {
+  const r = await istek(`${DRIVE}/files?` + new URLSearchParams({ q: `sharedWithMe and mimeType='${KLASOR_TIPI}' and trashed=false`, fields: 'files(id,name,owners(emailAddress))', pageSize: '10' }));
+  return ((await r.json()).files || []).map((f) => ({ id: f.id, ad: f.name, sahip: f.owners?.[0]?.emailAddress || '' }));
+}
+
 // Hizmet hesabının üye olduğu Paylaşılan Drive'lar
 export async function suruculer() {
   const r = await istek(`${DRIVE}/drives?` + new URLSearchParams({ pageSize: '50', fields: 'drives(id,name)' }));

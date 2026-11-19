@@ -59,7 +59,11 @@ r.post('/baglanti/google/kes', yoneticiGerekli, async (req, res) => {
 
 // ---------- Google Drive: Paylaşılan Drive + ERP hizmet hesabı (sihirbaz) ----------
 r.get('/baglanti/gdrive/suruculer', yoneticiGerekli, async (req, res) => {
-  res.json({ hesap: drive.hesapEposta(), suruculer: await drive.suruculer() });
+  const suruculer = await drive.suruculer();
+  // Hiç Paylaşılan Drive yoksa, yanlışlıkla normal klasör paylaşılmış mı bak (kullanıcıya doğru yönlendirme için)
+  const klasorler = suruculer.length ? [] : await drive.paylasilanKlasorler().catch(() => []);
+  console.log('gdrive suruculer:', suruculer.length, 'paylasilan klasor:', klasorler.length);
+  res.json({ hesap: drive.hesapEposta(), suruculer, klasorler });
 });
 r.post('/baglanti/gdrive/sec', yoneticiGerekli, async (req, res) => {
   const v = z.object({ driveId: z.string().trim().min(5).max(100) }).parse(req.body);

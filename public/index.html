@@ -5065,7 +5065,10 @@ function bagla(){
       case 'gd-kopyala': { const a=gdDurum().hesap||''; (navigator.clipboard?navigator.clipboard.writeText(a):Promise.reject()).then(()=>toast('Adres kopyalandı')).catch(()=>prompt('ERP Drive adresi',a)); return; }
       case 'gd-kontrol': { b.disabled=true; apiIstek('/baglanti/gdrive/suruculer').then(v=>{
           ui.gdListe=v.suruculer;
-          if(!v.suruculer.length){ b.disabled=false; toast('Henüz paylaşım görünmüyor. Adresi İçerik yöneticisi olarak eklediysen 1-2 dakika bekleyip yeniden dene.'); renderDrawer(); return; }
+          if(!v.suruculer.length){ b.disabled=false;
+            if(v.klasorler&&v.klasorler.length){ alert('ERP adresiyle normal bir klasör paylaşılmış ('+v.klasorler.map(k=>'"'+k.ad+'"').join(', ')+'), Paylaşılan Drive değil.\n\nGoogle, ERP gibi hizmet hesaplarının normal klasörlere dosya yazmasına izin vermiyor. Lütfen:\n1. Google Drive sol menüsünde "Paylaşılan Drive\'lar"a gir (Drive\'ım değil).\n2. "+ Yeni" ile bir Paylaşılan Drive aç.\n3. Drive adına sağ tık → Üyeleri yönet → ERP adresini İçerik yöneticisi olarak ekle.'); }
+            else toast('ERP adresi henüz hiçbir Paylaşılan Drive\'a üye değil. Drive\'ım\'daki klasöre değil, sol menüdeki "Paylaşılan Drive\'lar" altındaki Drive\'a, "Üyeleri yönet" ile eklenmeli. Eklediysen 1-2 dakika bekleyip yeniden dene.');
+            renderDrawer(); return; }
           if(v.suruculer.length===1) return gdBagla(v.suruculer[0].id);
           renderDrawer();
         }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
