@@ -49,4 +49,10 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
 - [x] Ayarlar API'si (yönetici)
 - [ ] Arayüzün API'ye bağlanması (sablon.html → modüller)
 - [ ] Dosya deposu adaptörleri (Supabase Storage, disk, NAS)
+- [ ] Google Drive / OneDrive bağlantısı (OAuth). Şu an kurulu değil; arayüz "Kurulum gerekli" gösterir.
+  - Firma hesabında kök klasör **`NetERP`** açılır; her projenin dosyaları proje kodu altında toplanır: `NetERP/PRJ-1048`.
+    Proje kodu değişmez olduğu için klasör adı koddur (proje adı değişse de klasör kaymaz); klasör açıklamasına proje adı yazılır.
+  - Projedeki kayıtların (servis, CRM…) dosyaları aynı proje klasöründe, kendi kodlarıyla alt klasörde: `NetERP/PRJ-1048/SRV-1001`.
+  - Kurulum: Google Cloud OAuth istemcisi / Microsoft Entra uygulama kaydı, dönüş adresi `https://<alan>/api/baglanti/<saglayici>/donus`, istemci kimliği ve gizli anahtar Vercel ortam değişkeni; belirteç sunucuda şifreli saklanır.
+- [ ] E-posta gönderimi (firma hesabı ve kullanıcı hesabı: Google / Microsoft OAuth, SMTP). Şu an kurulu değil; "Gönder" e-posta programını açar.
 - [ ] Kiosk, çıktı formu, gelen kutusu, e-posta uçları
