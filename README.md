@@ -1,0 +1,52 @@
+# Yöntem ERP
+
+Durum tabanlı, fonksiyonlarla kurulan modüler ERP. Modüller Ayarlar'dan açılır, alanlar yeniden kullanılabilir "fonksiyon"lardan bağlanır, her kayıt bir projeye bağlıdır.
+
+Proje kuralları, ekran açıklamaları ve test listesi claude.ai projesindeki **README.md** belgesindedir; bu depo onun sunucu ve uygulama kodudur.
+
+## Yapı
+
+```
+api/index.js            Vercel giriş noktası
+server.js               Yerel / IIS (Windows servisi) giriş noktası
+src/
+  app.js                Express uygulaması, güvenlik başlıkları, yönlendirme
+  config.js             Ortam değişkenleri
+  db.js                 Knex bağlantıları (PostgreSQL / MS SQL), firma başına havuz
+  tenant.js             Firma çözümleme (alt alan adı → veritabanı)
+  auth/                 Oturum belirteci, şifre özeti, ara katmanlar (kimlik, CSRF, yetki)
+  kurallar/             Saf iş kuralları: değerler, yetki, silme, log farkı (test edilir)
+  kayitServis.js        Proje / kayıt kaydetme, durum, silme
+  veri.js               Ortak veri erişimi (tanımlar, kod üretimi, log)
+  routes/               API uçları
+migrations/             Firma veritabanı şeması (PostgreSQL ve MS SQL için aynı)
+migrations-katalog/     Çoklu firma kataloğu
+seeds/                  Şablondaki tanımlar ve örnek veri
+public/                 Arayüz (index.html: API denetimi; sablon.html: bugünkü prototip)
+docs/KURULUM.md         Yerel, Vercel + Supabase, IIS + MS SQL kurulumu
+docs/API.md             Uçlar
+test/                   İş kuralı testleri (npm test)
+```
+
+## Hızlı başlangıç
+
+```bash
+npm install
+cp .env.example .env     # DATABASE_URL, OTURUM_GIZLI…
+npm run migrate
+npm run seed
+npm run dev
+```
+
+Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
+
+## Durum
+
+- [x] Şema: projeler, kayıtlar, ortak değer tablosu, log, kullanıcı / yetki, tanımlar
+- [x] Giriş, oturum, CSRF, şifre politikası, kilit
+- [x] Sunucuda yetki: modül, fonksiyon (Düzenle / Gör / Görme), gizli dosya, kapanış onayı
+- [x] Proje / kayıt API'si: kaydet, durum, silme kuralı, alan logu, mesaj
+- [x] Ayarlar API'si (yönetici)
+- [ ] Arayüzün API'ye bağlanması (sablon.html → modüller)
+- [ ] Dosya deposu adaptörleri (Supabase Storage, disk, NAS)
+- [ ] Kiosk, çıktı formu, gelen kutusu, e-posta uçları

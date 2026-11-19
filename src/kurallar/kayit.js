@@ -1,0 +1,68 @@
+// Kayıt kuralları (saf): silme kuralı, alan değişikliği logu, değer birleştirme.
+import { COKLU, degerBos, ozet } from './degerler.js';
+import { fnErisim } from './yetki.js';
+
+// README genel kuralı: yalnız ilk durumda olan VE işlem görmemiş kayıt veritabanından silinir.
+// İşlem görmüş: durum/alan değişikliği logu var ya da (proje için) bağlı kaydı var.
+export function islemGordu(loglar, bagliKayitSayisi = 0) {
+  return loglar.some((l) => l.tip === 'durum' || l.tip === 'alan') || bagliKayitSayisi > 0;
+}
+export function silinebilir(kayit, ilkDurumId, loglar, bagliKayitSayisi = 0) {
+  return kayit.durum_id === ilkDurumId && !islemGordu(loglar, bagliKayitSayisi);
+}
+
+// Fonksiyon başına özet (log karşılaştırması için).
+export function fnOzetleri(fonksiyonlar, degerler, ad) {
+  const o = {};
+  for (const f of fonksiyonlar) {
+    if (f.tip === 'gecmis') continue;
+    o[f.uid] = degerler.filter((d) => d.fnUid === f.uid).sort((a, b) => (a.sira || 0) - (b.sira || 0))
+      .map((d) => ozet(d, ad)).filter(Boolean).join(' | ').slice(0, 1000);
+  }
+  return o;
+}
+export function alanLoglari(fonksiyonlar, once, sonra) {
+  const L = [];
+  for (const f of fonksiyonlar) {
+    if (f.tip === 'gecmis') continue;
+    const a = once[f.uid] || '', b = sonra[f.uid] || '';
+    if (a !== b) L.push({ tip: 'alan', alan: f.ad, eski: a, yeni: b, metin: f.ad + ' değişti' });
+  }
+  return L;
+}
+
+// İstemciden gelen değerleri, kullanıcının erişimine göre eskileriyle birleştirir.
+//  • 'duzenle' fonksiyonlar istemciden gelir (boş satırlar atılır).
+//  • 'gor' ve 'gizli' fonksiyonlar istemciye güvenilmeden veritabanındaki haliyle korunur.
+//  • Modülde olmayan fn_uid'ler reddedilir.
+// Dönüş: { yeni: [...], zorunluEksik: [ad], hatalar: [mesaj] }
+export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId) {
+  const fnMap = new Map(fonksiyonlar.map((f) => [f.uid, f]));
+  const yeni = []; const hatalar = []; const zorunluEksik = [];
+  const idHarita = new Map();
+  const eskiIdler = new Set(eski.map((d) => d.id));
+  for (const r of gelen || []) {
+    if (!fnMap.has(r.fnUid)) { hatalar.push('Bilinmeyen fonksiyon: ' + r.fnUid); continue; }
+    if (!r.id || !eskiIdler.has(r.id)) { const n = yeniId(); if (r.id) idHarita.set(r.id, n); r.id = n; }
+  }
+  for (const f of fonksiyonlar) {
+    if (f.tip === 'gecmis') continue;
+    const erisim = fnErisim(u, f);
+    if (erisim !== 'duzenle') { yeni.push(...eski.filter((d) => d.fnUid === f.uid)); continue; }
+    let liste = (gelen || []).filter((r) => r.fnUid === f.uid && !degerBos(f.tip, r));
+    if (!COKLU.has(f.tip)) liste = liste.slice(0, 1);
+    liste = liste.map((r, i) => ({ ...r, fnTip: f.tip, sira: Number.isInteger(r.sira) ? r.sira : i, ustId: r.ustId && idHarita.has(r.ustId) ? idHarita.get(r.ustId) : (r.ustId || null) }));
+    if (f.zorunlu && !liste.length) zorunluEksik.push(f.ad);
+    if (f.tip === 'kontrol') {
+      if (liste.some((r) => r.tur === 'sorun' && !String(r.not || '').trim())) hatalar.push(f.ad + ': "Uygun değil" maddesine açıklama yazılmalı');
+      if (f.zorunlu && liste.some((r) => !r.tur)) hatalar.push(f.ad + ': bütün maddeler işaretlenmeli');
+    }
+    yeni.push(...liste);
+  }
+  return { yeni, zorunluEksik, hatalar };
+}
+
+// Kartın tarihi: süre ve doküman dışındaki ilk tarih/vade (şablonla aynı).
+export function kartTarihi(degerler) {
+  return degerler.filter((d) => d.fnTip !== 'sure' && d.fnTip !== 'dokuman').map((d) => d.tarih || d.vade).find(Boolean) || null;
+}
