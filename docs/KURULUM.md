@@ -47,6 +47,14 @@ Giriş bilgileri:
 
 ## 2. Test: Vercel + Supabase (tek firma)
 
+> **Durum (19.11.2026):** Supabase projesi `yontem-erp-test` (Frankfurt, `iddmthvuzcbgvnyxppgs`) açıldı.
+> - Şema kuruldu; tablolar `knex_migrations`'a işlendi, bu yüzden `npm run migrate` tekrar kurmaz.
+> - Örnek veri yüklendi.
+> - Bütün tablolarda RLS açık; anon/authenticated rollerinin erişimi kaldırıldı.
+>
+> Aşağıdaki Supabase adımlarından yalnız veritabanı şifresini almak ve Storage bucket açmak kaldı.
+
+
 ### Supabase
 1. supabase.com'da yeni proje açın. Bölge olarak Frankfurt (eu-central-1) önerilir.
 2. **Project Settings → Database → Connection string** bölümüne gidin:

@@ -45,14 +45,12 @@ export async function seed(knex) {
   await knex('opsiyonlar').insert(S.opsiyonlar.map((o, i) => ({ id: o.id, grup: o.grup, ad: o.ad, varsayilan: !!o.varsayilan, tur: o.tur || 'select', sira: i })));
 
   // kullanıcılar: sistem yöneticisi ilk girişte şifresini değiştirmek zorunda
-  const adminOzet = await sifreOzetle(process.env.ADMIN_SIFRE || 'admin123');
-  const ornekOzet = await sifreOzetle(ornekSifre);
   const kullanicilar = S.kullanicilar.filter((u) => u.sistem || ornek);
   for (const u of kullanicilar) {
     await knex('kullanicilar').insert({
       id: u.id, ad: u.ad, unvan: u.unvan || null, eposta: (u.sistem ? (process.env.ADMIN_EPOSTA || u.eposta) : u.eposta).toLowerCase(),
       rol: u.rol, grup_id: u.grup || null, departman: u.departman || null, aktif: u.aktif !== false, sistem: !!u.sistem,
-      sifre_ozet: u.sistem ? adminOzet : ornekOzet, sifre_degismeli: !!u.sistem, olusturma: simdi,
+      sifre_ozet: await sifreOzetle(u.sistem ? (process.env.ADMIN_SIFRE || 'admin123') : ornekSifre), // kullanıcı başına ayrı tuz sifre_degismeli: !!u.sistem, olusturma: simdi,
       tercih: j({}), eposta_hesap: j({ tur: 'yok' }),
     });
     const y = Object.entries(u.yetki || {}).filter(([, v]) => v && v !== 'yok')
