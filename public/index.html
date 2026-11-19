@@ -4221,8 +4221,6 @@ function benimIsler(){
 }
 function profilHTML(){
   const u=ben(), ep=u.epostaHesap||{tur:'yok'};
-  const isler=benimIsler(), gec=isler.filter(k=>gunFark(k.tarih)<0);
-  const hareket=S.log.filter(l=>l.kisi===u.ad).slice(-8).reverse();
   const bolum=(id,ad,ik,ic2,ek)=>`<section class="panel pr-bolum" id="pr-${id}"><h4>${ic(ik)}${ad}${ek||''}</h4>${ic2}</section>`;
   const kimlik=`<div class="pr-kimlik">${u.foto?`<img class="pr-foto" src="${u.foto}" alt="">`:`<span class="pr-foto">${esc(kisalt(u.ad))}</span>`}<div class="foto-btns"><label class="btn sm">${ic('yukle')}Fotoğraf seç<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">Kaldır</button>`:''}</div></div>
     <div class="form"><div class="two"><label>Ad soyad<input data-profil="ad" value="${esc(u.ad)}"></label><label>Telefon<input type="tel" data-profil="tel" value="${esc(u.tel||'')}" placeholder="+90 …"></label></div>
@@ -4247,11 +4245,8 @@ function profilHTML(){
     <div class="rowbtns"><button type="button" class="btn" data-act="sifre-degis">${ic('kilit')}Şifreyi değiştir</button><span class="zaman">${u.sifre?'Son değişiklik: '+esc(trh(u.sifreTarih||'')):'Hâlâ ilk şifreyi kullanıyorsun.'} En az 8 karakter.</span></div>
     <div class="lbl">Son girişler<div class="pr-girisler">${(u.girisler||[]).map(g=>`<span>${esc(trh(g.zaman))} · ${esc(g.tarayici)}</span>`).join('')||'<span class="zaman">Kayıt yok</span>'}</div></div>
     <button type="button" class="btn danger" style="justify-self:start" data-act="cikis">${ic('sol')}Çıkış yap</button></div>`;
-  const ozet=`<div class="kpis"><button type="button" class="kpi" data-act="benim-git"><span>Açık işlerim</span><b>${isler.length}</b><small>açtığım ya da bana atanan</small></button><button type="button" class="kpi" data-act="benim-git"><span>Geciken</span><b class="${gec.length?'bad':''}">${gec.length}</b><small>tarihi geçmiş</small></button><button type="button" class="kpi" data-act="gelen"><span>Okunmamış mesaj</span><b>${okunmamis().length}</b><small>gelen kutusu</small></button></div>
-    ${isler.length?`<div class="tbl"><table><tbody>${isler.slice(0,8).map(k=>kayitSatir('kart',k,tarihCip(k.tarih,true))).join('')}</tbody></table></div>`:''}
-    <div class="lbl">Son hareketlerim<div class="pr-girisler">${hareket.map(l=>`<span>${esc(trh(l.zaman))} · ${esc(l.metin||'')}</span>`).join('')||'<span class="zaman">Hareket yok</span>'}</div></div>`;
   return `<div class="phead"><span class="pic">${u.foto?`<img src="${u.foto}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:ic('kisi')}</span><div><h3>${esc(u.ad)}</h3><p>${esc([u.unvan,u.departman].filter(Boolean).join(' · '))}</p></div><div class="tools"><button type="button" class="btn" data-act="cikis">${ic('sol')}Çıkış</button></div></div>
-    <div class="pr-izgara">${bolum('ozet','Benim işlerim','kanban',ozet)}${bolum('kimlik','Bilgilerim','kisi',kimlik)}${bolum('eposta','E-posta hesabım','mail',epIc)}${bolum('tercih','Tercihler','ayar',tercih)}${bolum('guvenlik','Güvenlik','kilit',guv)}</div>`;
+    <div class="pr-izgara">${bolum('kimlik','Bilgilerim','kisi',kimlik)}${bolum('eposta','E-posta hesabım','mail',epIc)}${bolum('tercih','Tercihler','ayar',tercih)}${bolum('guvenlik','Güvenlik','kilit',guv)}</div>`;
 }
 function imzaDuz(u){ const h=(u.epostaHesap||{}).imza||''; return h?duz(h.replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|li|h\d)>/gi,'\n')).replace(/\n{3,}/g,'\n\n').trim():''; }
 
