@@ -233,3 +233,110 @@ test('Paylaşılan Drive\'a yükleme: NetERP/<kod> klasörü ve supportsAllDrive
   assert.equal(istekler[4].sec.headers['x-upload-content-length'], '1234');
   assert.deepEqual(JSON.parse(istekler[4].sec.body), { name: 'çizim.pdf', parents: ['PRJ'] });
 });
+
+// ---------------- Microsoft / OneDrive ----------------
+process.env.MS_CLIENT_ID = 'mscid';
+process.env.MS_CLIENT_SECRET = 'msgizli';
+const ms = await import('../src/baglanti/microsoft.js');
+const msBagli = (db, ek = {}) => kasaYaz(db, 'microsoft', {
+  yenile: 'MR1', erisim: 'MA1', bitis: Date.now() + 3600e3, kapsam: ['openid', 'User.Read', 'Files.ReadWrite'],
+  hesap: 'ofis@outlook.com', surucuTur: 'personal', zaman: '2026-11-20T00:00:00Z', ...ek,
+});
+
+test('Microsoft izin adresi: common uç, offline_access + Files.ReadWrite, dönüş adresi', () => {
+  const req = { protocol: 'https', get: (h) => (h === 'host' ? 'yontem-erp.vercel.app' : undefined) };
+  const u = new URL(ms.izinAdresi(req, 'D'));
+  assert.equal(u.origin + u.pathname, 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
+  assert.equal(u.searchParams.get('redirect_uri'), 'https://yontem-erp.vercel.app/api/baglanti/microsoft/donus');
+  assert.deepEqual(u.searchParams.get('scope').split(' ').sort(), ['Files.ReadWrite', 'User.Read', 'offline_access']);
+  assert.equal(u.searchParams.get('state'), 'D');
+});
+
+test('Microsoft kod takası: hesap ve sürücü türü kasaya, durum dosya=true', async () => {
+  const db = sahteDb();
+  const req = { protocol: 'https', get: (h) => (h === 'host' ? 'x.vercel.app' : undefined) };
+  fetchKur([
+    { url: /login\.microsoftonline\.com\/common\/oauth2\/v2\.0\/token/, durum: 200, govde: { access_token: 'A', refresh_token: 'R', expires_in: 3600, scope: 'https://graph.microsoft.com/Files.ReadWrite https://graph.microsoft.com/User.Read' } },
+    { url: /graph\.microsoft\.com\/v1\.0\/me\?/, durum: 200, govde: { userPrincipalName: 'ali@outlook.com', displayName: 'Ali' } },
+    { url: /\/me\/drive\?/, durum: 200, govde: { id: 'DR', driveType: 'personal' } },
+  ]);
+  await ms.kodTakas(req, db, 'KOD', 'u0');
+  const govde = istekler[0].sec.body;
+  assert.deepEqual([govde.get('code'), govde.get('grant_type'), govde.get('client_secret')], ['KOD', 'authorization_code', 'msgizli']);
+  const d = await ms.durum(db);
+  assert.deepEqual([d.bagli, d.dosya, d.hesap, d.surucuTur], [true, true, 'ali@outlook.com', 'personal']);
+});
+
+test('Microsoft hata kodları anlaşılır mesaja çevrilir (süresi dolmuş gizli anahtar)', async () => {
+  const req = { protocol: 'https', get: () => 'x' };
+  fetchKur([{ url: /token/, durum: 401, govde: { error: 'invalid_client', error_description: 'AADSTS7000222: The provided client secret keys for app are expired.' } }]);
+  await assert.rejects(ms.kodTakas(req, sahteDb(), 'K', 'u0'), /süresi dolmuş/);
+  fetchKur([{ url: /token/, durum: 401, govde: { error: 'invalid_client', error_description: 'AADSTS7000215: Invalid client secret provided.' } }]);
+  await assert.rejects(ms.kodTakas(req, sahteDb(), 'K', 'u0'), /Secret ID" değil "Value"/);
+});
+
+test('Microsoft: yenilemede yeni yenileme belirteci saklanır; invalid_grant kopuk işaretler', async () => {
+  const db = sahteDb();
+  await msBagli(db, { bitis: 0 });
+  fetchKur([
+    { url: /token/, durum: 200, govde: { access_token: 'MA2', refresh_token: 'MR2', expires_in: 3600 } },
+    { url: /\/me\/drive\/root\?/, durum: 200, govde: { id: 'ROOT' } },
+    { url: /items\/ROOT:\/NetERP\?/, durum: 200, govde: { id: 'NE' } },
+    { url: /items\/NE:\/PRJ-1048\?/, durum: 200, govde: { id: 'P' } },
+  ]);
+  assert.equal(await ms.projeKlasoru(db, 'PRJ-1048'), 'P');
+  assert.equal(istekler[0].sec.body.get('refresh_token'), 'MR1');
+  assert.equal(istekler[1].sec.headers.authorization, 'Bearer MA2');
+  assert.equal((await kasaOku(db, 'microsoft')).yenile, 'MR2');
+
+  await msBagli(db, { bitis: 0 });
+  fetchKur([{ url: /token/, durum: 400, govde: { error: 'invalid_grant', error_description: 'AADSTS70008: expired' } }]);
+  await assert.rejects(ms.projeKlasoru(db, 'X'), /bağlantısı düştü/);
+  assert.equal((await ms.durum(db)).bagli, false);
+});
+
+test('OneDrive klasörü yoksa oluşturulur (NetERP kökte, proje kodu altında)', async () => {
+  const db = sahteDb();
+  await msBagli(db);
+  fetchKur([
+    { url: /\/me\/drive\/root\?/, durum: 200, govde: { id: 'ROOT' } },
+    { url: /items\/ROOT:\/NetERP\?/, durum: 404, govde: { error: { code: 'itemNotFound' } } },
+    { url: /items\/ROOT\/children$/, durum: 201, govde: { id: 'NE' } },
+    { url: /items\/NE:\/PRJ-1048\?/, durum: 404, govde: {} },
+    { url: /items\/NE\/children$/, durum: 201, govde: { id: 'P' } },
+  ]);
+  assert.equal(await ms.projeKlasoru(db, 'PRJ-1048'), 'P');
+  assert.deepEqual(JSON.parse(istekler[2].sec.body), { name: 'NetERP', folder: {}, '@microsoft.graph.conflictBehavior': 'fail' });
+  assert.equal(JSON.parse(istekler[4].sec.body).name, 'PRJ-1048');
+});
+
+test('OneDrive yükleme: oturum yetkisiz PUT, 202 devam, 201 bitti; Türkçe ad kodlanır', async () => {
+  const db = sahteDb();
+  await msBagli(db);
+  fetchKur([{ url: /items\/P:\/%C3%A7izim%20son\.pdf:\/createUploadSession$/, durum: 200, govde: { uploadUrl: 'https://up.onedrive/s1' } }]);
+  const uri = await ms.yuklemeBaslat(db, { ad: 'çizim son.pdf', klasorId: 'P' });
+  assert.equal(uri, 'https://up.onedrive/s1');
+  assert.deepEqual(JSON.parse(istekler[0].sec.body), { item: { '@microsoft.graph.conflictBehavior': 'rename' } });
+  fetchKur([
+    { durum: 202, govde: { nextExpectedRanges: ['327680-'] } },
+    { durum: 201, govde: { id: 'F1', name: 'çizim son.pdf', size: 400000, webUrl: 'https://onedrive.live.com/x', file: { mimeType: 'application/pdf' } } },
+  ]);
+  const a = await ms.parcaGonder(uri, Buffer.alloc(327680), 0, 400000);
+  assert.deepEqual(a, { bitti: false, alinan: 327680 });
+  assert.equal(istekler[0].sec.headers.authorization, undefined, 'yükleme adresine yetki başlığı gönderilmemeli');
+  assert.equal(istekler[0].sec.headers['content-range'], 'bytes 0-327679/400000');
+  const b = await ms.parcaGonder(uri, Buffer.alloc(400000 - 327680), 327680, 400000);
+  assert.deepEqual([b.bitti, b.dosya.id, b.dosya.webViewLink], [true, 'F1', 'https://onedrive.live.com/x']);
+});
+
+test('OneDrive: yasak karakterli proje kodu güvenli ada çevrilir; kişisel hesapta paylaşım yapılmaz', async () => {
+  const db = sahteDb();
+  await msBagli(db);
+  fetchKur([
+    { url: /\/me\/drive\/root\?/, durum: 200, govde: { id: 'ROOT' } },
+    { url: /items\/ROOT:\/NetERP\?/, durum: 200, govde: { id: 'NE' } },
+    { url: /items\/NE:\/A_B\?/, durum: 200, govde: { id: 'Q' } },
+  ]);
+  assert.equal(await ms.projeKlasoru(db, 'A/B'), 'Q');
+  assert.equal(await ms.kurulustaPaylas(db, 'F1'), null);
+});

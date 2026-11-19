@@ -54,7 +54,8 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
   - Müşteri: Paylaşılan Drive açar, hizmet hesabı adresini "İçerik yöneticisi" ekler, "Kontrol et" der.
   - Hizmet hesaplarının depolama kotası yok; bu yüzden kişisel Drive klasörü değil Paylaşılan Drive kullanılır.
   - Yedek: kişisel Drive'a OAuth (yalnız `drive.file`, hassas değil). Gmail izni istenmez (hassas izin, Google doğrulaması ister).
-- [ ] OneDrive / SharePoint bağlantısı.
+- [x] OneDrive (kişisel + Microsoft 365) OAuth bağlantısı, NetERP/<proje kodu> — kurulum: [docs/ONEDRIVE.md](docs/ONEDRIVE.md). Google: [docs/GOOGLE-DRIVE.md](docs/GOOGLE-DRIVE.md).
+- [ ] SharePoint belge kitaplığı seçeneği.
   - Firma hesabında kök klasör **`NetERP`** açılır; her projenin dosyaları proje kodu altında toplanır: `NetERP/PRJ-1048`.
     Proje kodu değişmez olduğu için klasör adı koddur (proje adı değişse de klasör kaymaz); klasör açıklamasına proje adı yazılır.
   - Projedeki kayıtların (servis, CRM…) dosyaları aynı proje klasöründe, kendi kodlarıyla alt klasörde: `NetERP/PRJ-1048/SRV-1001`.
