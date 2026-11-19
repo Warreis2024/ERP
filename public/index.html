@@ -2750,8 +2750,8 @@ function epostaHTML(){
   const e=ui.eposta;
   const adresler=[...S.kisiler.filter(k=>k.eposta).map(k=>[k.eposta,k.ad]), ...S.kullanicilar.filter(u=>u.eposta&&u.aktif!==false).map(u=>[u.eposta,u.ad]), ...S.degerler.filter(d=>d.fnTip==='eposta'&&d.metin).map(d=>[d.metin,''])];
   const hs0=ben().epostaHesap||{}, fe=firmaEp(), kb=fe.kullaniciBaglar!==false;
-  const firmadan=!(kb&&hs0.bagli)&&fe.bagli&&fe.tur!=='yok';
-  const hs=firmadan?{bagli:true, ad:fe.gonderenAd||S.firma.ad, adres:fe.adres, tur:fe.tur}:hs0, bagli=!!(kb&&hs0.bagli)||firmadan;
+  const firmadan=API.acik?firmaGonderir():(!(kb&&hs0.bagli)&&fe.bagli&&fe.tur!=='yok');
+  const hs=firmadan?{bagli:true, ad:fe.gonderenAd||S.firma.ad, adres:fe.adres||fe.kullanici, tur:fe.tur}:hs0, bagli=(!API.acik&&!!(kb&&hs0.bagli))||firmadan;
   return panelUst('E-posta · '+e.kod, 'Yeni e-posta')+`<form class="form" id="epostaForm">
     <div class="ep-kimden ${bagli?'ok':''}">${ic(bagli?'onay':'mail')}<span>${bagli?`Kimden: <b>${esc(hs.ad||ben().ad)}</b> &lt;${esc(hs.adres||ben().eposta)}&gt; · ${firmadan?'firma hesabı, cevap: '+esc(ben().eposta):esc(EP_TUR[hs.tur])}`:'E-posta hesabın bağlı değil; Gönder e-posta programını açar.'}</span>${kb&&!hs0.bagli?`<button type="button" class="btn sm" data-act="profil-eposta">Hesabımı bağla</button>`:''}</div>
     <label>Kime<input name="kime" list="epostaDL" value="${esc(e.kime)}" placeholder="ad@firma.com" required></label>
@@ -4295,10 +4295,12 @@ function firmaEpostaHTML(){
   if(fe.tur&&fe.tur!=='yok') ic2+=`<div class="two">${a('gonderenAd','Gönderen adı','placeholder="'+esc(S.firma.ad)+'"')}${a('adres','Adres','type="email" placeholder="bildirim@'+esc(S.firma.sub)+'.com.tr"')}</div>`;
   if(fe.tur==='smtp') ic2+=`<div class="pr-sunucu">${a('smtp','SMTP sunucu','placeholder="mail.firma.com.tr"')}${a('smtpPort','Port','type="number" placeholder="587"')}<label>Güvenlik<select data-fep="guvenlik">${secOp([['starttls','STARTTLS'],['ssl','SSL/TLS'],['yok','Yok']], fe.guvenlik||'starttls')}</select></label></div>
       <div class="pr-sunucu">${a('imap','IMAP sunucu (ortak gelen)','placeholder="isteğe bağlı"')}${a('imapPort','Port','type="number" placeholder="993"')}<span></span></div>
-      <div class="two">${a('kullanici','Kullanıcı adı','autocomplete="off"')}<label>Şifre<input type="password" data-fep-sifre="1" placeholder="${fe.sifreKayitli?'•••••••• (kayıtlı)':''}" autocomplete="new-password"></label></div>`;
+      <div class="two">${a('kullanici','Kullanıcı adı','autocomplete="off"')}<label>Şifre<input type="password" data-fep-sifre="1" placeholder="${(API.acik?smtpDurum().kayitli:fe.sifreKayitli)?'•••••••• (kayıtlı; değiştirmek için yaz)':''}" autocomplete="new-password"></label></div>`;
   if(fe.tur==='google') ic2+=a('alan','Google Workspace alan adı','placeholder="firma.com.tr"');
   if(fe.tur==='microsoft') ic2+=a('tenant','Microsoft 365 tenant (dizin) kimliği','placeholder="xxxxxxxx-xxxx-…"');
   if(false) ic2+=`<div class="rowbtns"><span class="zaman">${gGmail()?`${ic('onay')} Gmail ile gönderilir: <b>${esc(gDurum().hesap||'')}</b> hesabından (gönderen adı yukarıdaki, cevap adresi gönderen kullanıcı).`:`${ic('kilit')} Google hesabı bağlı değil. Yukarıdaki <b>Bulut depolar → Google ile bağlan</b> ile bağlanınca e-postalar Gmail'den gider.`}</span></div>`;
+  else if(API.acik&&fe.tur==='smtp'){ const d=smtpDurum();
+    ic2+=`<div class="rowbtns"><button type="button" class="btn pri" data-act="fep-test">${ic('onay')}Test et ve kaydet</button><span class="zaman">${d.kayitli&&d.guncel?`${ic('onay')} Bağlantı test edildi · ${esc(trh((d.zaman||'').slice(0,16).replace('T',' ')))} · şifre şifreli kayıtlı. ERP e-postaları bu hesaptan gönderir.`:d.kayitli?`${ic('uyari')} Sunucu ayarları değişti; şifreyi girip yeniden <b>Test et ve kaydet</b>.`:'Şifreyi girip <b>Test et ve kaydet</b>: ERP sunucuya bağlanıp girişi dener, başarılıysa şifreyi şifreli saklar.'}</span>${d.kayitli?`<button type="button" class="btn sm" data-act="fep-sil">Şifreyi sil</button>`:''}</div>`; }
   else if(fe.tur&&fe.tur!=='yok') ic2+=API.acik
     ?`<div class="rowbtns"><button type="button" class="btn" data-act="fep-test" title="${esc(BAGLANTI_YOK)}">${ic('kilit')}Kurulum gerekli</button><span class="zaman">Kurulum bekliyor · bağlı değil. Ayarlar kaydedilir ama henüz e-posta gönderilmez${fe.tur==='smtp'?'; SMTP şifresi de henüz saklanmaz':''}.</span></div>`
     :`<div class="rowbtns"><button type="button" class="btn pri" data-act="fep-test">${ic('onay')}${fe.tur==='smtp'?'Test et ve kaydet':'Yetkilendir'}</button><span class="zaman">${fe.bagli?'Bağlı · '+esc(trh(fe.zaman||'')):'Bağlı değil'}</span></div>`;
@@ -4588,6 +4590,9 @@ const gDurum=()=>(API.baglanti&&API.baglanti.google)||{};
 const gdDurum=()=>(API.baglanti&&API.baglanti.gdrive)||{};
 const msDurum=()=>(API.baglanti&&API.baglanti.microsoft)||{};
 const msDrive=()=>API.acik&&msDurum().bagli&&msDurum().dosya;
+const smtpDurum=()=>(API.baglanti&&API.baglanti.eposta&&API.baglanti.eposta.smtp)||{};
+// Firma hesabı sunucudan gerçekten gönderebiliyor mu (SMTP test edilip şifre kayıtlı)
+const firmaGonderir=()=>API.acik&&firmaEp().tur==='smtp'&&!!smtpDurum().kayitli;
 // Seçili varsayılan depo bağlıysa bulut yüklemesi yapılır
 const bulutHazir=()=>S.firma.depo==='gdrive'?gDrive():S.firma.depo==='onedrive'?msDrive():false;
 const gDrive=()=>API.acik&&(gdDurum().bagli||(gDurum().bagli&&gDurum().drive));
@@ -4707,12 +4712,12 @@ function bagla(){
       const v=n=>e.target.elements[n].value.trim();
       const em=ui.eposta, o=em.tur==='proje'?proje(em.id):S.kartlar.find(x=>x.id===em.id);
       const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:e.target.elements.govde.value, kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
-      if(API.acik&&firmaEp().tur==='google'&&gGmail()){
+      if(firmaGonderir()||(API.acik&&firmaEp().tur==='google'&&gGmail())){
         const btn=e.target.querySelector('button[type=submit]'); if(btn) btn.disabled=true;
         apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde}}).then(g=>{
-          Object.assign(kayit,{kanal:'gmail', kimdenAdres:g.kimden, cevap:ben().eposta});
+          Object.assign(kayit,{kanal:g.kanal||'firma', kimdenAdres:g.kimden, cevap:ben().eposta});
           S.epostalar.push(kayit);
-          logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi (Gmail) → '+kayit.kime+' · '+kayit.konu});
+          logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi ('+(g.kanal==='smtp'?'firma SMTP':'Gmail')+') → '+kayit.kime+' · '+kayit.konu});
           persist(); ui.eposta=null; toast('Gönderildi: '+g.kimden+' → '+kayit.kime); renderDrawer();
         }).catch(err=>{ if(btn) btn.disabled=false; toast('Gönderilemedi: '+err.message); });
         return;
@@ -5105,6 +5110,8 @@ function bagla(){
       case 'ms-bagla': { b.disabled=true; apiIstek('/baglanti/microsoft/basla',{method:'POST', govde:{}}).then(v=>{ location.href=v.url; }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
       case 'ms-kes': { if(!confirm('OneDrive bağlantısı kesilsin mi? OneDrive\'daki dosyalar silinmez; yeni dosyalar sunucuda saklanır.')) return;
         apiIstek('/baglanti/microsoft/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ if(S.firma.depo==='onedrive'){ S.firma.depo='yerel'; persist(); } render(); toast('OneDrive bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }
+      case 'fep-sil': { if(!confirm('Kayıtlı SMTP şifresi silinsin mi? ERP firma hesabından e-posta gönderemez.')) return;
+        apiIstek('/eposta/smtp/sil',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ render(); toast('SMTP şifresi silindi'); }).catch(e=>toast(e.message)); return; }
       case 'g-bagla': { b.disabled=true; apiIstek('/baglanti/google/basla',{method:'POST', govde:{}}).then(v=>{ location.href=v.url; }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
       case 'g-kes': { if(!confirm('Google bağlantısı kesilsin mi? Drive\'daki dosyalar silinmez; yeni yüklemeler sunucuya gider, e-postalar e-posta programıyla açılır.')) return;
         apiIstek('/baglanti/google/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ render(); toast('Google bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }
@@ -5167,7 +5174,17 @@ function bagla(){
       case 'sifre-sifirla': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u||!confirm(u.ad+' kullanıcısının şifresi ilk şifreye dönsün mü? Sunucu aşamasında bunun yerine sıfırlama bağlantısı e-postalanır.')) return; u.sifre=null; u.sifreTarih=''; u.kilit=''; u.hatali=0; if(API.acik) u.sifreSifirla=true; persist(); render(); toast('Şifre sıfırlandı'); return; }
       case 'sifre-degis': { const u=ben(), eski=$('#prEski').value, y1=$('#prYeni').value, y2=$('#prYeni2').value;
         (async()=>{ if(!(await sifreDogru(u,eski))) return toast('Mevcut şifre yanlış'); if(y1.length<8) return toast('Yeni şifre en az 8 karakter olmalı'); if(y1!==y2) return toast('Yeni şifreler aynı değil'); if(y1===eski) return toast('Yeni şifre eskisiyle aynı'); await sifreAyarla(u,y1); persist(); renderMain(); toast('Şifren değişti'); })(); return; }
-      case 'fep-test': { if(API.acik){ toast('Firma e-postası: '+BAGLANTI_YOK); return; } const fe=firmaEp(); if(!fe.adres) return toast('Gönderen adresi gerekli'); if(fe.tur==='smtp'){ const sf=document.querySelector('[data-fep-sifre]')?.value||''; if(!fe.smtp) return toast('SMTP sunucu gerekli'); if(!sf&&!fe.sifreKayitli) return toast('Şifre gerekli'); fe.sifreKayitli=true; } fe.bagli=true; fe.zaman=simdi(); persist(); render(); toast('Firma e-posta hesabı bağlandı (şablonda simüle)'); return; }
+      case 'fep-test': { if(API.acik){ const fe=firmaEp();
+          if(fe.tur!=='smtp'){ toast('Firma e-postası: '+BAGLANTI_YOK); return; }
+          const sf=document.querySelector('[data-fep-sifre]')?.value||'';
+          if(!fe.smtp) return toast('SMTP sunucu gerekli');
+          if(!sf&&!smtpDurum().kayitli) return toast('Şifre gerekli');
+          b.disabled=true; const eski=b.innerHTML; b.innerHTML='Deneniyor…';
+          apiIstek('/eposta/smtp/dene',{method:'POST', govde:{smtp:fe.smtp, smtpPort:Number(fe.smtpPort||587), guvenlik:fe.guvenlik||'starttls', kullanici:fe.kullanici||fe.adres||'', sifre:sf}})
+            .then(()=>baglantiDurumYukle()).then(()=>{ persist(); render(); toast('SMTP bağlantısı başarılı · şifre şifreli kaydedildi'); })
+            .catch(e=>{ b.disabled=false; b.innerHTML=eski; toast('SMTP: '+e.message); });
+          return; }
+        const fe=firmaEp(); if(!fe.adres) return toast('Gönderen adresi gerekli'); if(fe.tur==='smtp'){ const sf=document.querySelector('[data-fep-sifre]')?.value||''; if(!fe.smtp) return toast('SMTP sunucu gerekli'); if(!sf&&!fe.sifreKayitli) return toast('Şifre gerekli'); fe.sifreKayitli=true; } fe.bagli=true; fe.zaman=simdi(); persist(); render(); toast('Firma e-posta hesabı bağlandı (şablonda simüle)'); return; }
       case 'ep-oauth': { if(API.acik){ toast(BAGLANTI_YOK); return; } const u=ben(); u.epostaHesap=Object.assign(u.epostaHesap||{}, {bagli:true, adres:u.eposta, zaman:simdi()}); persist(); renderMain(); toast((u.epostaHesap.tur==='google'?'Google':'Microsoft')+' hesabı bağlandı (şablonda simüle)'); return; }
       case 'ep-kes': { const u=ben(); if(!confirm('E-posta hesabı bağlantısı kesilsin mi?')) return; u.epostaHesap=Object.assign(u.epostaHesap||{}, {bagli:false, sifreKayitli:false}); persist(); renderMain(); return; }
       case 'ep-test': { if(API.acik){ toast(BAGLANTI_YOK); return; } const u=ben(), ep=u.epostaHesap||{}; const sf=document.querySelector('[data-ep="sifre"]')?.value||''; if(!ep.smtp||!ep.adres) return toast('SMTP sunucu ve adres gerekli'); if(!sf&&!ep.sifreKayitli) return toast('Şifre gerekli'); u.epostaHesap=Object.assign(ep,{bagli:true, sifreKayitli:true, zaman:simdi()}); persist(); renderMain(); toast('Bağlantı başarılı (şablonda simüle) · '+ep.smtp+':'+(ep.smtpPort||587)); return; }

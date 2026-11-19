@@ -12,6 +12,7 @@ import { sifrele, coz } from '../baglanti/kasa.js';
 import * as google from '../baglanti/google.js';
 import * as drive from '../baglanti/driveHesap.js';
 import * as ms from '../baglanti/microsoft.js';
+import * as smtp from '../baglanti/smtp.js';
 
 const r = Router();
 const PARCA = 3 * 1310720; // 3,75 MB: Google (256 KB) ve OneDrive (320 KB) katı; Vercel 4,5 MB istek sınırının altında
@@ -19,11 +20,15 @@ const AZAMI_BOYUT = 5 * 1024 ** 3;
 
 // ---------- durum ----------
 r.get('/baglanti/durum', async (req, res) => {
-  const [g, d, m] = await Promise.all([google.durum(req.db), drive.durum(req.db), ms.durum(req.db)]);
+  const [g, d, m, sm, fa] = await Promise.all([google.durum(req.db), drive.durum(req.db), ms.durum(req.db), smtp.durum(req.db), req.db('ayarlar').where({ anahtar: 'firma' }).first()]);
+  const fe = json.oku(fa?.deger, {}).eposta || {};
+  // Kayıtlı test, şu anki sunucu/port/güvenlik/kullanıcı ayarlarıyla mı yapılmış?
+  const e = { smtp: { ...sm, guncel: sm.kayitli && sm.ozet === smtp.ayarOzeti(smtpAyar(fe)), ozet: undefined } };
   if (g.bagli) console.log('google durum: drive', !!g.drive, 'kapsam', (g.kapsam || []).join(' '));
   // Yönetici olmayanlara hesap ayrıntısı gerekmez; yalnız ne kullanılabildiği
   if (m.bagli) console.log('microsoft durum: dosya', !!m.dosya, 'tur', m.surucuTur, 'kapsam', (m.kapsam || []).join(' '));
-  res.json(yonetici(req.kullanici) ? { google: g, gdrive: d, microsoft: m } : {
+  res.json(yonetici(req.kullanici) ? { google: g, gdrive: d, microsoft: m, eposta: e } : {
+    eposta: { smtp: { kayitli: e.smtp.kayitli, guncel: e.smtp.guncel } },
     google: { yapilandirildi: g.yapilandirildi, bagli: g.bagli, drive: g.drive, gmail: g.gmail },
     gdrive: { bagli: d.bagli, driveAd: d.driveAd },
     microsoft: { yapilandirildi: m.yapilandirildi, bagli: m.bagli, dosya: m.dosya },
@@ -176,13 +181,44 @@ const GonderV = z.object({
   metin: z.string().max(200000).default(''),
 });
 
+// Firma SMTP ayarı (ayarlar.firma.eposta) → istemci ayarı
+function smtpAyar(fe, sifre = '') {
+  return { host: String(fe.smtp || '').trim(), port: Number(fe.smtpPort || 587), guvenlik: fe.guvenlik || 'starttls', kullanici: String(fe.kullanici || fe.adres || '').trim(), sifre };
+}
+const SmtpV = z.object({
+  smtp: z.string().trim().min(3).max(200), smtpPort: z.coerce.number().int().min(1).max(65535),
+  guvenlik: z.enum(['starttls', 'ssl', 'yok']).default('starttls'), kullanici: z.string().trim().max(254).default(''),
+  sifre: z.string().max(500).optional().default(''),
+});
+// Bağlantıyı ve girişi dener; başarılıysa şifreyi kasaya yazar (şifre girilmezse kayıtlıyla dener)
+r.post('/eposta/smtp/dene', yoneticiGerekli, async (req, res) => {
+  const v = SmtpV.parse(req.body);
+  const a = { host: v.smtp, port: v.smtpPort, guvenlik: v.guvenlik, kullanici: v.kullanici, sifre: v.sifre || (await smtp.sifreOku(req.db)) };
+  if (a.kullanici && !a.sifre) throw new HttpHata(400, 'Şifre gerekli');
+  await smtp.dene(a);
+  await smtp.kaydet(req.db, { sifre: a.sifre, ozet: smtp.ayarOzeti(a) });
+  console.log('smtp dene: ok', a.host, a.port, a.guvenlik);
+  res.json({ ok: true });
+});
+r.post('/eposta/smtp/sil', yoneticiGerekli, async (req, res) => { await smtp.sil(req.db); res.json({ ok: true }); });
+
 r.post('/eposta/gonder', async (req, res) => {
   const v = GonderV.parse(req.body);
   const kime = v.kime.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
   if (!kime.length || kime.length > 50 || !kime.every((x) => eposta.safeParse(x).success)) throw new HttpHata(400, 'Alıcı adresi geçersiz');
   const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
   const fe = firma.eposta || {};
-  if (fe.tur !== 'google') throw new HttpHata(409, 'Firma e-posta hesabı Google değil; Ayarlar → Firma → E-posta', { kod: 'EPOSTA_YOK' });
+  if (fe.tur === 'smtp') {
+    const sifre = await smtp.sifreOku(req.db);
+    if (!sifre) throw new HttpHata(409, 'Firma SMTP şifresi kayıtlı değil: Ayarlar → Firma → E-posta → "Test et ve kaydet"', { kod: 'SMTP_YOK' });
+    const a = smtpAyar(fe, sifre);
+    const kimden = String(fe.adres || a.kullanici).trim();
+    try {
+      await smtp.gonder(a, { kimden, kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, metin: v.metin, cevap: req.kullanici.eposta });
+    } catch (e) { console.error('smtp gonder:', e.message); throw e; }
+    return res.json({ ok: true, kimden, kanal: 'smtp' });
+  }
+  if (fe.tur !== 'google') throw new HttpHata(409, 'Firma e-posta hesabı ayarlı değil; Ayarlar → Firma → E-posta', { kod: 'EPOSTA_YOK' });
   const g = await google.gmailGonder(req.db, {
     kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, metin: v.metin, cevap: req.kullanici.eposta,
   });
