@@ -234,6 +234,11 @@ tr.clk{cursor:pointer}tr.clk:hover td{background:var(--surface-2)}
 .form{display:grid;gap:12px}
 .form label,.lbl{display:grid;gap:5px;font-weight:700;font-size:12.5px;color:var(--muted)}
 .form label>.zaman,.lbl>.zaman{font-weight:400}
+/* label olarak yazılan düğmeler (dosya seç vb.) form etiketi gibi alt alta dizilmesin: ikon ve yazı tek satır, kompakt */
+.form label.btn,.lbl label.btn,label.btn{display:inline-flex;flex-direction:row;align-items:center;gap:6px;color:var(--fg);font-weight:700;justify-self:start;width:auto;white-space:nowrap}
+.form label.btn.sm,label.btn.sm{font-size:12px;padding:4px 9px}
+label.btn .ic{width:14px;height:14px;flex:none}
+.foto-btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .form input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]):not([type=range]),
 .form select,.form textarea,
 .panel input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]),
@@ -2879,7 +2884,7 @@ function cekmeceHTML(){
   if(c.tur==='kullanici' && c.id==='yeni') return bas('Kullanıcı','Yeni')+`<form class="form" id="ayarForm"><label>Ad<input name="ad" required></label><label>Ünvan<input name="unvan"></label><label>E-posta (giriş)<input name="eposta" type="email" required></label><div class="two"><label>Yetki grubu<select name="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), S.yetkiGruplari[1]?.id)}</select></label><label>Departman<select name="departman">${secOp(S.departmanlar, '', 'Departmansız')}</select></label></div>${onay}</form>`;
   if(c.tur==='kullanici'){
     const u=S.kullanicilar.find(x=>x.id===c.id); if(!u) return bas('Kullanıcı','');
-    return bas('Kullanıcı',u.ad)+`<form class="form"><div class="rowbtns">${u.foto?`<img class="foto-on" alt="" src="${u.foto}">`:av(u.ad).replace('class="av"','class="av" style="width:72px;height:72px;font-size:22px"')}<div class="liste"><label class="btn sm">${ic('yukle')}Fotoğraf seç<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">Fotoğrafı kaldır</button>`:''}</div></div>
+    return bas('Kullanıcı',u.ad)+`<form class="form"><div class="rowbtns">${u.foto?`<img class="foto-on" alt="" src="${u.foto}">`:av(u.ad).replace('class="av"','class="av" style="width:72px;height:72px;font-size:22px"')}<div class="foto-btns"><label class="btn sm">${ic('yukle')}Fotoğraf seç<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">Fotoğrafı kaldır</button>`:''}</div></div>
       <label>Ad<input data-user="${u.id}" data-alan="ad" value="${esc(u.ad)}"></label><label>Ünvan<input data-user="${u.id}" data-alan="unvan" value="${esc(u.unvan)}"></label><label>E-posta (giriş)<input type="email" data-user="${u.id}" data-alan="eposta" value="${esc(u.eposta||'')}"></label>
       <div class="two"><label>Rol<select data-user="${u.id}" data-alan="rol">${secOp([['personel','Personel'],['yonetici','Yönetici']], u.rol)}</select></label><label>Yetki grubu<select data-user="${u.id}" data-alan="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), u.grup)}</select></label></div><label>Departman<select data-user="${u.id}" data-alan="departman">${secOp(S.departmanlar, u.departman||'', 'Departmansız')}</select></label>
       <label class="anahtar"><input type="checkbox" data-user="${u.id}" data-alan="aktif" ${u.aktif!==false?'checked':''}><span>Aktif</span></label><p class="zaman">Kullanıcı silinmez. Pasif kullanıcı giriş yapamaz, seçim listelerinde çıkmaz; geçmişteki kayıtları ve logları durur.</p>
@@ -4184,7 +4189,7 @@ function profilHTML(){
   const isler=benimIsler(), gec=isler.filter(k=>gunFark(k.tarih)<0);
   const hareket=S.log.filter(l=>l.kisi===u.ad).slice(-8).reverse();
   const bolum=(id,ad,ik,ic2,ek)=>`<section class="panel pr-bolum" id="pr-${id}"><h4>${ic(ik)}${ad}${ek||''}</h4>${ic2}</section>`;
-  const kimlik=`<div class="pr-kimlik">${u.foto?`<img class="pr-foto" src="${u.foto}" alt="">`:`<span class="pr-foto">${esc(kisalt(u.ad))}</span>`}<div class="liste"><label class="btn sm">${ic('yukle')}Fotoğraf seç<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">Kaldır</button>`:''}</div></div>
+  const kimlik=`<div class="pr-kimlik">${u.foto?`<img class="pr-foto" src="${u.foto}" alt="">`:`<span class="pr-foto">${esc(kisalt(u.ad))}</span>`}<div class="foto-btns"><label class="btn sm">${ic('yukle')}Fotoğraf seç<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">Kaldır</button>`:''}</div></div>
     <div class="form"><div class="two"><label>Ad soyad<input data-profil="ad" value="${esc(u.ad)}"></label><label>Telefon<input type="tel" data-profil="tel" value="${esc(u.tel||'')}" placeholder="+90 …"></label></div>
     <div class="two"><label>Ünvan<input value="${esc(u.unvan||'')}" disabled></label><label>Departman<input value="${esc(u.departman||'—')}" disabled></label></div>
     <div class="two"><label>E-posta (giriş)<input value="${esc(u.eposta||'')}" disabled></label><label>Yetki grubu<input value="${esc(S.yetkiGruplari.find(g=>g.id===u.grup)?.ad||'')}${u.rol==='yonetici'?' · Yönetici':''}" disabled></label></div>
