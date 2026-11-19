@@ -1946,7 +1946,7 @@ function cokluHTML(f){
   if(f.tip==='mali'){
     const liste=ui.form.coklu[f.uid]||(ui.form.coklu[f.uid]=[]);
     if(!liste.length||!degerBos(f, liste[liste.length-1])) liste.push(bosSatir(f));
-    const baslik=liste[0]||{tarih:'', vade:'', firma:'', hareket:'Çıkış', odeme:varsayilan('odeme')||''};
+    const baslik=liste[0]||{tarih:'', vade:'', firma:'', belge:'', hareket:'Çıkış', odeme:varsayilan('odeme')||''};
     const h=`data-mali="${f.uid}"`;
     const satir=liste.map((r,i)=>{
       const bos=degerBos(f, r);
@@ -1961,8 +1961,9 @@ function cokluHTML(f){
     return `<div class="mali-bas">
       <div class="lbl">Tarih<input type="date" ${h} data-k="tarih" value="${esc(baslik.tarih)}"></div>
       <div class="lbl">Vade<input type="date" ${h} data-k="vade" value="${esc(baslik.vade)}"></div>
-      <div class="lbl tam">Firma<input ${h} data-k="firma" list="firmaDL" value="${esc(baslik.firma)}" placeholder="Firma" autocomplete="off"></div>
+      <div class="lbl">Belge No<input ${h} data-k="belge" value="${esc(baslik.belge||'')}" placeholder="Fatura / fiş no" maxlength="60" autocomplete="off"></div>
       <div class="lbl">Hareket<select ${h} data-k="hareket">${secOp(['Giriş','Çıkış'], baslik.hareket||'Çıkış')}</select></div>
+      <div class="lbl tam">Firma<input ${h} data-k="firma" list="firmaDL" value="${esc(baslik.firma)}" placeholder="Firma" autocomplete="off"></div>
       <div class="lbl">Ödeme${alanGrup('odeme', baslik.odeme, `${h} data-k="odeme"`)}</div>
     </div>
     <div class="mali-tablo"><table><thead><tr><th>Açıklama</th><th>Adet</th><th>Tutar</th><th>PB</th><th></th></tr></thead><tbody>${satir}</tbody></table></div>
@@ -3670,7 +3671,7 @@ function tamEkran(){ const el=document.documentElement; if(!document.fullscreenE
 const CK_DONEM=[['tum','Tüm zamanlar'],['bu-ay','Bu ay'],['gecen-ay','Geçen ay'],['bu-yil','Bu yıl'],['ay','Ay seç']];
 const CK_KISI=[['ben','Çıktıyı alanın kendi kayıtları'],['tum','Tüm kişiler']];
 const CK_ALT={ // satır kaynağı olan çoklu fonksiyonların alt alanları: [ad, alan, tip, sql kolonu]
-  mali:[['Hareket','hareket'],['Açıklama','metin'],['Firma','firma'],['Tarih','tarih','tarih'],['Vade','vade','tarih'],['Ödeme','odeme'],['Adet','adet','sayi'],['Tutar','tutar','para'],['Para birimi','para']],
+  mali:[['Hareket','hareket'],['Belge No','belge'],['Açıklama','metin'],['Firma','firma'],['Tarih','tarih','tarih'],['Vade','vade','tarih'],['Ödeme','odeme'],['Adet','adet','sayi'],['Tutar','tutar','para'],['Para birimi','para']],
   stok:[['Hareket','hareket'],['Malzeme','malzeme'],['Miktar','adet','sayi'],['Birim','birim'],['Depo','depo','depo'],['Hedef depo','hedef','depo']],
   sure:[['Tarih','tarih','tarih'],['Kişi','kisi','kisi'],['Saat','adet','sayi'],['Açıklama','metin']],
   karar:[['Adım','metin'],['Sorumlu','kisi','kisi'],['Termin','tarih','tarih'],['Tamam','tur','tamam']],

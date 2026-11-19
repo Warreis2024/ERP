@@ -99,7 +99,7 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
 // ---- API (şablonla aynı alan adları) ↔ veritabanı sütunları ----
 const DUZ = ['metin', 'kisi', 'tur', 'firma', 'hareket', 'odeme', 'para', 'url', 'dosya', 'depo', 'hedef', 'malzeme', 'birim',
   'rev', 'onem', 'onay', 'yukleyen', 'renk', 'yer', 'il', 'ilce', 'ulke'];
-const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici']; // bas/bit: Saat Aralığı (SS:DD)
+const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici', 'belge']; // bas/bit: Saat Aralığı (SS:DD), belge: Mali Hareket belge no
 const TARIH = (v) => (v && /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0, 10) : null);
 const ZAMAN = (v) => { if (!v) return null; const d = new Date(String(v).replace(' ', 'T')); return Number.isNaN(d.getTime()) ? null : d; };
 const KES = (v, n) => (v === undefined || v === null ? null : String(v).slice(0, n));
@@ -117,7 +117,7 @@ export function degerDb(r, ortak) {
     kisi_id: r.kisiId || null,
   };
   for (const k of DUZ) o[k] = r[k] === undefined || r[k] === '' ? null : KES(r[k], k === 'url' ? 3e6 : k === 'metin' ? 1e7 : 300);
-  const ek = {}; for (const k of EK) if (r[k] !== undefined && r[k] !== null && !(Array.isArray(r[k]) && !r[k].length)) ek[k] = r[k];
+  const ek = {}; for (const k of EK) if (r[k] !== undefined && r[k] !== null && !(Array.isArray(r[k]) && !r[k].length)) ek[k] = k === 'belge' ? String(r[k]).trim().slice(0, 60) : r[k];
   o.ek = Object.keys(ek).length ? JSON.stringify(ek) : null;
   return o;
 }
