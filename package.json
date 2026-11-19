@@ -5,7 +5,7 @@
   "description": "Yöntem ERP — durum tabanlı, fonksiyonlarla kurulan modüler ERP (sunucu + API)",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "node --watch server.js",
