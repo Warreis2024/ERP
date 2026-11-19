@@ -3272,6 +3272,39 @@ function renderDrawer(){
   zenginKur(); imzaKur();
   d.scrollTop=ui.scroll?0:st; ui.scroll=false;
 }
+/* ---- oturum içi ekran durumu: sayfa yenilenince son ekran, proje ve süzgeçler geri gelir.
+   sessionStorage sekmeye özeldir: sekme kapanınca ya da çıkış yapılınca silinir; yeni açılışta "Açılış sayfası" tercihi uygulanır. ---- */
+const UI_SAKLA=['ekran','panoId','modulId','gorunum','proje','durum','ekip','benim','plan','arsiv','sira','ayar','durumModul','takvim','ay','gelen','rehber','panoProje','dosyaProje','q'];
+const uiAnahtar=()=>'yerp-ui:'+((S&&S.firma&&S.firma.sub)||'');
+function uiKaydet(){
+  if(KS||!S||!ui.uid||$('#app')?.hidden) return;
+  const o={uid:ui.uid}; UI_SAKLA.forEach(k=>o[k]=ui[k]);
+  if(ui.form&&ui.form.id&&!ui.form.yeni) o.acik={tur:ui.form.tur, id:ui.form.id};
+  try{ sessionStorage.setItem(uiAnahtar(), JSON.stringify(o)); }catch(e){}
+}
+function uiSil(){ try{ sessionStorage.removeItem(uiAnahtar()); }catch(e){} }
+// Açılış: bu sekmede kaydedilmiş durum varsa onu, yoksa kullanıcının açılış sayfası tercihini uygular.
+function acilisUygula(u){
+  let o=null; try{ o=JSON.parse(sessionStorage.getItem(uiAnahtar())||'null'); }catch(e){}
+  if(o&&o.uid===u.id){
+    UI_SAKLA.forEach(k=>{ if(o[k]!==undefined) ui[k]=o[k]; });
+    if(ui.proje&&!S.projeler.some(p=>p.id===ui.proje)) ui.proje='';
+    if(ui.panoProje&&!S.projeler.some(p=>p.id===ui.panoProje)) ui.panoProje='';
+    if(ui.dosyaProje&&!S.projeler.some(p=>p.id===ui.dosyaProje)) ui.dosyaProje='';
+    if(ui.panoId&&!S.panolar.some(p=>p.id===ui.panoId)) ui.panoId='';
+    return o.acik||null;
+  }
+  ui.ekran=u.acilis&&u.acilis!=='pano'?u.acilis:'pano'; ui.panoId='';
+  if(ui.ekran.startsWith('modul:')){ ui.modulId=ui.ekran.slice(6); ui.ekran='modul'; }
+  return null;
+}
+function acikKaydiAc(a){
+  if(!a) return;
+  if(a.tur==='proje'&&S.projeler.some(p=>p.id===a.id)) projeAc(a.id, 'bilgi');
+  else if(a.tur==='kart'&&S.kartlar.some(k=>k.id===a.id)) kartAc(a.id);
+}
+window.addEventListener('pagehide', uiKaydet);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') uiKaydet(); });
 function render(){
   const izinli=S.moduller.filter(m=>m.acik && yetki(m.id)!=='yok');
   if(ui.ekran==='pano' && !S.panolar.some(p=>p.acik)) ui.ekran='modul';
@@ -4106,6 +4139,7 @@ function oturumYaz(sub, uid, hatirla){
   try{ sessionStorage.setItem(oturumAnahtar(sub), v); if(hatirla) localStorage.setItem(oturumAnahtar(sub), v); else localStorage.removeItem(oturumAnahtar(sub)); }catch(e){}
 }
 function oturumKapat(){
+  uiSil();
   try{ sessionStorage.removeItem(oturumAnahtar(S.firma.sub)); localStorage.removeItem(oturumAnahtar(S.firma.sub)); }catch(e){}
   ui.form=null; ui.cekmece=null; ui.eposta=null;
   girisGoster();
@@ -4119,8 +4153,7 @@ function oturumAc(uid, hatirla){
   const g=$('#giris'); if(g){ g.hidden=true; g.innerHTML=''; }
   $('#app').hidden=false;
   nasAktar();
-  ui.uid=uid; ui.ekran=u.acilis&&u.acilis!=='pano'?u.acilis:'pano'; ui.panoId='';
-  if(ui.ekran.startsWith('modul:')){ ui.modulId=ui.ekran.slice(6); ui.ekran='modul'; }
+  ui.uid=uid; uiSil(); acilisUygula(u);
   render();
 }
 function girisGoster(hata, epDeger){
@@ -4429,6 +4462,7 @@ async function apiGirisYap(form){
   try{
     const v=await apiIstek('/oturum/giris', {method:'POST', govde:{eposta:ep, sifre:sf, hatirla:!!form.elements.hatirla.checked}});
     try{ localStorage.setItem('yerp-son-eposta:'+S.firma.sub, ep); }catch(e){}
+    uiSil(); // yeni giriş açılış sayfası tercihiyle başlar
     if(v.sifreDegismeli) return sifreZorunluGoster();
     await apiAc();
   }catch(e){ girisGoster(e.message, ep); }
@@ -4443,9 +4477,8 @@ async function apiAc(){
   const g=$('#giris'); if(g){ g.hidden=true; g.innerHTML=''; }
   $('#app').hidden=false;
   ui.form=null; ui.cekmece=null; ui.eposta=null;
-  ui.ekran=u.acilis&&u.acilis!=='pano'?u.acilis:'pano'; ui.panoId='';
-  if(ui.ekran.startsWith('modul:')){ ui.modulId=ui.ekran.slice(6); ui.ekran='modul'; }
-  nasAktar(); render();
+  const acik=acilisUygula(u);
+  nasAktar(); render(); acikKaydiAc(acik);
 }
 function sifreZorunluGoster(hata){
   let g=$('#giris'); if(!g){ g=document.createElement('div'); g.id='giris'; document.body.appendChild(g); }
@@ -4470,6 +4503,7 @@ async function sifreZorunluKaydet(f){
   catch(e){ sifreZorunluGoster(e.message); }
 }
 async function apiCikis(){
+  uiSil();
   clearTimeout(API.zamanlayici);
   try{ await API.kuyruk; }catch(e){}
   try{ await apiIstek('/oturum/cikis', {method:'POST', govde:{}}); }catch(e){}
