@@ -174,8 +174,12 @@ export async function alandaPaylas(db, dosyaId) {
 // ---------------- Gmail ----------------
 const kodla = (s) => (/^[\x20-\x7e]*$/.test(s) ? s : '=?UTF-8?B?' + Buffer.from(s, 'utf8').toString('base64') + '?=');
 const adresTemiz = (s) => String(s || '').replace(/[\r\n<>"]/g, '').trim();
-export function mimeOlustur({ kimden, kimdenAd, kime, cc, cevap, konu, metin }) {
-  const satir = (b) => b.toString('base64').replace(/.{76}/g, '$&\r\n');
+const b64Satir = (b) => b.toString('base64').replace(/.{76}/g, '$&\r\n');
+const sinirUret = (on) => `=_${on}_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+
+// İleti: düz metin; html verilirse multipart/alternative (metin + html), satirIci resimler varsa
+// html kısmı multipart/related içinde (cid: ile gömülü resimler).
+export function mimeOlustur({ kimden, kimdenAd, kime, cc, cevap, konu, metin, html, satirIci = [] }) {
   const bas = [
     `From: ${kimdenAd ? `${kodla(adresTemiz(kimdenAd))} <${adresTemiz(kimden)}>` : adresTemiz(kimden)}`,
     `To: ${kime.map(adresTemiz).join(', ')}`,
@@ -183,10 +187,53 @@ export function mimeOlustur({ kimden, kimdenAd, kime, cc, cevap, konu, metin }) 
     ...(cevap ? [`Reply-To: ${adresTemiz(cevap)}`] : []),
     `Subject: ${kodla(String(konu || '').replace(/[\r\n]+/g, ' '))}`,
     'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: base64',
   ];
-  return bas.join('\r\n') + '\r\n\r\n' + satir(Buffer.from(String(metin || ''), 'utf8'));
+  const duzParca = ['Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', b64Satir(Buffer.from(String(metin || ''), 'utf8'))].join('\r\n');
+  if (!html) return bas.join('\r\n') + '\r\n' + duzParca;
+  const htmlParca = ['Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', b64Satir(Buffer.from(String(html), 'utf8'))].join('\r\n');
+  let ikinci = htmlParca;
+  if (satirIci.length) {
+    const s2 = sinirUret('rel');
+    ikinci = `Content-Type: multipart/related; boundary="${s2}"\r\n\r\n--${s2}\r\n${htmlParca}\r\n` +
+      satirIci.map((r) => `--${s2}\r\nContent-Type: ${r.tip}; name="${r.ad}"\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <${r.cid}>\r\nContent-Disposition: inline; filename="${r.ad}"\r\n\r\n${b64Satir(r.veri)}\r\n`).join('') +
+      `--${s2}--`;
+  }
+  const s1 = sinirUret('alt');
+  return bas.join('\r\n') + `\r\nContent-Type: multipart/alternative; boundary="${s1}"\r\n\r\n--${s1}\r\n${duzParca}\r\n--${s1}\r\n${ikinci}\r\n--${s1}--`;
+}
+
+const kacis = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// HTML → düz metin (imzanın metin kopyası için)
+export const htmlDuz = (h) => String(h || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d|tr)>/gi, '\n').replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+  .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+
+// İmza HTML'i: betik/olay öznitelikleri/javascript: temizlenir; data: resimler cid'li gömülü eke çevrilir.
+export function imzaHazirla(imzaHtml, alan = 'neterp.local') {
+  let h = String(imzaHtml || '')
+    .replace(/<(script|style|iframe|object|embed|form)[\s\S]*?<\/\1\s*>/gi, '')
+    .replace(/<(script|iframe|object|embed|form|meta|link|base)\b[^>]*>/gi, '')
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
+  const satirIci = [];
+  h = h.replace(/(<img\b[^>]*?\bsrc\s*=\s*)(["'])data:(image\/(png|jpe?g|gif|webp));base64,([A-Za-z0-9+/=\s]+)\2/gi, (_t, on, tirnak, tip, uz, veri) => {
+    const cid = `imza${satirIci.length + 1}.${Date.now().toString(36)}@${alan}`;
+    satirIci.push({ cid, tip: tip.toLowerCase().replace('jpg', 'jpeg'), ad: `imza${satirIci.length + 1}.${uz.toLowerCase().replace('jpeg', 'jpg')}`, veri: Buffer.from(veri.replace(/\s+/g, ''), 'base64') });
+    return `${on}${tirnak}cid:${cid}${tirnak}`;
+  });
+  return { html: h, satirIci, metin: htmlDuz(imzaHtml) };
+}
+
+// Gövde metni + (varsa) imza → { metin, html, satirIci }
+export function iletiGovdesi(metin, imzaHtml, alan) {
+  const govdeHtml = `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5">${kacis(metin || '').replace(/\r?\n/g, '<br>')}</div>`;
+  if (!imzaHtml || !String(imzaHtml).trim()) return { metin, html: govdeHtml, satirIci: [] };
+  const im = imzaHazirla(imzaHtml, alan);
+  return {
+    metin: `${metin || ''}\n\n-- \n${im.metin}`,
+    html: `${govdeHtml}<br><div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px">${im.html}</div>`,
+    satirIci: im.satirIci,
+  };
 }
 
 export async function gmailGonder(db, ileti) {

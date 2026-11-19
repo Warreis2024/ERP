@@ -141,3 +141,35 @@ test('kasa: firma ve kullanıcı şifreleri ayrı anahtarlarda, şifreli', async
   assert.equal((await smtp.durum(db, smtp.kullaniciKasasi('u4'))).kayitli, false);
   assert.equal((await smtp.durum(db)).kayitli, true);
 });
+
+test('HTML imza: logo gömülü (cid) eke döner, betik temizlenir, düz metin kopyası da gider', async () => {
+  const { iletiGovdesi } = await import('../src/baglanti/google.js');
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex'); // PNG başlığı yeter
+  const imza = `<p><b>Savaş SARAÇ</b><br>Proje Yöneticisi</p><p><img src="data:image/png;base64,${png.toString('base64')}" width="120" onerror="alert(1)"></p><script>alert('x')</script><a href="javascript:kotu()">tık</a>`;
+  const g = iletiGovdesi('Merhaba,\nRapor ektedir.', imza, 'yontemteknoloji.com');
+  assert.equal(g.satirIci.length, 1);
+  assert.match(g.html, /src="cid:imza1\.[a-z0-9]+@yontemteknoloji\.com"/);
+  assert.ok(!/data:image|<script|onerror|javascript:/i.test(g.html));
+  assert.match(g.metin, /Rapor ektedir\.\n\n-- \nSavaş SARAÇ\nProje Yöneticisi/);
+
+  const s = await sahteSunucu(); sunucular.push(s);
+  await smtp.gonder(ayar(s.port), { kimden: 'erp@firma.com', kime: ['a@x.com'], konu: 'İmza testi', ...g });
+  const v = s.kayit.veri;
+  assert.match(v, /^Content-Type: multipart\/alternative; boundary="=_alt_/m);
+  assert.match(v, /^Content-Type: text\/plain; charset=UTF-8$/m);
+  assert.match(v, /^Content-Type: multipart\/related; boundary="=_rel_/m);
+  assert.match(v, /^Content-Type: text\/html; charset=UTF-8$/m);
+  const cid = g.html.match(/cid:([^"]+)/)[1];
+  assert.ok(v.includes(`Content-ID: <${cid}>`));
+  assert.match(v, /^Content-Type: image\/png; name="imza1\.png"$/m);
+  // Gömülü resmin içeriği aynen gider
+  const resimB64 = v.split(`Content-ID: <${cid}>`)[1].split('\n\n')[1].split('\n--')[0].replace(/\n/g, '');
+  assert.deepEqual(Buffer.from(resimB64, 'base64'), png);
+});
+
+test('imzasız ileti eskisi gibi tek parça düz metin', async () => {
+  const { mimeOlustur } = await import('../src/baglanti/google.js');
+  const m = mimeOlustur({ kimden: 'a@b.com', kime: ['c@d.com'], konu: 'x', metin: 'y' });
+  assert.ok(!/multipart/.test(m));
+  assert.match(m, /Content-Type: text\/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n/);
+});

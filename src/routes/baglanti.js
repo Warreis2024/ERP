@@ -182,6 +182,7 @@ const GonderV = z.object({
   kime: z.string().max(2000),
   konu: z.string().max(500).default(''),
   metin: z.string().max(200000).default(''),
+  imza: z.boolean().default(false), // gönderenin kayıtlı HTML imzası (logo dahil) eklensin mi
 });
 
 // Kullanıcının kendi e-posta hesabı ayarı (kullanicilar.eposta_hesap; şifre burada değil kasada)
@@ -228,6 +229,9 @@ r.post('/eposta/hesabim/sil', async (req, res) => { await smtp.sil(req.db, smtp.
 
 r.post('/eposta/gonder', async (req, res) => {
   const v = GonderV.parse(req.body);
+  // Gövde: düz metin + (istenirse) gönderenin HTML imzası; imzadaki resimler gömülü eke dönüşür
+  const imzaHtml = v.imza ? String(kullaniciHesabi(req.kullanici).imza || '') : '';
+  const govdeYap = (kimden) => google.iletiGovdesi(v.metin, imzaHtml, String(kimden).split('@')[1]);
   const kime = v.kime.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
   if (!kime.length || kime.length > 50 || !kime.every((x) => eposta.safeParse(x).success)) throw new HttpHata(400, 'Alıcı adresi geçersiz');
   const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
@@ -240,7 +244,7 @@ r.post('/eposta/gonder', async (req, res) => {
       const a = smtpAyar(ke, sifre);
       const kimden = String(ke.adres || a.kullanici || req.kullanici.eposta).trim();
       try {
-        await smtp.gonder(a, { kimden, kimdenAd: ke.ad || req.kullanici.ad || '', kime, konu: v.konu, metin: v.metin });
+        await smtp.gonder(a, { kimden, kimdenAd: ke.ad || req.kullanici.ad || '', kime, konu: v.konu, ...govdeYap(kimden) });
       } catch (e) { console.error('smtp hesabim gonder:', req.kullanici.id, e.message); throw e; }
       return res.json({ ok: true, kimden, kanal: 'kisisel' });
     }
@@ -252,13 +256,13 @@ r.post('/eposta/gonder', async (req, res) => {
     const a = smtpAyar(fe, sifre);
     const kimden = String(fe.adres || a.kullanici).trim();
     try {
-      await smtp.gonder(a, { kimden, kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, metin: v.metin, cevap: req.kullanici.eposta });
+      await smtp.gonder(a, { kimden, kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, ...govdeYap(kimden), cevap: req.kullanici.eposta });
     } catch (e) { console.error('smtp gonder:', e.message); throw e; }
     return res.json({ ok: true, kimden, kanal: 'smtp' });
   }
   if (fe.tur !== 'google') throw new HttpHata(409, 'Firma e-posta hesabı ayarlı değil; Ayarlar → Firma → E-posta', { kod: 'EPOSTA_YOK' });
   const g = await google.gmailGonder(req.db, {
-    kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, metin: v.metin, cevap: req.kullanici.eposta,
+    kimdenAd: fe.gonderenAd || firma.ad || '', kime, konu: v.konu, ...govdeYap(fe.adres || 'neterp.local'), cevap: req.kullanici.eposta,
   });
   res.json({ ok: true, id: g.id, kimden: g.kimden, kanal: 'gmail' });
 });

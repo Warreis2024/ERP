@@ -279,6 +279,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .adres .tam{grid-column:1 / -1}
 .sayi-kisa{max-width:140px}
 .puan{display:flex;align-items:center;gap:2px;flex-wrap:wrap}.puan-y{border:0;background:none;padding:2px;font-size:24px;line-height:1;color:var(--line,#c9cdd6);cursor:pointer}.puan-y.on{color:#f5b301}.puan-y:hover{transform:scale(1.15)}.puan-n{margin-left:8px}
+.ep-imza{display:grid;gap:6px}.ep-imza-on{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;background:var(--surface);font-size:13px;max-height:220px;overflow:auto}.ep-imza-on img{max-width:100%;height:auto}
 .gd-sih ol{margin:8px 0 6px 18px;padding:0;display:grid;gap:10px;font-size:13px}.gd-sih li{line-height:1.5}
 .gd-adres{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}.gd-adres code{background:var(--surface-2);padding:5px 8px;border-radius:6px;font-size:12px;word-break:break-all}
 .gd-yardim{margin-top:6px;font-size:12.5px}.gd-yardim summary{cursor:pointer;color:var(--brand);font-weight:600}.gd-yardim p{margin:6px 0;color:var(--muted)}
@@ -2754,11 +2755,12 @@ function epostaHTML(){
   const firmadan=API.acik?(!kendi&&firmaGonderir()):(!(kb&&hs0.bagli)&&fe.bagli&&fe.tur!=='yok');
   const hs=firmadan?{bagli:true, ad:fe.gonderenAd||S.firma.ad, adres:fe.adres||fe.kullanici, tur:fe.tur}:hs0, bagli=kendi||firmadan;
   return panelUst('E-posta · '+e.kod, 'Yeni e-posta')+`<form class="form" id="epostaForm">
-    <div class="ep-kimden ${bagli?'ok':''}">${ic(bagli?'onay':'mail')}<span>${bagli?`Kimden: <b>${esc(hs.ad||ben().ad)}</b> &lt;${esc(hs.adres||ben().eposta)}&gt; · ${firmadan?'firma hesabı, cevap: '+esc(ben().eposta):esc(EP_TUR[hs.tur])}`:'E-posta hesabın bağlı değil; Gönder e-posta programını açar.'}</span>${kb&&!hs0.bagli?`<button type="button" class="btn sm" data-act="profil-eposta">Hesabımı bağla</button>`:''}</div>
+    <div class="ep-kimden ${bagli?'ok':''}">${ic(bagli?'onay':'mail')}<span>${bagli?`Kimden: <b>${esc(hs.ad||ben().ad)}</b> &lt;${esc(hs.adres||ben().eposta)}&gt; · ${firmadan?'firma hesabı, cevap: '+esc(ben().eposta):esc(EP_TUR[hs.tur])}`:'E-posta hesabın bağlı değil; Gönder e-posta programını açar.'}</span>${kb&&!kendi?`<button type="button" class="btn sm" data-act="profil-eposta">Hesabımı bağla</button>`:''}</div>
     <label>Kime<input name="kime" list="epostaDL" value="${esc(e.kime)}" placeholder="ad@firma.com" required></label>
     <datalist id="epostaDL">${[...new Map(adresler.map(a=>[a[0],a])).values()].map(a=>`<option value="${esc(a[0])}">${esc(a[1])}</option>`).join('')}</datalist>
     <label>Konu<input name="konu" value="${esc(e.konu)}" required></label>
     <label>İleti<textarea name="govde" style="min-height:200px">${esc(e.govde)}</textarea></label>
+    ${bagli&&sunucuImzasi()?`<div class="ep-imza"><label class="anahtar" style="width:auto"><input type="checkbox" name="imzaEkle" checked><span>İmzamı ekle (logosuyla)</span></label><div class="ep-imza-on">${imzaOnizle(ben().epostaHesap.imza)}</div></div>`:''}
     <p class="zaman">İleti kaydın geçmişine yazılır.${bagli?' Cevaplar kendi gelen kutuna ve kayda düşer (konudaki '+esc(e.kod)+' koduyla).':''}</p>
     <div class="rowbtns"><button class="btn pri" type="submit">${ic('gonder')}${bagli?'Gönder':'E-posta programında aç'}</button><button class="btn" type="button" data-act="eposta-iptal">Vazgeç</button></div></form>`;
 }
@@ -3371,7 +3373,7 @@ function epostaBaslat(){
   const pred=tur==='proje'?(d=>d.projeId===o.id&&!d.kartId):(d=>d.kartId===o.id);
   const satir=m.fn.filter(x=>fnGorunur(x)&&!['gecmis','imza','mesaj','dokuman'].includes(x.tip)).map(x=>{ const v=S.degerler.filter(d=>pred(d)&&d.fnUid===x.uid).map(ozet).filter(Boolean).join(' | '); return v?x.ad+': '+v:''; }).filter(Boolean);
   const adres=S.degerler.find(d=>pred(d)&&d.fnTip==='eposta'&&d.metin)?.metin || (firmaBul(projeFirma(p)||'')||{}).eposta || '';
-  ui.eposta={tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`Merhaba,\n\n${satir.join('\n')}\n\n${imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad}`};
+  ui.eposta={tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`Merhaba,\n\n${satir.join('\n')}\n\n${sunucuImzasi()?'':(imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad)}`};
   ui.scroll=true; renderDrawer();
 }
 /* ---------- kiosk (büyük ekran, menüsüz, kendiliğinden döner) ---------- */
@@ -4286,6 +4288,10 @@ function profilHTML(){
   return `<div class="phead"><span class="pic">${u.foto?`<img src="${u.foto}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:ic('kisi')}</span><div><h3>${esc(u.ad)}</h3><p>${esc([u.unvan,u.departman].filter(Boolean).join(' · '))}</p></div><div class="tools"><button type="button" class="btn" data-act="cikis">${ic('sol')}Çıkış</button></div></div>
     <div class="pr-izgara">${bolum('kimlik','Bilgilerim','kisi',kimlik)}${bolum('eposta','E-posta hesabım','mail',epIc)}${bolum('tercih','Tercihler','ayar',tercih)}${bolum('guvenlik','Güvenlik','kilit',guv)}</div>`;
 }
+// E-posta sunucudan gidecek ve kullanıcının imzası varsa imza HTML (logolu) olarak sunucuda eklenir
+function sunucuImzasi(){ return API.acik&&(kendiGonderir()||firmaGonderir())&&!!String((ben().epostaHesap||{}).imza||'').trim(); }
+// Önizleme için imza HTML'i (betik ve olay öznitelikleri temizlenir)
+function imzaOnizle(h){ return String(h||'').replace(/<(script|style|iframe|object|embed|form)[\s\S]*?<\/\1\s*>/gi,'').replace(/<(script|iframe|object|embed|form|meta|link|base)\b[^>]*>/gi,'').replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'').replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi,'$1="#"'); }
 function imzaDuz(u){ const h=(u.epostaHesap||{}).imza||''; return h?duz(h.replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|li|h\d)>/gi,'\n')).replace(/\n{3,}/g,'\n\n').trim():''; }
 
 /* --- firma e-posta ayarları --- */
@@ -4719,7 +4725,8 @@ function bagla(){
       const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:e.target.elements.govde.value, kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
       if(kendiGonderir()||firmaGonderir()||(API.acik&&firmaEp().tur==='google'&&gGmail())){
         const btn=e.target.querySelector('button[type=submit]'); if(btn) btn.disabled=true;
-        apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde}}).then(g=>{
+        const imzaEkle=!!e.target.elements.imzaEkle?.checked;
+        apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde, imza:imzaEkle}}).then(g=>{
           Object.assign(kayit,{kanal:g.kanal||'firma', kimdenAdres:g.kimden, ...(g.kanal==='kisisel'?{}:{cevap:ben().eposta})});
           S.epostalar.push(kayit);
           logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi ('+(g.kanal==='kisisel'?'kendi hesabı':g.kanal==='smtp'?'firma hesabı':'Gmail')+') → '+kayit.kime+' · '+kayit.konu});
