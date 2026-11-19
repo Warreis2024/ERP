@@ -43,6 +43,35 @@ Drive'ım
 
 ## 3. Satıcı kurulumu (bir kez, IQ-Sense)
 
+### 3.0 Adım adım (ekran ekran) — kişisel Drive / OAuth
+
+İlk kurulumdaki 8 adımlık liste, yaşanan hatalara göre düzeltilmiş hali. Sırayla yapılır; ayrıntılar 3.1–3.5'te.
+
+1. **Google Cloud'da proje aç.** https://console.cloud.google.com → üstteki proje seçici → **Yeni proje** → ad: `NetERP` → Oluştur. Sonra üstten bu projeyi seçili hale getir.
+2. **Drive API'yi aç.** Sol menü → *APIs & Services* → *Library* → arama: "Google Drive API" → aç → **Enable**.
+   ~~Gmail API~~ açılmaz (e-posta ERP'nin kendi adresinden gidecek).
+3. **İzin ekranını ayarla.** Sol menü → *Google Auth Platform* (bazı ekranlarda *OAuth consent screen*) → **Get started**. App name: `NetERP`, support e-posta: `admin@iq-sense.com.tr`.
+   **Audience: External.** (Kurumsal Workspace hesabı olmayan geliştirici "Internal" seçemez; External doğru seçimdir.) Kaydet.
+4. **İzinleri (scope) ekle.** Aynı bölümde *Data Access* → *Add or remove scopes*. Yalnız şunlar:
+   `openid`, `.../auth/userinfo.email`, `.../auth/drive.file`.
+   Listede bulunamazsa alttaki *Manually add scopes* kutusuna tam adres: `https://www.googleapis.com/auth/drive.file`. Kaydet.
+   ⚠️ `gmail.send` **eklenmez** (hassas izin → "Access blocked"). Eklendiyse kaldırılır.
+5. **Branding'i doldur.** *Branding* sayfası (yoksa "Publish app" düğmesi gri kalır):
+   - Application home page: `https://yontem-erp.vercel.app/tanitim.html`
+   - Privacy policy: `https://yontem-erp.vercel.app/gizlilik.html`
+   - Terms of service: `https://yontem-erp.vercel.app/kosullar.html`
+   - Authorized domains: `yontem-erp.vercel.app`
+   - App logo: **boş bırak** (logo Google incelemesini başlatır). Save.
+6. **OAuth istemcisi oluştur.** *Clients* (ya da *Credentials → Create credentials → OAuth client ID*). Type: **Web application**, Name: `NetERP Vercel`. *Authorized redirect URIs* altında *Add URI* → tam olarak:
+   `https://yontem-erp.vercel.app/api/baglanti/google/donus` → **Create**. Açılan pencerede **Client ID** ve **Client secret** görünür; pencereyi kapatmadan sonraki adıma geç.
+7. **İki değeri Vercel'e gir.** https://vercel.com → `yontem-erp` → *Settings* → *Environment Variables* → *Add New*:
+   - `GOOGLE_CLIENT_ID` = Client ID · Environments: **Production**
+   - `GOOGLE_CLIENT_SECRET` = Client secret · **Production**, *Sensitive* işaretli
+   Save. Secret sohbete/e-postaya yapıştırılmaz. **Ardından yeniden yayın (redeploy)**: Vercel yeni değişkenleri ancak yeni yayında okur.
+8. **Yayınla.** *Audience* → **Publish app** → onayla. (Yapılmazsa uygulama "Testing"te kalır: yalnız *Test users* listesindeki hesaplar bağlanabilir ve bağlantı 7 günde bir düşer.)
+
+Sonrası ERP içindedir (bölüm 4): Ayarlar → Firma → Bulut depolar → **Kişisel Drive'ı bağla** → izin ekranında **Drive kutusunu işaretle** → Devam → Varsayılan depo otomatik Google Drive olur → bir projeye dosya yükleyip Drive'da `NetERP/PRJ-…` klasörüne bakılır.
+
 ### 3.1 Google Cloud projesi
 1. https://console.cloud.google.com → yeni proje: **NetERP**.
 2. *APIs & Services → Library* → **Google Drive API** → Enable.
