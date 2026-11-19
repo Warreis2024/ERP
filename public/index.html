@@ -4384,6 +4384,7 @@ function driveSihirbazHTML(){
 }
 function googleSatirHTML(){
   const g=gDurum();
+  if(g.bagli&&!g.drive) return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive (kişisel)</span><span class="zaman" style="color:var(--bad,#cf3640)">${ic('uyari')} ${esc(g.hesap||'')} bağlandı ama <b>Drive izni verilmedi</b>. Google izin ekranında "Google Drive dosyalarını görme, düzenleme, oluşturma…" kutusu işaretlenmeli.</span><span class="sp"></span><button type="button" class="btn sm" data-act="g-kes">Kes</button><button type="button" class="btn sm pri" data-act="g-bagla">${ic('bag')}Yeniden bağla</button></div>`;
   const durum=!g.yapilandirildi?'Sunucu ayarı eksik (GOOGLE_CLIENT_ID / SECRET)':g.kopuk?'Bağlantı düştü · yeniden bağla':g.bagli?`${ic('onay')} Bağlı · ${esc(g.hesap||'')} · dosyalar Drive'ım/NetERP klasörüne`:'Bağlı değil';
   const dugme=!g.yapilandirildi?`<button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button>`
     :g.bagli?`<button type="button" class="btn sm" data-act="g-kes">Bağlantıyı kes</button>`

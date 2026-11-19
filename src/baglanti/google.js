@@ -71,6 +71,7 @@ export async function durum(db) {
   return {
     yapilandirildi: yapilandirildi(), bagli: !k.kopuk, kopuk: !!k.kopuk, hesap: k.hesap, alan: k.alan, zaman: k.zaman,
     drive: k.kapsam?.includes(KAPSAM.drive), gmail: k.kapsam?.includes(KAPSAM.gmail),
+    kapsam: (k.kapsam || []).map((x) => x.replace('https://www.googleapis.com/auth/', '')),
   };
 }
 

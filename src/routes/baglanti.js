@@ -19,6 +19,7 @@ const AZAMI_BOYUT = 5 * 1024 ** 3;
 // ---------- durum ----------
 r.get('/baglanti/durum', async (req, res) => {
   const [g, d] = await Promise.all([google.durum(req.db), drive.durum(req.db)]);
+  if (g.bagli) console.log('google durum: drive', !!g.drive, 'kapsam', (g.kapsam || []).join(' '));
   // Yönetici olmayanlara hesap ayrıntısı gerekmez; yalnız ne kullanılabildiği
   res.json(yonetici(req.kullanici) ? { google: g, gdrive: d } : {
     google: { yapilandirildi: g.yapilandirildi, bagli: g.bagli, drive: g.drive, gmail: g.gmail },
