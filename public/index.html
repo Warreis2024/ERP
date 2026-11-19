@@ -5194,11 +5194,17 @@ function bagla(){
       case 'ep-kes': { if(API.acik){ if(!confirm('Kendi e-posta hesabının kayıtlı şifresi silinsin mi? E-postaların firma hesabından gider.')) return;
           apiIstek('/eposta/hesabim/sil',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ renderMain(); toast('Hesap bağlantısı kaldırıldı'); }).catch(e=>toast(e.message)); return; }
         const u=ben(); if(!confirm('E-posta hesabı bağlantısı kesilsin mi?')) return; u.epostaHesap=Object.assign(u.epostaHesap||{}, {bagli:false, sifreKayitli:false}); persist(); renderMain(); return; }
-      case 'ep-test': { if(API.acik){ const ep=ben().epostaHesap||{}, sf=document.querySelector('[data-ep="sifre"]')?.value||'';
+      case 'ep-test': { if(API.acik){
+          // Ekranda görünen değerler esas alınır: sunucu/port gibi alanlar firma ayarından "öneri" olarak dolu gelir, elle değişmedikçe hesaba yazılmamış olabilir
+          const u=ben(); u.epostaHesap=u.epostaHesap||{tur:'smtp'};
+          document.querySelectorAll('[data-ep]').forEach(el=>{ const k=el.dataset.ep; if(k&&k!=='sifre'&&k!=='imza'&&el.value!==undefined) u.epostaHesap[k]=el.type==='number'?el.value:el.value.trim(); });
+          const ep=u.epostaHesap, sf=document.querySelector('[data-ep="sifre"]')?.value||'';
           if(!ep.smtp) return toast('SMTP sunucu gerekli'); if(!ep.adres&&!ep.kullanici) return toast('Adres ya da kullanıcı adı gerekli');
           if(!sf&&!hesabimDurum().kayitli) return toast('Şifre gerekli');
           b.disabled=true; const eski=b.innerHTML; b.innerHTML='Deneniyor…';
-          apiIstek('/eposta/hesabim/dene',{method:'POST', govde:{smtp:ep.smtp, smtpPort:Number(ep.smtpPort||587), guvenlik:ep.guvenlik||'starttls', kullanici:ep.kullanici||ep.adres||'', sifre:sf}})
+          // Önce hesap ayarı sunucuya yazılır (test özeti onunla karşılaştırılır), sonra bağlantı denenir
+          apiIstek('/oturum/eposta-hesap',{method:'PUT', govde:EPOSTA(u)})
+            .then(()=>apiIstek('/eposta/hesabim/dene',{method:'POST', govde:{smtp:ep.smtp, smtpPort:Number(ep.smtpPort||587), guvenlik:ep.guvenlik||'starttls', kullanici:ep.kullanici||ep.adres||'', sifre:sf}}))
             .then(()=>baglantiDurumYukle()).then(()=>{ persist(); renderMain(); toast('Bağlantı başarılı · e-postaların artık kendi adresinden gider'); })
             .catch(e=>{ b.disabled=false; b.innerHTML=eski; toast('SMTP: '+e.message); });
           return; }
