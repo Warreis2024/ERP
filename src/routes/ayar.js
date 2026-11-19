@@ -139,6 +139,9 @@ kullaniciRouter.put('/:id', async (req, res) => {
 kullaniciRouter.post('/:id/sifre-sifirla', async (req, res) => {
   const u = await req.db('kullanicilar').where({ id: req.params.id }).first();
   if (!u) throw new HttpHata(404, 'Kullanıcı bulunamadı');
+  // Sistem yöneticisi ve kişinin kendi hesabı bu yoldan sıfırlanmaz: biri yanlışlıkla tetiklerse yönetici hesabı kilitlenir.
+  if (u.sistem) throw new HttpHata(403, 'Sistem yöneticisinin şifresi buradan sıfırlanamaz');
+  if (u.id === req.kullanici.id) throw new HttpHata(400, 'Kendi şifreni Profilim → Güvenlik bölümünden değiştir');
   const sifre = geciciSifre();
   await req.db('kullanicilar').where({ id: u.id }).update({ sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, hatali: 0, kilit: null, oturum_surumu: u.oturum_surumu + 1 });
   res.json({ geciciSifre: sifre });

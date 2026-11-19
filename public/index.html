@@ -3499,7 +3499,9 @@ function kioskHash(){
 function kKiosk(){ return KS && S.kiosklar.find(x=>x.id===KS.id); }
 function kioskBaslat(h){
   kioskDurdur();
-  S=yukle(h.firma||localStorage.getItem('yerp-firma')||'yontem');
+  // API modunda S sunucudan gelen veridir; tarayıcıdaki şablon verisiyle değiştirilirse eşitleme onu sunucuya yazar
+  // (kiosk tanımlarını ezer, sunucu şifresi olan kullanıcıların şifresini sıfırlar).
+  if(!API.acik) S=yukle(h.firma||localStorage.getItem('yerp-firma')||'yontem');
   let el=$('#kiosk'); if(!el){ el=document.createElement('div'); el.id='kiosk'; document.body.appendChild(el); }
   $('#app').hidden=true; $('#drawer')&&($('#drawer').hidden=true); el.hidden=false;
   document.title='Kiosk · '+S.firma.ad;
@@ -3536,6 +3538,7 @@ function kioskBitir(){
   if(location.hash.startsWith('#kiosk=')) history.replaceState(null,'',location.pathname+location.search);
   const tema=localStorage.getItem('yerp-tema'); document.documentElement.dataset.theme=tema||'light';
   ui.panoProje='';
+  if(API.acik){ ui.ekran='ayar'; ui.ayar='kiosk'; render(); persist(); return; } // S zaten sunucu verisi; yereldekini yükleme
   acFirma(localStorage.getItem('yerp-firma')||'yontem');
   ui.ekran='ayar'; ui.ayar='kiosk'; render();
 }
@@ -4300,7 +4303,7 @@ async function kayitTazele(tur, id){
 }
 function modulOf(tur, o){ return tur==='proje'?(S.moduller.find(m=>m.tur==='proje')||{}).id:o.modulId; }
 async function esitle(){
-  if(!API.acik||!API.ben||!S||API.yukleniyor) return;
+  if(!API.acik||!API.ben||!S||API.yukleniyor||KS) return; // kiosk salt okunur: açıkken sunucuya hiçbir şey yazılmaz
   const simdiki=iz(S), son=API.son, yon=ben().rol==='yonetici';
   let degisti=false;
   const adim=async(is)=>{ await is(); degisti=true; };
@@ -4334,7 +4337,9 @@ async function esitle(){
           geciciSifreGoster(u, v.geciciSifre);
         } else if(son.kul[id]!==simdiki.kul[id]) await adim(()=>apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id), {method:'PUT', govde:KUL_ALAN(u)}));
         if(son.kulY[id]!==simdiki.kulY[id]&&!u.sistem) await adim(()=>apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id)+'/yetkiler', {method:'PUT', govde:KUL_YETKI(u)}));
-        if(son.kulS[id]==='1'&&!simdiki.kulS[id]&&id in son.kul){
+        // Şifre yalnız yöneticinin "Şifreyi sıfırla" düğmesiyle sıfırlanır; veri değişiminden çıkarım yapılmaz.
+        if(u.sifreSifirla&&id in son.kul){
+          delete u.sifreSifirla;
           const v=await apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id)+'/sifre-sifirla', {method:'POST', govde:{}});
           degisti=true; geciciSifreGoster(u, v.geciciSifre);
         }
@@ -4929,7 +4934,7 @@ function bagla(){
       case 'profil': kapatEkran(); ui.ekran='profil'; render(); return;
       case 'cikis': if(!confirm('Çıkış yapılsın mı?')) return; oturumKapat(); return;
       case 'benim-git': kapatEkran(); ui.ekran='modul'; ui.modulId=(S.moduller.find(m=>m.id==='is'&&yetki('is')!=='yok')||S.moduller.find(m=>m.tur!=='proje'&&yetki(m.id)!=='yok'))?.id||'ana'; ui.benim=true; render(); return;
-      case 'sifre-sifirla': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u||!confirm(u.ad+' kullanıcısının şifresi ilk şifreye dönsün mü? Sunucu aşamasında bunun yerine sıfırlama bağlantısı e-postalanır.')) return; u.sifre=null; u.sifreTarih=''; u.kilit=''; u.hatali=0; persist(); render(); toast('Şifre sıfırlandı'); return; }
+      case 'sifre-sifirla': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u||!confirm(u.ad+' kullanıcısının şifresi ilk şifreye dönsün mü? Sunucu aşamasında bunun yerine sıfırlama bağlantısı e-postalanır.')) return; u.sifre=null; u.sifreTarih=''; u.kilit=''; u.hatali=0; if(API.acik) u.sifreSifirla=true; persist(); render(); toast('Şifre sıfırlandı'); return; }
       case 'sifre-degis': { const u=ben(), eski=$('#prEski').value, y1=$('#prYeni').value, y2=$('#prYeni2').value;
         (async()=>{ if(!(await sifreDogru(u,eski))) return toast('Mevcut şifre yanlış'); if(y1.length<8) return toast('Yeni şifre en az 8 karakter olmalı'); if(y1!==y2) return toast('Yeni şifreler aynı değil'); if(y1===eski) return toast('Yeni şifre eskisiyle aynı'); await sifreAyarla(u,y1); persist(); renderMain(); toast('Şifren değişti'); })(); return; }
       case 'fep-test': { const fe=firmaEp(); if(!fe.adres) return toast('Gönderen adresi gerekli'); if(fe.tur==='smtp'){ const sf=document.querySelector('[data-fep-sifre]')?.value||''; if(!fe.smtp) return toast('SMTP sunucu gerekli'); if(!sf&&!fe.sifreKayitli) return toast('Şifre gerekli'); fe.sifreKayitli=true; } fe.bagli=true; fe.zaman=simdi(); persist(); render(); toast('Firma e-posta hesabı bağlandı (şablonda simüle)'); return; }
