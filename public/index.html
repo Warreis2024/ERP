@@ -1853,6 +1853,7 @@ function dosyaEkle(f, files){
     }
     rows.push(r);
     if(file.size>sinir && r.depo==='nas'){ toast(file.name+': NAS\'a doğrudan yazılır (şablonda içerik saklanmaz)'); return; }
+    if(file.size>sinir&&API.acik){ rows.pop(); toast(file.name+': '+boyutYaz(file.size)+'. Sunucuya en fazla 1,5 MB dosya yüklenebilir'+(S.firma.depo==='gdrive'?'; Google Drive bağlı olmadığı (ya da Drive izni verilmediği) için Drive\'a da gönderilemedi. Ayarlar → Firma → Bulut depolar.':'. Büyük dosyalar için Ayarlar → Firma\'dan Google Drive bağla.')); return; }
     if(file.size>sinir){
       r.depo=S.firma.depo!=='yerel'?S.firma.depo:'gdrive';
       toast(file.name+': büyük dosya. '+DEPO[r.depo]+' bağlantısını düzenle panelinden ekle; sunucu aşamasında otomatik yüklenecek.');
