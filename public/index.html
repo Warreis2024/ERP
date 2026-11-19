@@ -279,6 +279,9 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .adres .tam{grid-column:1 / -1}
 .sayi-kisa{max-width:140px}
 .puan{display:flex;align-items:center;gap:2px;flex-wrap:wrap}.puan-y{border:0;background:none;padding:2px;font-size:24px;line-height:1;color:var(--line,#c9cdd6);cursor:pointer}.puan-y.on{color:#f5b301}.puan-y:hover{transform:scale(1.15)}.puan-n{margin-left:8px}
+.gd-sih ol{margin:8px 0 6px 18px;padding:0;display:grid;gap:10px;font-size:13px}.gd-sih li{line-height:1.5}
+.gd-adres{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}.gd-adres code{background:var(--surface-2);padding:5px 8px;border-radius:6px;font-size:12px;word-break:break-all}
+.gd-liste{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .aralik{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:420px}.aralik label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
 .fiyat{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;max-width:420px}
 .box{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:8px;background:var(--bg)}
@@ -827,6 +830,7 @@ const YER={"ulke":["Türkiye","KKTC","Almanya","Amerika Birleşik Devletleri","�
 
 /* ---------- ikonlar ---------- */
 const ICONS={
+  kopya:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
   ara:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   tema:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
@@ -2907,7 +2911,7 @@ function cekmeceHTML(){
     <label>Varsayılan dosya deposu<select id="firmaDepo">${secOp(Object.entries(DEPO), S.firma.depo||'yerel')}</select></label>
     ${nasPanelHTML()}
     <div class="panel"><h4>Bulut depolar</h4>
-      ${API.acik?googleSatirHTML()+`<div class="rowbtns"><span class="depo onedrive">${ic('bulut')}OneDrive / SharePoint</span><span class="zaman">Kurulum bekliyor · bağlı değil</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button></div>`+`<p class="zaman">Varsayılan depo Google Drive ve bağlantı açıkken yüklenen dosyalar Drive'da <b>NetERP/&lt;proje kodu&gt;</b> klasörüne gider (ör. NetERP/PRJ-1048) ve Workspace alanındaki herkes bağlantıyla görebilir. Bağlantı yoksa dosyalar sunucuda saklanır.</p>`
+      ${API.acik?driveSihirbazHTML()+`<div class="rowbtns"><span class="depo onedrive">${ic('bulut')}OneDrive / SharePoint</span><span class="zaman">Kurulum bekliyor · bağlı değil</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button></div>`+`<p class="zaman">Varsayılan depo Google Drive ve bağlantı açıkken yüklenen dosyalar Drive'da <b>NetERP/&lt;proje kodu&gt;</b> klasörüne gider (ör. NetERP/PRJ-1048) ve Workspace alanındaki herkes bağlantıyla görebilir. Bağlantı yoksa dosyalar sunucuda saklanır.</p>`
       :`<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">${S.firma.depoBagli.gdrive?'Bağlı':'Bağlı değil'}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive">${S.firma.depoBagli.gdrive?'Bağlantıyı kes':'Bağlan'}</button></div>
       <div class="rowbtns"><span class="depo onedrive">${ic('bulut')}OneDrive / SharePoint</span><span class="zaman">${S.firma.depoBagli.onedrive?'Bağlı':'Bağlı değil'}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive">${S.firma.depoBagli.onedrive?'Bağlantıyı kes':'Bağlan'}</button></div>
       <p class="zaman">Şablon modu: bağlantı simüle edilir, bağlantılar elle yapıştırılır.</p>`}</div>${firmaEpostaHTML()}</form>`;
@@ -4290,7 +4294,7 @@ function firmaEpostaHTML(){
       <div class="two">${a('kullanici','Kullanıcı adı','autocomplete="off"')}<label>Şifre<input type="password" data-fep-sifre="1" placeholder="${fe.sifreKayitli?'•••••••• (kayıtlı)':''}" autocomplete="new-password"></label></div>`;
   if(fe.tur==='google') ic2+=a('alan','Google Workspace alan adı','placeholder="firma.com.tr"');
   if(fe.tur==='microsoft') ic2+=a('tenant','Microsoft 365 tenant (dizin) kimliği','placeholder="xxxxxxxx-xxxx-…"');
-  if(API.acik&&fe.tur==='google') ic2+=`<div class="rowbtns"><span class="zaman">${gGmail()?`${ic('onay')} Gmail ile gönderilir: <b>${esc(gDurum().hesap||'')}</b> hesabından (gönderen adı yukarıdaki, cevap adresi gönderen kullanıcı).`:`${ic('kilit')} Google hesabı bağlı değil. Yukarıdaki <b>Bulut depolar → Google ile bağlan</b> ile bağlanınca e-postalar Gmail'den gider.`}</span></div>`;
+  if(false) ic2+=`<div class="rowbtns"><span class="zaman">${gGmail()?`${ic('onay')} Gmail ile gönderilir: <b>${esc(gDurum().hesap||'')}</b> hesabından (gönderen adı yukarıdaki, cevap adresi gönderen kullanıcı).`:`${ic('kilit')} Google hesabı bağlı değil. Yukarıdaki <b>Bulut depolar → Google ile bağlan</b> ile bağlanınca e-postalar Gmail'den gider.`}</span></div>`;
   else if(fe.tur&&fe.tur!=='yok') ic2+=API.acik
     ?`<div class="rowbtns"><button type="button" class="btn" data-act="fep-test" title="${esc(BAGLANTI_YOK)}">${ic('kilit')}Kurulum gerekli</button><span class="zaman">Kurulum bekliyor · bağlı değil. Ayarlar kaydedilir ama henüz e-posta gönderilmez${fe.tur==='smtp'?'; SMTP şifresi de henüz saklanmaz':''}.</span></div>`
     :`<div class="rowbtns"><button type="button" class="btn pri" data-act="fep-test">${ic('onay')}${fe.tur==='smtp'?'Test et ve kaydet':'Yetkilendir'}</button><span class="zaman">${fe.bagli?'Bağlı · '+esc(trh(fe.zaman||'')):'Bağlı değil'}</span></div>`;
@@ -4353,6 +4357,22 @@ async function durumYukle(){
    Şablondan kalan "bağlı" işaretleri gerçek değildir: sunucu modunda hep kapalı gösterilir,
    e-posta "Gönder" de bu yüzden e-posta programını açar. */
 const BAGLANTI_YOK='Gerçek bağlantı henüz kurulmadı. Kurulum için Google Cloud / Microsoft uygulama kaydı ve sunucu entegrasyonu gerekiyor.';
+/* Google Drive bağlama sihirbazı: müşteri Paylaşılan Drive açar, ERP'nin adresini üye ekler, "Kontrol et" der. */
+function driveSihirbazHTML(){
+  const d=gdDurum();
+  if(!d.yapilandirildi) return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">Sunucuda ERP Drive hesabı tanımlı değil (GOOGLE_SERVICE_ACCOUNT)</span></div>`+(gDurum().yapilandirildi?googleSatirHTML():'');
+  if(d.bagli) return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">${ic('onay')} Bağlı · Paylaşılan Drive: <b>${esc(d.driveAd)}</b></span><span class="sp"></span><a class="btn sm" href="https://drive.google.com/drive/folders/${esc(d.driveId)}" target="_blank" rel="noopener">${ic('bag')}Drive'da aç</a><button type="button" class="btn sm" data-act="gd-kes">Bağlantıyı kes</button></div>`;
+  const L=ui.gdListe;
+  return `<div class="gd-sih"><div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">Bağlı değil · 3 adımda bağla</span></div>
+    <ol>
+      <li><b>Paylaşılan Drive aç.</b> Google Drive'da sol menüden <i>Paylaşılan Drive'lar → + Yeni</i>, adı örneğin <b>NetERP</b>. <a href="https://drive.google.com/drive/shared-drives" target="_blank" rel="noopener">Google Drive'ı aç ↗</a></li>
+      <li><b>ERP'yi üye ekle.</b> Drive'ın adına sağ tıkla → <i>Üyeleri yönet</i> → şu adresi yapıştır, rolü <b>İçerik yöneticisi</b> yap, <i>Kişileri bilgilendir</i> işaretini kaldırıp <i>Paylaş</i>:
+        <div class="gd-adres"><code>${esc(d.hesap)}</code><button type="button" class="btn sm" data-act="gd-kopyala">${ic('kopya')}Kopyala</button></div></li>
+      <li><b>Kontrol et.</b> <button type="button" class="btn sm pri" data-act="gd-kontrol">${ic('onay')}Kontrol et ve bağla</button>
+        ${L&&L.length>1?`<div class="gd-liste"><span class="zaman">Birden çok Drive görünüyor, ERP için olanı seç:</span>${L.map(x=>`<button type="button" class="btn sm" data-act="gd-sec" data-id="${esc(x.id)}">${esc(x.ad)}</button>`).join('')}</div>`:''}</li>
+    </ol>
+    <p class="zaman">Dosyalar bu Drive'da <b>NetERP/&lt;proje kodu&gt;</b> klasörlerinde toplanır ve firmaya ait olur (çalışan ayrılsa da kalır). Drive'ın üyeleri dosyaları görür.</p></div>`;
+}
 function googleSatirHTML(){
   const g=gDurum();
   const durum=!g.yapilandirildi?'Sunucu ayarı eksik (GOOGLE_CLIENT_ID / SECRET)':g.kopuk?'Bağlantı düştü · yeniden bağla':g.bagli?`Bağlı · ${esc(g.hesap||'')} · ${[g.drive?'Drive':'',g.gmail?'Gmail':''].filter(Boolean).join(' + ')}`:'Bağlı değil';
@@ -4532,9 +4552,18 @@ async function apiAc(){
   if(dn) toast(dn);
 }
 /* ---- dış bağlantılar (firma hesabı): Google Drive + Gmail. Durum sunucudan okunur, belirteç tarayıcıya gelmez. ---- */
+async function gdBagla(id){
+  try{
+    const v=await apiIstek('/baglanti/gdrive/sec',{method:'POST', govde:{driveId:id}});
+    ui.gdListe=null; S.firma.depo='gdrive'; persist();
+    await baglantiDurumYukle(); render();
+    toast('Google Drive bağlandı: '+v.driveAd+' · varsayılan depo Google Drive yapıldı');
+  }catch(e){ toast(e.message); renderDrawer(); }
+}
 async function baglantiDurumYukle(){ try{ API.baglanti=await apiIstek('/baglanti/durum'); }catch(e){ API.baglanti=null; } }
 const gDurum=()=>(API.baglanti&&API.baglanti.google)||{};
-const gDrive=()=>API.acik&&gDurum().bagli&&gDurum().drive;
+const gdDurum=()=>(API.baglanti&&API.baglanti.gdrive)||{};
+const gDrive=()=>API.acik&&(gdDurum().bagli||(gDurum().bagli&&gDurum().drive));
 const gGmail=()=>API.acik&&gDurum().bagli&&gDurum().gmail;
 // Google izin ekranından dönüş: /?baglanti=google&sonuc=ok|hata|iptal&mesaj=…
 function oauthDonusu(){
@@ -5033,6 +5062,16 @@ function bagla(){
       }
       case 'dosya-indir': dokIndir(S.degerler[+b.dataset.i]); return;
       case 'dosya-paylas': dokPaylas(S.degerler[+b.dataset.i]); return;
+      case 'gd-kopyala': { const a=gdDurum().hesap||''; (navigator.clipboard?navigator.clipboard.writeText(a):Promise.reject()).then(()=>toast('Adres kopyalandı')).catch(()=>prompt('ERP Drive adresi',a)); return; }
+      case 'gd-kontrol': { b.disabled=true; apiIstek('/baglanti/gdrive/suruculer').then(v=>{
+          ui.gdListe=v.suruculer;
+          if(!v.suruculer.length){ b.disabled=false; toast('Henüz paylaşım görünmüyor. Adresi İçerik yöneticisi olarak eklediysen 1-2 dakika bekleyip yeniden dene.'); renderDrawer(); return; }
+          if(v.suruculer.length===1) return gdBagla(v.suruculer[0].id);
+          renderDrawer();
+        }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
+      case 'gd-sec': gdBagla(b.dataset.id); return;
+      case 'gd-kes': { if(!confirm('Google Drive bağlantısı kesilsin mi? Drive\'daki dosyalar silinmez; yeni dosyalar sunucuda saklanır.')) return;
+        apiIstek('/baglanti/gdrive/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ if(S.firma.depo==='gdrive'){ S.firma.depo='yerel'; persist(); } render(); toast('Google Drive bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }
       case 'g-bagla': { b.disabled=true; apiIstek('/baglanti/google/basla',{method:'POST', govde:{}}).then(v=>{ location.href=v.url; }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
       case 'g-kes': { if(!confirm('Google bağlantısı kesilsin mi? Drive\'daki dosyalar silinmez; yeni yüklemeler sunucuya gider, e-postalar e-posta programıyla açılır.')) return;
         apiIstek('/baglanti/google/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ render(); toast('Google bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }

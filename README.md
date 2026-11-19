@@ -49,7 +49,12 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
 - [x] Ayarlar API'si (yönetici)
 - [ ] Arayüzün API'ye bağlanması (sablon.html → modüller)
 - [ ] Dosya deposu adaptörleri (Supabase Storage, disk, NAS)
-- [ ] Google Drive / OneDrive bağlantısı (OAuth). Şu an kurulu değil; arayüz "Kurulum gerekli" gösterir.
+- [x] Google Drive: ERP hizmet hesabı + müşterinin Paylaşılan Drive'ı (Ayarlar → Firma → Bulut depolar sihirbazı).
+  - Satıcı bir kez: Google Cloud'da hizmet hesabı + JSON anahtar → Vercel `GOOGLE_SERVICE_ACCOUNT`.
+  - Müşteri: Paylaşılan Drive açar, hizmet hesabı adresini "İçerik yöneticisi" ekler, "Kontrol et" der.
+  - Hizmet hesaplarının depolama kotası yok; bu yüzden kişisel Drive klasörü değil Paylaşılan Drive kullanılır.
+  - Yedek: kişisel Drive'a OAuth (yalnız `drive.file`, hassas değil). Gmail izni istenmez (hassas izin, Google doğrulaması ister).
+- [ ] OneDrive / SharePoint bağlantısı.
   - Firma hesabında kök klasör **`NetERP`** açılır; her projenin dosyaları proje kodu altında toplanır: `NetERP/PRJ-1048`.
     Proje kodu değişmez olduğu için klasör adı koddur (proje adı değişse de klasör kaymaz); klasör açıklamasına proje adı yazılır.
   - Projedeki kayıtların (servis, CRM…) dosyaları aynı proje klasöründe, kendi kodlarıyla alt klasörde: `NetERP/PRJ-1048/SRV-1001`.

@@ -16,7 +16,9 @@ export const KAPSAM = {
   drive: 'https://www.googleapis.com/auth/drive.file',
   gmail: 'https://www.googleapis.com/auth/gmail.send',
 };
-const KAPSAMLAR = ['openid', 'email', KAPSAM.drive, KAPSAM.gmail];
+// gmail.send hassas izindir, Google doğrulaması olmadan dış hesaplarda "Access blocked" verir; istenmez.
+// E-posta ERP'nin kendi gönderim adresinden gider. drive.file hassas değildir.
+const KAPSAMLAR = ['openid', 'email', KAPSAM.drive];
 const KASA = 'google';
 export const KOK_KLASOR = 'NetERP';
 const KLASOR_TIPI = 'application/vnd.google-apps.folder';

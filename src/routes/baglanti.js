@@ -10,6 +10,7 @@ import { belirtecUret, belirtecCoz } from '../auth/oturum.js';
 import { yonetici, okuyabilir } from '../kurallar/yetki.js';
 import { sifrele, coz } from '../baglanti/kasa.js';
 import * as google from '../baglanti/google.js';
+import * as drive from '../baglanti/driveHesap.js';
 
 const r = Router();
 const PARCA = 3 * 1310720; // 3,75 MB: Google (256 KB) ve OneDrive (320 KB) katı; Vercel 4,5 MB istek sınırının altında
@@ -17,9 +18,12 @@ const AZAMI_BOYUT = 5 * 1024 ** 3;
 
 // ---------- durum ----------
 r.get('/baglanti/durum', async (req, res) => {
-  const g = await google.durum(req.db);
+  const [g, d] = await Promise.all([google.durum(req.db), drive.durum(req.db)]);
   // Yönetici olmayanlara hesap ayrıntısı gerekmez; yalnız ne kullanılabildiği
-  res.json({ google: yonetici(req.kullanici) ? g : { yapilandirildi: g.yapilandirildi, bagli: g.bagli, drive: g.drive, gmail: g.gmail } });
+  res.json(yonetici(req.kullanici) ? { google: g, gdrive: d } : {
+    google: { yapilandirildi: g.yapilandirildi, bagli: g.bagli, drive: g.drive, gmail: g.gmail },
+    gdrive: { bagli: d.bagli, driveAd: d.driveAd },
+  });
 });
 
 // ---------- Google: bağlan / dönüş / kes ----------
@@ -53,6 +57,20 @@ r.post('/baglanti/google/kes', yoneticiGerekli, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ---------- Google Drive: Paylaşılan Drive + ERP hizmet hesabı (sihirbaz) ----------
+r.get('/baglanti/gdrive/suruculer', yoneticiGerekli, async (req, res) => {
+  res.json({ hesap: drive.hesapEposta(), suruculer: await drive.suruculer() });
+});
+r.post('/baglanti/gdrive/sec', yoneticiGerekli, async (req, res) => {
+  const v = z.object({ driveId: z.string().trim().min(5).max(100) }).parse(req.body);
+  const k = await drive.baglan(req.db, v.driveId, req.kullanici.id);
+  res.json({ ok: true, driveId: k.driveId, driveAd: k.driveAd, klasor: drive.klasorAdresi(k.kokId) });
+});
+r.post('/baglanti/gdrive/kes', yoneticiGerekli, async (req, res) => {
+  await drive.kes(req.db);
+  res.json({ ok: true });
+});
+
 // ---------- dosya yükleme (Google Drive) ----------
 const BaslaV = z.object({
   depo: z.enum(['gdrive']),
@@ -73,10 +91,11 @@ r.post('/dosya/yukle/basla', async (req, res) => {
     if (!p) throw new HttpHata(404, 'Proje bulunamadı');
     kod = p.kod; projeAd = p.ad;
   }
-  const klasorId = await google.projeKlasoru(req.db, kod, projeAd);
-  const uri = await google.yuklemeBaslat(req.db, { ad: v.ad, tip: v.tip, boyut: v.boyut, klasorId });
+  const paylasimli = drive.yapilandirildi() && !!(await drive.ayar(req.db));
+  const klasorId = paylasimli ? await drive.projeKlasoru(req.db, kod, projeAd) : await google.projeKlasoru(req.db, kod, projeAd);
+  const uri = paylasimli ? await drive.yuklemeBaslat({ ad: v.ad, tip: v.tip, boyut: v.boyut, klasorId }) : await google.yuklemeBaslat(req.db, { ad: v.ad, tip: v.tip, boyut: v.boyut, klasorId });
   // Oturum adresi şifrelenip istemciye verilir; yalnız bu kullanıcı, 6 saat içinde kullanabilir.
-  const oturum = sifrele({ uri, toplam: v.boyut, uid: u.id, f: req.firma.sub, exp: Date.now() + 6 * 3600e3 });
+  const oturum = sifrele({ uri, toplam: v.boyut, uid: u.id, f: req.firma.sub, exp: Date.now() + 6 * 3600e3, paylasimli });
   res.json({ oturum, parca: PARCA, klasor: `${google.KOK_KLASOR}/${kod || 'Genel'}` });
 });
 
@@ -90,7 +109,9 @@ r.post('/dosya/yukle/parca', express.raw({ type: 'application/octet-stream', lim
   const s = await google.parcaGonder(o.uri, parca, bas, o.toplam);
   if (!s.bitti) return res.json({ bitti: false, alinan: s.alinan });
   let paylasildi = false;
-  try { paylasildi = await google.alandaPaylas(req.db, s.dosya.id); } catch (e) { console.error('drive paylas:', e.message); }
+  // Paylaşılan Drive'da dosyayı Drive üyeleri görür; kişisel (OAuth) yüklemede Workspace alanına bağlantıyla açılır.
+  if (o.paylasimli) paylasildi = true;
+  else try { paylasildi = await google.alandaPaylas(req.db, s.dosya.id); } catch (e) { console.error('drive paylas:', e.message); }
   res.json({ bitti: true, dosya: { id: s.dosya.id, ad: s.dosya.name, boyut: Number(s.dosya.size || o.toplam), tip: s.dosya.mimeType, url: s.dosya.webViewLink, paylasildi } });
 });
 

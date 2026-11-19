@@ -72,7 +72,9 @@ test('izin adresi: offline erişim, onay, doğru kapsamlar ve dönüş adresi', 
   assert.equal(u.searchParams.get('access_type'), 'offline');
   assert.equal(u.searchParams.get('prompt'), 'consent');
   assert.equal(u.searchParams.get('state'), 'DURUM');
-  for (const k of [google.KAPSAM.drive, google.KAPSAM.gmail]) assert.ok(u.searchParams.get('scope').split(' ').includes(k));
+  const kapsam = u.searchParams.get('scope').split(' ');
+  assert.ok(kapsam.includes(google.KAPSAM.drive));
+  assert.ok(!kapsam.includes(google.KAPSAM.gmail), 'hassas Gmail izni istenmemeli (Access blocked)');
 });
 
 test('kod takası: belirteç ve hesap kasaya yazılır', async () => {
@@ -151,4 +153,83 @@ test('Gmail: MIME UTF-8 başlık ve gövde, Reply-To kullanıcı, satır sonu en
   const konu = bas.match(/^Subject: =\?UTF-8\?B\?(.+)\?=$/m) || bas.match(/^Subject: (.+)$/m);
   assert.ok(konu);
   assert.equal(Buffer.from(govde.replace(/\r\n/g, ''), 'base64').toString('utf8'), 'Merhaba, ölçüm şöyle.');
+});
+
+// ---------------- ERP hizmet hesabı + Paylaşılan Drive ----------------
+import crypto from 'node:crypto';
+const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+const drive = await import('../src/baglanti/driveHesap.js');
+function saKur() {
+  process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({ client_email: 'neterp-drive@neterp.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }), token_uri: 'https://oauth2.googleapis.com/token' });
+  drive._sifirla();
+}
+const belirtecCevabi = { url: /oauth2\.googleapis\.com\/token/, durum: 200, govde: { access_token: 'SA1', expires_in: 3600 } };
+
+test('hizmet hesabı: JWT RS256 doğru imzalı, kapsam drive; belirteç önbellekte', async () => {
+  saKur();
+  fetchKur([belirtecCevabi, { url: /\/drives\?/, durum: 200, govde: { drives: [{ id: 'D1', name: 'NetERP' }] } }, { url: /\/drives\?/, durum: 200, govde: { drives: [] } }]);
+  assert.deepEqual(await drive.suruculer(), [{ id: 'D1', ad: 'NetERP' }]);
+  const jwt = istekler[0].sec.body.get('assertion');
+  const [h, p, im] = jwt.split('.');
+  assert.ok(crypto.verify('RSA-SHA256', Buffer.from(h + '.' + p), publicKey, Buffer.from(im, 'base64url')));
+  const yuk = JSON.parse(Buffer.from(p, 'base64url').toString());
+  assert.equal(yuk.iss, 'neterp-drive@neterp.iam.gserviceaccount.com');
+  assert.equal(yuk.scope, 'https://www.googleapis.com/auth/drive');
+  assert.equal(istekler[1].sec.headers.authorization, 'Bearer SA1');
+  await drive.suruculer();
+  assert.equal(istekler.filter((x) => /token/.test(x.url)).length, 1, 'ikinci çağrıda yeniden belirteç alınmamalı');
+});
+
+test('hizmet hesabı tanımlı değilse anlaşılır hata', async () => {
+  delete process.env.GOOGLE_SERVICE_ACCOUNT; drive._sifirla();
+  assert.equal(drive.yapilandirildi(), false);
+  await assert.rejects(drive.suruculer(), /GOOGLE_SERVICE_ACCOUNT/);
+});
+
+test('sürücü seçimi: yazma yetkisi yoksa reddedilir; varsa NetERP kökü kurulur ve kaydedilir', async () => {
+  saKur();
+  const db = sahteDb();
+  fetchKur([belirtecCevabi, { url: /\/drives\/D1\?/, durum: 200, govde: { id: 'D1', name: 'NetERP', capabilities: { canAddChildren: false } } }]);
+  await assert.rejects(drive.baglan(db, 'D1', 'u0'), /İçerik yöneticisi/);
+  fetchKur([
+    { url: /\/drives\/D1\?/, durum: 200, govde: { id: 'D1', name: 'NetERP', capabilities: { canAddChildren: true } } },
+    { url: /\/files\?/, durum: 200, govde: { files: [] } },
+    { url: /\/files\?/, durum: 200, govde: { id: 'KOK' } },
+  ]);
+  const k = await drive.baglan(db, 'D1', 'u0');
+  assert.deepEqual([k.driveId, k.driveAd, k.kokId], ['D1', 'NetERP', 'KOK']);
+  const ara = new URL(istekler[1].url).searchParams;
+  assert.deepEqual([ara.get('corpora'), ara.get('driveId'), ara.get('supportsAllDrives'), ara.get('includeItemsFromAllDrives')], ['drive', 'D1', 'true', 'true']);
+  assert.equal(new URL(istekler[2].url).searchParams.get('supportsAllDrives'), 'true');
+  assert.deepEqual(JSON.parse(istekler[2].sec.body).parents, ['D1']);
+  const d = await drive.durum(db);
+  assert.deepEqual([d.bagli, d.driveAd, d.hesap], [true, 'NetERP', 'neterp-drive@neterp.iam.gserviceaccount.com']);
+});
+
+test('üye olunmayan sürücü: 404 anlaşılır mesaj', async () => {
+  saKur();
+  fetchKur([belirtecCevabi, { url: /\/drives\/YOK\?/, durum: 404, govde: { error: { message: 'Shared drive not found' } } }]);
+  await assert.rejects(drive.baglan(sahteDb(), 'YOK', 'u0'), /üye olarak eklediğinden/);
+});
+
+test('Paylaşılan Drive\'a yükleme: NetERP/<kod> klasörü ve supportsAllDrives ile resumable oturum', async () => {
+  saKur();
+  const db = sahteDb();
+  await kasaYaz(db, 'gdrive-paylasimli', { driveId: 'D1', driveAd: 'NetERP', kokId: 'KOK' });
+  fetchKur([
+    belirtecCevabi,
+    { url: /\/files\?/, durum: 200, govde: { files: [{ id: 'KOK' }] } },
+    { url: /\/files\?/, durum: 200, govde: { files: [] } },
+    { url: /\/files\?/, durum: 200, govde: { id: 'PRJ' } },
+    { url: /upload\/drive\/v3\/files\?/, durum: 200, headers: { location: 'https://upload/oturum1' } },
+  ]);
+  const klasor = await drive.projeKlasoru(db, 'PRJ-1048', 'Kalıp Tasarımı');
+  assert.equal(klasor, 'PRJ');
+  assert.deepEqual(JSON.parse(istekler[3].sec.body), { name: 'PRJ-1048', mimeType: 'application/vnd.google-apps.folder', parents: ['KOK'], description: 'Kalıp Tasarımı' });
+  const uri = await drive.yuklemeBaslat({ ad: 'çizim.pdf', tip: 'application/pdf', boyut: 1234, klasorId: klasor });
+  assert.equal(uri, 'https://upload/oturum1');
+  const y = new URL(istekler[4].url).searchParams;
+  assert.deepEqual([y.get('uploadType'), y.get('supportsAllDrives')], ['resumable', 'true']);
+  assert.equal(istekler[4].sec.headers['x-upload-content-length'], '1234');
+  assert.deepEqual(JSON.parse(istekler[4].sec.body), { name: 'çizim.pdf', parents: ['PRJ'] });
 });
