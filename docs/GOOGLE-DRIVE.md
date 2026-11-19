@@ -72,6 +72,26 @@ Drive'ım
 
 Sonrası ERP içindedir (bölüm 4): Ayarlar → Firma → Bulut depolar → **Kişisel Drive'ı bağla** → izin ekranında **Drive kutusunu işaretle** → Devam → Varsayılan depo otomatik Google Drive olur → bir projeye dosya yükleyip Drive'da `NetERP/PRJ-…` klasörüne bakılır.
 
+### 3.0b İlk kurulum listesi — Google Workspace (kurumsal) hesabıyla
+
+İlk verilen liste. **Firma Google Workspace yönetici hesabı olanlar içindir** (Internal seçilebilir, Google incelemesi ve 7 günlük sınır olmaz). Kurumsal hesabı olmayan geliştirici için 3.0 uygulanır. Sonradan değişen yerler her adımın altında ➜ ile işaretli.
+
+1. **Google Cloud'da proje aç.** Firma Google Workspace yönetici hesabınla https://console.cloud.google.com adresine gir. Üstteki proje seçiciye tıkla → "Yeni proje" → adı: `NetERP` → Oluştur. Sonra üstten bu projeyi seçili hale getir.
+2. **Drive ve Gmail API'lerini aç.** Sol menü → "APIs & Services" → "Library". Arama kutusuna "Google Drive API" yaz, aç, "Enable" de. Aynısını "Gmail API" için yap.
+   ➜ *Gmail API artık gerekmiyor* (e-posta ERP'nin kendi adresinden gidecek). Yalnız Google Drive API.
+3. **İzin ekranını ayarla.** Sol menü → "Google Auth Platform" (bazı ekranlarda "OAuth consent screen") → "Get started". Uygulama adı: `NetERP`, destek e-postası: kendi adresin. Audience (kitle) kısmında mutlaka **"Internal"** seç: böylece Google incelemesi gerekmez ve bağlantı 7 günde bir düşmez. Kaydet.
+   ➜ Internal yalnız Workspace kurumuna bağlı hesapta seçilebilir. Seçilemiyorsa **External** + 3.0'daki Branding ve Publish adımları.
+4. **İzinleri (scope) ekle.** Aynı bölümde "Data access" → "Add or remove scopes". Listeden şunları işaretle: `.../auth/drive.file`, `.../auth/gmail.send`, `openid`, `.../auth/userinfo.email`. Listede bulamazsan alttaki "Manually add scopes" kutusuna tam adreslerini yapıştır: `https://www.googleapis.com/auth/drive.file` ve `https://www.googleapis.com/auth/gmail.send`. Kaydet.
+   ➜ **`gmail.send` eklenmez** (hassas izin; External uygulamada "Access blocked: … has not completed the Google verification process" hatasının sebebiydi). Kod da artık bu izni istemiyor.
+5. **OAuth istemcisi oluştur.** "Clients" (ya da "Credentials" → "Create credentials" → "OAuth client ID"). Application type: **Web application**, Name: `NetERP Vercel`. "Authorized redirect URIs" altında "Add URI" de ve tam olarak şunu yaz: `https://yontem-erp.vercel.app/api/baglanti/google/donus` → Create. Açılan pencerede Client ID ve Client secret görünür; pencereyi kapatmadan bir sonraki adıma geç.
+   ➜ Değişiklik yok.
+6. **İki değeri Vercel'e gir.** https://vercel.com → `yontem-erp` projesi → Settings → Environment Variables. "Add New" ile ilki: Key = `GOOGLE_CLIENT_ID`, Value = Client ID, Environments: Production. İkincisi: Key = `GOOGLE_CLIENT_SECRET`, Value = Client secret, Production (Sensitive işaretleyebilirsin). Save. Secret'ı sohbete yapıştırma.
+   ➜ Değişiklik yok.
+7. **Bana "tamam" yaz.** Vercel yeni değişkenleri ancak yeni yayında okur; yayın yenilenir (1–2 dakika). Sonra ERP'de Ayarlar → Firma → Bulut depolar'daki düğme "Google ile bağlan" olur.
+   ➜ Yayını yenilemek için Vercel'de *Deployments → son yayın → Redeploy* ya da depoya bir commit. Düğmenin adı artık **"Kişisel Drive'ı bağla"**.
+8. **ERP'de bağla ve ayarla.** "Google ile bağlan" → firma Google hesabını seç → izin ver. Ardından aynı sayfada: Varsayılan dosya deposu = Google Drive; E-posta → Sistem gönderim hesabı = Google (şu an Microsoft seçili), Adres = bağladığın Google hesabı. Kaydet ve bir projeye dosya yükleyerek dene.
+   ➜ İzin ekranında **Drive kutusu işaretlenmeli** (işaretlenmezse Google yalnız `openid email` verir, ERP kırmızı "Drive izni verilmedi" gösterir). Varsayılan depo bağlanınca **otomatik** Google Drive olur. **E-posta adımı geçersiz**: Gmail ile gönderim kaldırıldı; e-posta ayrı iş (ERP'nin kendi gönderim adresi).
+
 ### 3.1 Google Cloud projesi
 1. https://console.cloud.google.com → yeni proje: **NetERP**.
 2. *APIs & Services → Library* → **Google Drive API** → Enable.
