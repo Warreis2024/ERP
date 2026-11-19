@@ -269,7 +269,11 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .etag:has(button){padding-right:4px}
 .etag button{all:unset;cursor:pointer;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:13px;line-height:1;background:color-mix(in srgb,#fff 28%,transparent)}
 .etag button:hover{background:color-mix(in srgb,#fff 48%,transparent)}
-.form .etiket-ekle{display:flex;align-items:center;gap:8px}
+.form .etiket-ekle{display:flex;align-items:center;gap:8px;position:relative}
+.renk-sec{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:6px;cursor:pointer}
+.renk-sec::before{content:"";display:block;width:100%;height:100%;border-radius:5px;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.renk-sec:hover,.renk-sec[aria-expanded=true]{border-color:var(--brand)}
+.palet-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.14)}
 .form .etiket-ekle input:not([type=color]){flex:1 1 auto;width:auto;min-width:0;height:36px}
 .form .etiket-ekle input[type=color]{flex:none}
 .form .etiket-ekle .btn{flex:none;height:36px}
@@ -1918,7 +1922,7 @@ function cokluHTML(f){
       const i=rows.indexOf(r);
       return `<span class="etag" style="--c:${esc(r.renk||'#0070C0')};color:${yaziRengi(r.renk||'#0070C0')}">${esc(r.metin)}<button type="button" data-act="satir-sil" data-uid="${f.uid}" data-i="${i}" aria-label="Kaldır">×</button></span>`;
     }).join('');
-    return `<div class="etiketler">${chipler||'<span class="zaman">Etiket yok</span>'}</div><div class="fn-ekle etiket-ekle"><input placeholder="Etiket adı" aria-label="Etiket tanımı"><button type="button" class="btn" data-act="etiket-ekle" data-uid="${f.uid}">${ic('arti')}Ekle</button></div><div class="palet" role="radiogroup" aria-label="Etiket rengi">${PALET16.map((c,j)=>`<label style="--c:${c}" title="${c}"><input type="radio" name="pal-${f.uid}" value="${c}" ${j===9?'checked':''}></label>`).join('')}</div>`;
+    return `<div class="etiketler">${chipler||'<span class="zaman">Etiket yok</span>'}</div><div class="fn-ekle etiket-ekle"><button type="button" class="renk-sec" data-act="renk-ac" style="--c:${(ui.etiketRenk||{})[f.uid]||PALET16[9]}" title="Etiket rengi" aria-label="Etiket rengi seç" aria-haspopup="true"></button><input placeholder="Etiket adı" aria-label="Etiket tanımı"><button type="button" class="btn" data-act="etiket-ekle" data-uid="${f.uid}">${ic('arti')}Ekle</button><div class="palet palet-pop" role="radiogroup" aria-label="Etiket rengi" hidden>${PALET16.map((c,j)=>`<label style="--c:${c}" title="${c}"><input type="radio" name="pal-${f.uid}" value="${c}" ${c===((ui.etiketRenk||{})[f.uid]||PALET16[9])?'checked':''}></label>`).join('')}</div></div>`;
   }
   if(f.tip==='kontrol'){
     const g=fnGrup(f);
@@ -4747,6 +4751,8 @@ function bagla(){
   });
   app.addEventListener('change', e=>{
     const t=e.target;
+    // Etiket rengi seçildi: kareyi güncelle, paleti kapat
+    if(t.type==='radio'&&t.closest('.palet-pop')){ const k=t.closest('.etiket-ekle'); k?.querySelector('.renk-sec')?.style.setProperty('--c', t.value); t.closest('.palet-pop').hidden=true; k?.querySelector('input:not([type=radio])')?.focus(); return; }
     if(t.dataset.kisiEkle){ if(!t.value) return; formDomOku(); const alan=t.dataset.kisiEkle==='ekip-sec'?'ekip':'yonetici'; ui.form[alan]=[...(ui.form[alan]||[]), t.value]; renderDrawer(); return; }
     if(t.dataset.stok){ formDomOku(); renderDrawer(); return; }
     if(t.dataset.mesajResim && t.files.length){
@@ -5031,11 +5037,13 @@ function bagla(){
       }
       case 'depo-sil': S.depolar=S.depolar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return;
       case 'eposta-iptal': ui.eposta=null; renderDrawer(); return;
+      case 'renk-ac': { const p=b.closest('.etiket-ekle')?.querySelector('.palet-pop'); if(p){ p.hidden=!p.hidden; if(!p.hidden) p.querySelector('input:checked')?.focus(); } return; }
       case 'etiket-ekle': {
         formDomOku();
         const kutu=b.closest('.etiket-ekle'); if(!kutu) return;
         const ad=(kutu.querySelector('input:not([type=color])')?.value||'').trim();
         const renk=kutu.parentElement.querySelector('.palet input:checked')?.value||'#0070C0';
+        ui.etiketRenk=ui.etiketRenk||{}; ui.etiketRenk[b.dataset.uid]=renk; // sonraki etiket aynı renkle başlasın
         if(!ad) return toast('Etiket tanımı gerekli');
         const f=fnBul(b.dataset.uid); if(!f||!ui.form) return;
         if(!ui.form.coklu[f.uid]) ui.form.coklu[f.uid]=[];
