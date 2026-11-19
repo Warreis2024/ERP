@@ -356,6 +356,8 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .zed:empty:before{content:attr(data-ph);color:var(--ph)}
 .zed a,.zgos a{color:var(--accent)}
 .zed table,.zgos table{border-collapse:collapse;width:100%;margin:6px 0}
+.zed,.zgos{overflow-x:auto}
+.zed td,.zed th{word-break:break-word}
 .zed td,.zed th,.zgos td,.zgos th{border:1px solid var(--line);padding:4px 6px;min-width:28px;vertical-align:top;text-transform:none;letter-spacing:0;font-size:13px;color:var(--fg);background:transparent}
 .zed img,.zgos img{max-width:100%;height:auto;border-radius:6px}
 .zed img{cursor:pointer}.zed img.zsecili{outline:3px solid var(--brand);outline-offset:2px}
@@ -3163,6 +3165,16 @@ function renderMain(){
 }
 const Z_FONT=['Arial','Calibri','Georgia','Times New Roman','Verdana','Tahoma','Courier New'];
 const Z_BOY=['12px','14px','16px','18px','20px','24px','32px'];
+// Tablo/hücre için yalnız px genişlik-yükseklik tutulur (sürükleyerek ayarlanır)
+function zBoyut(el){
+  const tg=el.tagName; if(tg!=='TABLE'&&tg!=='TD'&&tg!=='TH') return '';
+  const px=(v,min,max)=>{ const m=/^(\d+(?:\.\d+)?)px$/.exec((v||'').trim()); return m?Math.min(max,Math.max(min,Math.round(+m[1]))):0; };
+  const tut=[];
+  const gw=px(el.style.width, 20, 3000); if(gw) tut.push('width:'+gw+'px');
+  if(tg==='TABLE'){ if(gw&&el.style.tableLayout==='fixed') tut.push('table-layout:fixed'); }
+  else { const gh=px(el.style.height, 18, 2000); if(gh) tut.push('height:'+gh+'px'); }
+  return tut.join(';');
+}
 function zTemiz(html){
   const d=document.createElement('div'); d.innerHTML=html||'';
   const izin2=new Set(['P','BR','B','STRONG','I','EM','U','S','STRIKE','DEL','UL','OL','LI','A','H2','H3','BLOCKQUOTE','DIV','SPAN','TABLE','THEAD','TBODY','TR','TH','TD','IMG']);
@@ -3186,7 +3198,9 @@ function zTemiz(html){
       else el.remove();
       return;
     }
+    const boyut=zBoyut(el);
     [...el.attributes].forEach(a=>{ if(a.name!=='href' && !((el.tagName==='TD'||el.tagName==='TH') && (a.name==='colspan'||a.name==='rowspan'))) el.removeAttribute(a.name); });
+    if(boyut) el.setAttribute('style', boyut);
     if(el.tagName==='A' && !/^(https?:|mailto:)/i.test(el.getAttribute('href')||'')) el.removeAttribute('href');
   });
   const cik=d.innerHTML;
@@ -3244,6 +3258,51 @@ function zenginKur(){
       if(secili&&(e.key==='Delete'||e.key==='Backspace')){ e.preventDefault(); secili.remove(); secili=null; yaz(); }
       else if(secili&&e.key!=='Shift') secimiKaldir();
     });
+    // Tablo: hücre kenarından sürükleyerek sütun genişliği / satır yüksekliği
+    const KENAR=5;
+    const kenar=(e)=>{
+      const td=e.target.closest&&e.target.closest('td,th'); if(!td||!ed.contains(td)) return null;
+      const r=td.getBoundingClientRect();
+      if(r.right-e.clientX<=KENAR) return {td, yon:'sutun'};
+      if(r.bottom-e.clientY<=KENAR) return {td, yon:'satir'};
+      return null;
+    };
+    let surukle=null;
+    ed.addEventListener('mousemove', e=>{ if(surukle||ed.contentEditable==='false') return; const k=kenar(e); ed.style.cursor=k?(k.yon==='sutun'?'col-resize':'row-resize'):''; });
+    ed.addEventListener('mousedown', e=>{
+      if(ed.contentEditable==='false') return;
+      const k=kenar(e); if(!k) return;
+      e.preventDefault();
+      const tablo=k.td.closest('table');
+      if(k.yon==='sutun'){
+        // tüm sütunların o anki genişliği sabitlenir; tablo genişliği sütunların toplamı olur
+        const ilk=tablo.rows[0]; if(!ilk) return;
+        const gen=[...ilk.cells].map(c=>c.getBoundingClientRect().width);
+        tablo.style.tableLayout='fixed';
+        [...tablo.rows].forEach(tr=>[...tr.cells].forEach((c,i)=>{ if(gen[i]!=null) c.style.width=Math.round(gen[i])+'px'; }));
+        tablo.style.width=Math.round(gen.reduce((a,b)=>a+b,0))+'px';
+        surukle={yon:'sutun', tablo, i:k.td.cellIndex, x:e.clientX, w:gen[k.td.cellIndex], tw:gen.reduce((a,b)=>a+b,0)};
+      } else {
+        const tr=k.td.parentNode;
+        surukle={yon:'satir', tr, y:e.clientY, h:tr.getBoundingClientRect().height};
+      }
+      document.body.style.cursor=k.yon==='sutun'?'col-resize':'row-resize';
+    });
+    const surukleBit=()=>{ if(!surukle) return; surukle=null; document.body.style.cursor=''; yaz(); src.dispatchEvent(new Event('change',{bubbles:true})); };
+    const surukleHareket=e=>{
+      if(!surukle) return;
+      if(!ed.isConnected){ document.removeEventListener('mousemove', surukleHareket); document.removeEventListener('mouseup', surukleBit); return; }
+      if(surukle.yon==='sutun'){
+        const w=Math.max(24, Math.round(surukle.w+e.clientX-surukle.x));
+        [...surukle.tablo.rows].forEach(tr=>{ const c=tr.cells[surukle.i]; if(c) c.style.width=w+'px'; });
+        surukle.tablo.style.width=Math.round(surukle.tw-surukle.w+w)+'px';
+      } else {
+        const h=Math.max(20, Math.round(surukle.h+e.clientY-surukle.y));
+        [...surukle.tr.cells].forEach(c=>{ c.style.height=h+'px'; });
+      }
+    };
+    document.addEventListener('mousemove', surukleHareket);
+    document.addEventListener('mouseup', surukleBit);
     const hucre=()=>{ let n=getSelection().anchorNode; while(n&&n!==ed){ if(n.nodeName==='TD'||n.nodeName==='TH') return n; n=n.parentNode; } return null; };
     const komut={bold:'bold',italic:'italic',underline:'underline',strike:'strikeThrough',ul:'insertUnorderedList',ol:'insertOrderedList'};
     w.querySelectorAll('button[data-z]').forEach(b=>{
