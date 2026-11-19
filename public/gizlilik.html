@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gizlilik Politikası · NetERP</title>
+<style>
+  :root{--fg:#1d2433;--muted:#5b6475;--brand:#2563eb;--bg:#f7f8fb;--cizgi:#e4e7ee}
+  body{margin:0;font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fg);background:var(--bg)}
+  .kap{max-width:780px;margin:0 auto;padding:40px 20px 60px}
+  a{color:var(--brand)} h1{font-size:28px;margin:24px 0 4px} h2{font-size:19px;margin:30px 0 8px}
+  .tarih{color:var(--muted);margin:0 0 24px} ul{padding-left:20px} li{margin:4px 0}
+  .kutu{background:#fff;border:1px solid var(--cizgi);border-radius:10px;padding:14px 16px}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--cizgi);color:var(--muted);font-size:14px;display:flex;gap:16px;flex-wrap:wrap}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="kap">
+  <a href="/tanitim.html">← NetERP</a>
+  <h1>Gizlilik Politikası</h1>
+  <p class="tarih">Son güncelleme: 20 Kasım 2026</p>
+
+  <p>Bu politika, IQ-Sense tarafından sunulan <b>NetERP</b> yazılımının (“NetERP”, “biz”) kullanıcı verilerini nasıl topladığını, kullandığını, sakladığını ve koruduğunu açıklar. NetERP'yi kullanan firma (“Firma”), kendi çalışanlarının ve kayıtlarının verisinin sahibidir; NetERP bu verileri Firma adına işler.</p>
+
+  <h2>1. Topladığımız veriler</h2>
+  <ul>
+    <li><b>Hesap bilgileri:</b> ad, e-posta, ünvan, departman, profil fotoğrafı; şifreler düz metin olarak değil, tek yönlü özet (argon2) olarak saklanır.</li>
+    <li><b>İş kayıtları:</b> Firma kullanıcılarının NetERP'ye girdiği proje, iş, servis, müşteri, teklif, mali hareket ve doküman kayıtları ile bunların değişiklik geçmişi (log).</li>
+    <li><b>Güvenlik kayıtları:</b> giriş zamanı, IP adresi ve tarayıcı bilgisi (hesap güvenliği ve kilitleme için).</li>
+  </ul>
+
+  <h2>2. Google kullanıcı verileri (Google Drive)</h2>
+  <div class="kutu">
+    <p>Firma yöneticisi NetERP'yi bir Google hesabına bağlarsa NetERP yalnız <code>https://www.googleapis.com/auth/drive.file</code> iznini, ayrıca hesabı tanımak için <code>openid</code> ve <code>email</code> bilgisini ister.</p>
+    <ul>
+      <li><b>Neye erişiriz:</b> yalnız NetERP'nin bu hesapta kendi oluşturduğu <i>NetERP</i> klasörü, alt klasörleri ve oraya yüklediği dosyalar. Drive'daki diğer dosyalarınızı göremez, okuyamaz, değiştiremeyiz.</li>
+      <li><b>Ne için kullanırız:</b> kullanıcıların NetERP kayıtlarına eklediği dosyaları bu klasöre yüklemek ve kayıttan açılabilmeleri için dosya bağlantısını kayda yazmak. Bağlı hesabın e-posta adresi yalnız Ayarlar ekranında "bağlı hesap" olarak gösterilir.</li>
+      <li><b>Nasıl saklarız:</b> Google'ın verdiği erişim ve yenileme belirteçleri sunucuda AES-256-GCM ile şifrelenerek saklanır; tarayıcıya hiç gönderilmez. Dosyaların içeriği NetERP sunucularında saklanmaz, yalnız Google Drive'dadır.</li>
+      <li><b>Paylaşmayız:</b> Google kullanıcı verilerini hiçbir üçüncü tarafa satmaz, kiralamaz, reklam ya da profil çıkarma amacıyla kullanmaz, aktarmayız. Bu veriler yapay zekâ modellerinin eğitiminde kullanılmaz. İnsanlar bu verileri okumaz; yalnız güvenlik incelemesi ya da yasal zorunluluk hâlinde ve kullanıcının açık izniyle istisna olabilir.</li>
+      <li><b>Bağlantıyı kaldırma:</b> Firma yöneticisi Ayarlar → Firma → Bulut depolar'dan "Bağlantıyı kes" diyerek ya da Google hesabının <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">üçüncü taraf erişimleri</a> sayfasından izni istediği an geri alabilir. Bağlantı kesilince belirteçler sunucudan silinir; Drive'daki dosyalar kullanıcıda kalır.</li>
+    </ul>
+    <p lang="en" style="margin:10px 0 0"><i>NetERP's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements.</i></p>
+  </div>
+
+  <h2>3. Verilerin kullanımı</h2>
+  <p>Veriler yalnız NetERP hizmetini sunmak, hesap güvenliğini sağlamak ve Firma'nın talep ettiği destek için kullanılır. Reklam amaçlı kullanılmaz ve satılmaz.</p>
+
+  <h2>4. Saklama ve güvenlik</h2>
+  <ul>
+    <li>Veriler şifreli bağlantı (HTTPS) üzerinden iletilir. Veritabanı Supabase'in Avrupa Birliği (Frankfurt) bölgesinde saklanır; uygulama Vercel altyapısında çalışır.</li>
+    <li>Her Firma'nın verisi diğer firmalardan ayrı tutulur; kullanıcılar yalnız yetkili oldukları modül ve alanları görür.</li>
+    <li>Kayıtlar, Firma hizmeti kullandığı sürece saklanır. Firma hizmeti sonlandırdığında, yasal saklama yükümlülükleri dışındaki veriler talep üzerine silinir.</li>
+  </ul>
+
+  <h2>5. Haklarınız</h2>
+  <p>6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında verilerinize erişme, düzeltilmesini ya da silinmesini isteme haklarınız vardır. Talepleriniz için önce çalıştığınız Firma'nın yöneticisine, ayrıca bize başvurabilirsiniz.</p>
+
+  <h2>6. İletişim</h2>
+  <p>IQ-Sense · <a href="mailto:admin@iq-sense.com.tr">admin@iq-sense.com.tr</a></p>
+
+  <footer>
+    <a href="/tanitim.html">Ana sayfa</a>
+    <a href="/kosullar.html">Kullanım Koşulları</a>
+  </footer>
+</div>
+</body>
+</html>

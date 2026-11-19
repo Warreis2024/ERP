@@ -282,6 +282,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .gd-sih ol{margin:8px 0 6px 18px;padding:0;display:grid;gap:10px;font-size:13px}.gd-sih li{line-height:1.5}
 .gd-adres{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}.gd-adres code{background:var(--surface-2);padding:5px 8px;border-radius:6px;font-size:12px;word-break:break-all}
 .gd-yardim{margin-top:6px;font-size:12.5px}.gd-yardim summary{cursor:pointer;color:var(--brand);font-weight:600}.gd-yardim p{margin:6px 0;color:var(--muted)}
+.gd-kisisel{border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
 .gd-liste{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .aralik{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:420px}.aralik label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
 .fiyat{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;max-width:420px}
@@ -4362,6 +4363,7 @@ const BAGLANTI_YOK='Gerçek bağlantı henüz kurulmadı. Kurulum için Google C
 function driveSihirbazHTML(){
   const d=gdDurum();
   if(!d.yapilandirildi) return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">Sunucuda ERP Drive hesabı tanımlı değil (GOOGLE_SERVICE_ACCOUNT)</span></div>`+(gDurum().yapilandirildi?googleSatirHTML():'');
+  if(!d.bagli&&gDurum().bagli) return googleSatirHTML();
   if(d.bagli) return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">${ic('onay')} Bağlı · Paylaşılan Drive: <b>${esc(d.driveAd)}</b></span><span class="sp"></span><a class="btn sm" href="https://drive.google.com/drive/folders/${esc(d.driveId)}" target="_blank" rel="noopener">${ic('bag')}Drive'da aç</a><button type="button" class="btn sm" data-act="gd-kes">Bağlantıyı kes</button></div>`;
   const L=ui.gdListe;
   return `<div class="gd-sih"><div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">Bağlı değil · 3 adımda bağla</span></div>
@@ -4377,15 +4379,16 @@ function driveSihirbazHTML(){
       <li><b>Kontrol et.</b> <button type="button" class="btn sm pri" data-act="gd-kontrol">${ic('onay')}Kontrol et ve bağla</button>
         ${L&&L.length>1?`<div class="gd-liste"><span class="zaman">Birden çok Drive görünüyor, ERP için olanı seç:</span>${L.map(x=>`<button type="button" class="btn sm" data-act="gd-sec" data-id="${esc(x.id)}">${esc(x.ad)}</button>`).join('')}</div>`:''}</li>
     </ol>
+    ${gDurum().yapilandirildi?`<div class="rowbtns gd-kisisel"><span class="zaman"><b>Kurumsal (Workspace) hesabın yok mu?</b> Kişisel Google hesabını bağla; Google bir kez izin ister, dosyalar Drive'ım/NetERP klasörüne gider.</span><span class="sp"></span><button type="button" class="btn sm" data-act="g-bagla">${ic('bag')}Kişisel Drive'ı bağla</button></div>`:''}
     <p class="zaman">Dosyalar bu Drive'da <b>NetERP/&lt;proje kodu&gt;</b> klasörlerinde toplanır ve firmaya ait olur (çalışan ayrılsa da kalır). Drive'ın üyeleri dosyaları görür.</p></div>`;
 }
 function googleSatirHTML(){
   const g=gDurum();
-  const durum=!g.yapilandirildi?'Sunucu ayarı eksik (GOOGLE_CLIENT_ID / SECRET)':g.kopuk?'Bağlantı düştü · yeniden bağla':g.bagli?`Bağlı · ${esc(g.hesap||'')} · ${[g.drive?'Drive':'',g.gmail?'Gmail':''].filter(Boolean).join(' + ')}`:'Bağlı değil';
+  const durum=!g.yapilandirildi?'Sunucu ayarı eksik (GOOGLE_CLIENT_ID / SECRET)':g.kopuk?'Bağlantı düştü · yeniden bağla':g.bagli?`${ic('onay')} Bağlı · ${esc(g.hesap||'')} · dosyalar Drive'ım/NetERP klasörüne`:'Bağlı değil';
   const dugme=!g.yapilandirildi?`<button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button>`
     :g.bagli?`<button type="button" class="btn sm" data-act="g-kes">Bağlantıyı kes</button>`
     :`<button type="button" class="btn sm pri" data-act="g-bagla">${ic('bag')}Google ile bağlan</button>`;
-  return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google (Drive + Gmail)</span><span class="zaman">${durum}</span><span class="sp"></span>${dugme}</div>`;
+  return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive (kişisel)</span><span class="zaman">${durum}</span><span class="sp"></span>${dugme}</div>`;
 }
 function baglantiIsaretleriniTemizle(){
   if(!API.acik||!S) return;
@@ -4553,7 +4556,8 @@ async function apiAc(){
   await baglantiDurumYukle();
   const acik=acilisUygula(u);
   const dn=oauthDonusu();
-  if(dn){ ui.form=null; ui.cekmece={tur:'firma', id:'firma'}; ui.ekran='ayar'; ui.ayar='firma'; }
+  if(dn){ ui.form=null; ui.cekmece={tur:'firma', id:'firma'}; ui.ekran='ayar'; ui.ayar='firma';
+    if(gDurum().bagli&&S.firma.depo!=='gdrive'){ S.firma.depo='gdrive'; persist(); } }
   nasAktar(); render(); acikKaydiAc(acik);
   if(dn) toast(dn);
 }
@@ -4576,7 +4580,7 @@ function oauthDonusu(){
   const q=new URLSearchParams(location.search); if(!q.get('baglanti')) return '';
   history.replaceState(null,'',location.pathname);
   const m=q.get('mesaj')||'', ad=q.get('baglanti')==='google'?'Google':q.get('baglanti');
-  return q.get('sonuc')==='ok'?ad+' bağlandı'+(m?': '+m:''):q.get('sonuc')==='iptal'?ad+' bağlantısı iptal edildi'+(m?' ('+m+')':''):ad+' bağlanamadı: '+(m||'bilinmeyen hata');
+  return q.get('sonuc')==='ok'?ad+' Drive bağlandı'+(m?': '+m:'')+' · varsayılan depo Google Drive yapıldı':q.get('sonuc')==='iptal'?ad+' bağlantısı iptal edildi'+(m?' ('+m+')':''):ad+' bağlanamadı: '+(m||'bilinmeyen hata');
 }
 function sifreZorunluGoster(hata){
   let g=$('#giris'); if(!g){ g=document.createElement('div'); g.id='giris'; document.body.appendChild(g); }
