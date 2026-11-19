@@ -358,6 +358,8 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .zed table,.zgos table{border-collapse:collapse;width:100%;margin:6px 0}
 .zed td,.zed th,.zgos td,.zgos th{border:1px solid var(--line);padding:4px 6px;min-width:28px;vertical-align:top;text-transform:none;letter-spacing:0;font-size:13px;color:var(--fg);background:transparent}
 .zed img,.zgos img{max-width:100%;height:auto;border-radius:6px}
+.zed img{cursor:pointer}.zed img.zsecili{outline:3px solid var(--brand);outline-offset:2px}
+.zb-sil{color:var(--bad,#cf3640)}.zayir{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .zgos{font-size:14px;font-weight:400;color:var(--fg);line-height:1.6}
 .form textarea.zk-src{display:none}
 
@@ -3196,7 +3198,7 @@ function zenginKur(){
     const tam=src.dataset.zmod==='tam';
     const w=document.createElement('div'); w.className='zk';
     const sec=tam?`<select class="zsel" data-z="font" aria-label="Yazı tipi"><option value="">Yazı tipi</option>${Z_FONT.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('')}</select><select class="zsel" data-z="boy" aria-label="Boyut"><option value="">Boyut</option>${Z_BOY.map(b=>`<option value="${b}">${b.replace('px','')}</option>`).join('')}</select>`:'';
-    const ek=tam?`<button type="button" class="zb" data-z="tablo" title="Tablo ekle">${ic('sablon')}</button><button type="button" class="zb" data-z="satir" title="Satır ekle">+Satır</button><button type="button" class="zb" data-z="sutun" title="Sütun ekle">+Sütun</button><button type="button" class="zb" data-z="resim" title="Resim ekle">${ic('yukle')}</button><input type="file" accept="image/png,image/jpeg,image/webp" hidden>`:'';
+    const ek=tam?`<button type="button" class="zb" data-z="tablo" title="Tablo ekle">${ic('sablon')}</button><button type="button" class="zb" data-z="satir" title="Satır ekle">+Satır</button><button type="button" class="zb" data-z="sutun" title="Sütun ekle">+Sütun</button><button type="button" class="zb" data-z="satirsil" title="İmlecin olduğu satırı sil">−Satır</button><button type="button" class="zb" data-z="sutunsil" title="İmlecin olduğu sütunu sil">−Sütun</button><button type="button" class="zb zb-sil" data-z="tablosil" title="İmlecin olduğu tabloyu sil">${ic('sil')}Tablo</button><span class="zayir"></span><button type="button" class="zb" data-z="resim" title="Resim ekle">${ic('yukle')}</button><button type="button" class="zb zb-sil" data-z="resimsil" title="Seçili resmi sil (resme tıkla, sonra bu düğme ya da Delete)">${ic('sil')}Resim</button><input type="file" accept="image/png,image/jpeg,image/webp" hidden>`:'';
     w.innerHTML=`<div class="zbar" role="toolbar" aria-label="Biçim">${sec}
       <button type="button" class="zb" data-z="bold" title="Kalın"><b>B</b></button>
       <button type="button" class="zb" data-z="italic" title="İtalik"><em>I</em></button>
@@ -3231,6 +3233,17 @@ function zenginKur(){
       if(r.collapsed){ s.appendChild(document.createTextNode('​')); r.insertNode(s); const nr=document.createRange(); nr.setStart(s.firstChild,1); nr.collapse(true); sel.removeAllRanges(); sel.addRange(nr); return; }
       try{ r.surroundContents(s); }catch(e){ s.appendChild(r.extractContents()); r.insertNode(s); }
     };
+    // Resim seçimi: Chrome düzenlenebilir alandaki resmi tıklamayla seçmez; tıklanan resim işaretlenir, Delete/Backspace siler
+    let secili=null;
+    const secimiKaldir=()=>{ if(secili) secili.classList.remove('zsecili'); secili=null; };
+    ed.addEventListener('click', e=>{
+      secimiKaldir();
+      if(e.target.tagName==='IMG'){ secili=e.target; secili.classList.add('zsecili'); const r=document.createRange(); r.selectNode(secili); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+    });
+    ed.addEventListener('keydown', e=>{
+      if(secili&&(e.key==='Delete'||e.key==='Backspace')){ e.preventDefault(); secili.remove(); secili=null; yaz(); }
+      else if(secili&&e.key!=='Shift') secimiKaldir();
+    });
     const hucre=()=>{ let n=getSelection().anchorNode; while(n&&n!==ed){ if(n.nodeName==='TD'||n.nodeName==='TH') return n; n=n.parentNode; } return null; };
     const komut={bold:'bold',italic:'italic',underline:'underline',strike:'strikeThrough',ul:'insertUnorderedList',ol:'insertOrderedList'};
     w.querySelectorAll('button[data-z]').forEach(b=>{
@@ -3251,6 +3264,17 @@ function zenginKur(){
           if(k==='satir'){ const tr=td.parentNode, y=tr.cloneNode(true); y.querySelectorAll('td,th').forEach(c=>{ c.innerHTML='<br>'; }); tr.after(y); }
           else { const i=[...td.parentNode.children].indexOf(td); td.closest('table').querySelectorAll('tr').forEach(tr=>{ const c=document.createElement('td'); c.innerHTML='<br>'; const ref=tr.children[i]; if(ref) ref.after(c); else tr.appendChild(c); }); }
         }
+        else if(k==='satirsil'||k==='sutunsil'||k==='tablosil'){
+          const td=hucre();
+          if(!td){ toast('Önce silinecek tabloda bir hücreye tıkla'); return; }
+          const tablo=td.closest('table');
+          if(k==='tablosil'){ if(!confirm('Bu tablo içindekilerle birlikte silinsin mi?')) return; tablo.remove(); }
+          else if(k==='satirsil'){ td.parentNode.remove(); }
+          else { const i=[...td.parentNode.children].indexOf(td); tablo.querySelectorAll(':scope > tbody > tr, :scope > thead > tr, :scope > tr').forEach(tr=>{ tr.children[i]?.remove(); }); }
+          // satırı/sütunu kalmayan tablo da kalkar
+          if(tablo.isConnected&&!tablo.querySelector('td,th')) tablo.remove();
+        }
+        else if(k==='resimsil'){ if(!secili||!ed.contains(secili)){ toast('Önce silinecek resme tıkla'); return; } secili.remove(); secili=null; }
         else if(k==='resim'){ w.querySelector('input[type=file]').click(); return; }
         else document.execCommand(komut[k], false, null);
         yaz();
