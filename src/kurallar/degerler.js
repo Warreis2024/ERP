@@ -99,7 +99,7 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
 // ---- API (şablonla aynı alan adları) ↔ veritabanı sütunları ----
 const DUZ = ['metin', 'kisi', 'tur', 'firma', 'hareket', 'odeme', 'para', 'url', 'dosya', 'depo', 'hedef', 'malzeme', 'birim',
   'rev', 'onem', 'onay', 'yukleyen', 'renk', 'yer', 'il', 'ilce', 'ulke'];
-const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici', 'belge']; // bas/bit: Saat Aralığı (SS:DD), belge: Mali Hareket belge no
+const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici', 'belge', 'dosyaId', 'klasor']; // bas/bit: Saat Aralığı (SS:DD), belge: Mali Hareket belge no, dosyaId/klasor: bulut depodaki dosya
 const TARIH = (v) => (v && /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0, 10) : null);
 const ZAMAN = (v) => { if (!v) return null; const d = new Date(String(v).replace(' ', 'T')); return Number.isNaN(d.getTime()) ? null : d; };
 const KES = (v, n) => (v === undefined || v === null ? null : String(v).slice(0, n));

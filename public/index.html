@@ -1801,7 +1801,7 @@ function dokOniz(r){
 function dokSatir(r, i, f, mid, pid, duzenlenebilir){
   const t=dokTur(r.dosya);
   const rozet=`<span class="dtur" style="--c:${t.c}" title="${esc(t.ad)}">${esc((t.uz||'?').toUpperCase().slice(0,4))}</span>`;
-  const alt=[depoRozet(r)+'Rev '+esc(r.rev||'A'), boyutYaz(r.boyut), trh(r.tarih), esc(kisiAd(r.yukleyen))].filter(Boolean).join(' · ');
+  const alt=r.yukleniyor?`<span class="zaman" data-yuk="${esc(r.id)}">Drive'a yükleniyor · %${r.ilerleme||0}</span>`:[depoRozet(r)+'Rev '+esc(r.rev||'A'), boyutYaz(r.boyut), trh(r.tarih), esc(kisiAd(r.yukleyen))].filter(Boolean).join(' · ');
   const onayci=izin(mid,'onay') && duzenlenebilir;
   const onayBtn=r.onay==='bekliyor'&&onayci?`<button type="button" class="btn sm ok" data-act="dok-onay" data-uid="${f.uid}" data-i="${i}" data-v="onay">Onayla</button><button type="button" class="btn sm danger" data-act="dok-onay" data-uid="${f.uid}" data-i="${i}" data-v="ret">Reddet</button>`:onayRozet(r.onay);
   const acik=ui.dokDuz===f.uid+':'+i;
@@ -1831,12 +1831,13 @@ function dokumanHTML(f, rows){
       <label class="btn sm">${ic('dosya')}Dosya seç<input type="file" multiple hidden data-dosya-coklu="${f.uid}"></label>
       <button type="button" class="btn sm" data-act="bulut-ekle" data-uid="${f.uid}" data-depo="gdrive">${ic('bulut')}Google Drive</button>
       <button type="button" class="btn sm" data-act="bulut-ekle" data-uid="${f.uid}" data-depo="onedrive">${ic('bulut')}OneDrive</button></div>
-      <p class="zaman">1,5 MB üstü dosyalar varsayılan depoya (${esc(DEPO[S.firma.depo]||'Sunucu')}) gider. Bulut bağlantısı yapıştırınca depo kendiliğinden tanınır.</p>`:'';
+      <p class="zaman">${S.firma.depo==='gdrive'&&gDrive()?'Dosyalar Google Drive\'a yüklenir (NetERP/&lt;proje kodu&gt;).':`1,5 MB üstü dosyalar varsayılan depoya (${esc(DEPO[S.firma.depo]||'Sunucu')}) gider.`} Bulut bağlantısı yapıştırınca depo kendiliğinden tanınır.</p>`:'';
   return `<div class="dok-liste">${liste}</div>${yerel>1?`<button type="button" class="btn sm" data-act="dok-hepsi" data-uid="${f.uid}" style="justify-self:start">${ic('zip')}Tümünü indir</button>`:''}${birak}`;
 }
 function dosyaEkle(f, files){
   const rows=ui.form.coklu[f.uid]||(ui.form.coklu[f.uid]=[]);
   const sinir=1500000;
+  if(S.firma.depo==='gdrive'&&gDrive()){ [...files].forEach(file=>driveYukle(f, rows, file)); renderDrawer(); return; }
   [...files].forEach(file=>{
     const r={...bosSatir(f), dosya:file.name, boyut:file.size, tip:file.type||'', rev:'A', onem:'genel', onay:'bekliyor', yukleyen:ui.uid, tarih:bugun(), depo:'yerel'};
     if(S.firma.depo==='nas'){
@@ -1858,6 +1859,32 @@ function dosyaEkle(f, files){
     oku.readAsDataURL(file);
   });
   renderDrawer();
+}
+// Google Drive'a parça parça yükleme (sunucu üzerinden, her parça 3,75 MB). Klasör: NetERP/<proje kodu>.
+async function driveYukle(f, rows, file){
+  const r={...bosSatir(f), dosya:file.name, boyut:file.size, tip:file.type||'', rev:'A', onem:'genel', onay:'bekliyor', yukleyen:ui.uid, tarih:bugun(), depo:'gdrive', yukleniyor:true, ilerleme:0};
+  rows.push(r);
+  const pid=ui.form.tur==='proje'?ui.form.id:ui.form.projeId, mid=ui.form.tur==='proje'?(S.moduller.find(m=>m.tur==='proje')||{}).id:ui.form.modulId;
+  const ciz=()=>{ const el=document.querySelector(`[data-yuk="${r.id}"]`); if(el) el.textContent='Drive\'a yükleniyor · %'+r.ilerleme; else renderDrawer(); };
+  try{
+    const o=await apiIstek('/dosya/yukle/basla',{method:'POST', govde:{depo:'gdrive', ad:file.name, tip:file.type||'', boyut:file.size, projeId:pid||null, modulId:mid||null}});
+    let bas=0, sonuc=null;
+    do{
+      const parca=file.slice(bas, Math.min(bas+o.parca, file.size));
+      const yanit=await fetch('/api/dosya/yukle/parca?bas='+bas,{method:'POST', credentials:'same-origin', headers:{'content-type':'application/octet-stream','x-csrf-token':csrfOku(),'x-yukleme-oturum':o.oturum}, body:parca});
+      const j=await yanit.json().catch(()=>({}));
+      if(!yanit.ok) throw new Error(j.hata||('Yükleme hatası ('+yanit.status+')'));
+      if(j.bitti){ sonuc=j.dosya; break; }
+      bas=j.alinan||bas+parca.size; r.ilerleme=Math.min(99, Math.round(bas/Math.max(1,file.size)*100)); ciz();
+    } while(bas<file.size || file.size===0);
+    if(!sonuc) throw new Error('Yükleme tamamlanmadı');
+    Object.assign(r,{url:sonuc.url, dosyaId:sonuc.id, klasor:o.klasor, boyut:sonuc.boyut||file.size}); delete r.yukleniyor; delete r.ilerleme;
+    toast(file.name+' → Google Drive / '+o.klasor+(sonuc.paylasildi?'':' (alan içi paylaşım yapılamadı; yalnız bağlı hesap görebilir)'));
+  }catch(e){
+    const i=rows.indexOf(r); if(i>=0) rows.splice(i,1);
+    toast(file.name+': '+e.message);
+  }
+  if(ui.form) renderDrawer();
 }
 function dokIndir(r){
   if(r&&r.depo==='nas'&&!agIcinde()) return toast('Bu dosya şirket ağındaki NAS\'ta. Ofisten ya da VPN ile açılır: '+(r.yol||''));
@@ -2287,6 +2314,7 @@ function yazSatirlar(m, ortak, eski){
 function zorunluTamam(m){
   for(const f of m.fn){
     if(f.tip==='kontrol'&&fnErisim(f)==='duzenle'&&(ui.form.coklu[f.uid]||[]).some(r=>r.tur==='sorun'&&!String(r.not||'').trim())){ ui.formSekme=sekmeAd(f); toast(f.ad+': "Uygun değil" maddesine açıklama yaz'); renderDrawer(); return false; }
+    if(COKLU.has(f.tip)&&(ui.form.coklu[f.uid]||[]).some(r=>r.yukleniyor)){ ui.formSekme=sekmeAd(f); toast('Dosya yüklemesi sürüyor; bitince kaydet'); renderDrawer(); return false; }
     if((f.tip==='tarihara'||f.tip==='saatara')&&fnErisim(f)==='duzenle'){
       const r=ui.form.skaler[f.uid], [a,b]=f.tip==='tarihara'?[r?.tarih,r?.vade]:[r?.bas,r?.bit];
       if(r&&!degerBos(f,r)){
@@ -2879,7 +2907,7 @@ function cekmeceHTML(){
     <label>Varsayılan dosya deposu<select id="firmaDepo">${secOp(Object.entries(DEPO), S.firma.depo||'yerel')}</select></label>
     ${nasPanelHTML()}
     <div class="panel"><h4>Bulut depolar</h4>
-      ${API.acik?['gdrive','onedrive'].map(v=>`<div class="rowbtns"><span class="depo ${v}">${ic('bulut')}${v==='gdrive'?'Google Drive':'OneDrive / SharePoint'}</span><span class="zaman">Kurulum bekliyor · bağlı değil</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="${v}" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button></div>`).join('')+`<p class="zaman">Bulut depo bağlantısı henüz yok; dosyalar sunucuda saklanır. Drive / OneDrive dosyası, paylaşım bağlantısı kayda yapıştırılarak eklenebilir. Bağlantı kurulunca dosyalar <b>NetERP/&lt;proje kodu&gt;</b> klasöründe toplanacak (ör. NetERP/PRJ-1048).</p>`
+      ${API.acik?googleSatirHTML()+`<div class="rowbtns"><span class="depo onedrive">${ic('bulut')}OneDrive / SharePoint</span><span class="zaman">Kurulum bekliyor · bağlı değil</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button></div>`+`<p class="zaman">Varsayılan depo Google Drive ve bağlantı açıkken yüklenen dosyalar Drive'da <b>NetERP/&lt;proje kodu&gt;</b> klasörüne gider (ör. NetERP/PRJ-1048) ve Workspace alanındaki herkes bağlantıyla görebilir. Bağlantı yoksa dosyalar sunucuda saklanır.</p>`
       :`<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google Drive</span><span class="zaman">${S.firma.depoBagli.gdrive?'Bağlı':'Bağlı değil'}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive">${S.firma.depoBagli.gdrive?'Bağlantıyı kes':'Bağlan'}</button></div>
       <div class="rowbtns"><span class="depo onedrive">${ic('bulut')}OneDrive / SharePoint</span><span class="zaman">${S.firma.depoBagli.onedrive?'Bağlı':'Bağlı değil'}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive">${S.firma.depoBagli.onedrive?'Bağlantıyı kes':'Bağlan'}</button></div>
       <p class="zaman">Şablon modu: bağlantı simüle edilir, bağlantılar elle yapıştırılır.</p>`}</div>${firmaEpostaHTML()}</form>`;
@@ -4262,7 +4290,8 @@ function firmaEpostaHTML(){
       <div class="two">${a('kullanici','Kullanıcı adı','autocomplete="off"')}<label>Şifre<input type="password" data-fep-sifre="1" placeholder="${fe.sifreKayitli?'•••••••• (kayıtlı)':''}" autocomplete="new-password"></label></div>`;
   if(fe.tur==='google') ic2+=a('alan','Google Workspace alan adı','placeholder="firma.com.tr"');
   if(fe.tur==='microsoft') ic2+=a('tenant','Microsoft 365 tenant (dizin) kimliği','placeholder="xxxxxxxx-xxxx-…"');
-  if(fe.tur&&fe.tur!=='yok') ic2+=API.acik
+  if(API.acik&&fe.tur==='google') ic2+=`<div class="rowbtns"><span class="zaman">${gGmail()?`${ic('onay')} Gmail ile gönderilir: <b>${esc(gDurum().hesap||'')}</b> hesabından (gönderen adı yukarıdaki, cevap adresi gönderen kullanıcı).`:`${ic('kilit')} Google hesabı bağlı değil. Yukarıdaki <b>Bulut depolar → Google ile bağlan</b> ile bağlanınca e-postalar Gmail'den gider.`}</span></div>`;
+  else if(fe.tur&&fe.tur!=='yok') ic2+=API.acik
     ?`<div class="rowbtns"><button type="button" class="btn" data-act="fep-test" title="${esc(BAGLANTI_YOK)}">${ic('kilit')}Kurulum gerekli</button><span class="zaman">Kurulum bekliyor · bağlı değil. Ayarlar kaydedilir ama henüz e-posta gönderilmez${fe.tur==='smtp'?'; SMTP şifresi de henüz saklanmaz':''}.</span></div>`
     :`<div class="rowbtns"><button type="button" class="btn pri" data-act="fep-test">${ic('onay')}${fe.tur==='smtp'?'Test et ve kaydet':'Yetkilendir'}</button><span class="zaman">${fe.bagli?'Bağlı · '+esc(trh(fe.zaman||'')):'Bağlı değil'}</span></div>`;
   ic2+=`<label class="anahtar" style="width:auto"><input type="checkbox" data-fep="kullaniciBaglar" ${fe.kullaniciBaglar!==false?'checked':''}><span>Kullanıcılar kendi e-posta hesabını bağlayabilir (Profilim)</span></label>
@@ -4324,6 +4353,14 @@ async function durumYukle(){
    Şablondan kalan "bağlı" işaretleri gerçek değildir: sunucu modunda hep kapalı gösterilir,
    e-posta "Gönder" de bu yüzden e-posta programını açar. */
 const BAGLANTI_YOK='Gerçek bağlantı henüz kurulmadı. Kurulum için Google Cloud / Microsoft uygulama kaydı ve sunucu entegrasyonu gerekiyor.';
+function googleSatirHTML(){
+  const g=gDurum();
+  const durum=!g.yapilandirildi?'Sunucu ayarı eksik (GOOGLE_CLIENT_ID / SECRET)':g.kopuk?'Bağlantı düştü · yeniden bağla':g.bagli?`Bağlı · ${esc(g.hesap||'')} · ${[g.drive?'Drive':'',g.gmail?'Gmail':''].filter(Boolean).join(' + ')}`:'Bağlı değil';
+  const dugme=!g.yapilandirildi?`<button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive" title="${esc(BAGLANTI_YOK)}">Kurulum gerekli</button>`
+    :g.bagli?`<button type="button" class="btn sm" data-act="g-kes">Bağlantıyı kes</button>`
+    :`<button type="button" class="btn sm pri" data-act="g-bagla">${ic('bag')}Google ile bağlan</button>`;
+  return `<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}Google (Drive + Gmail)</span><span class="zaman">${durum}</span><span class="sp"></span>${dugme}</div>`;
+}
 function baglantiIsaretleriniTemizle(){
   if(!API.acik||!S) return;
   S.firma.depoBagli={gdrive:false, onedrive:false};
@@ -4487,8 +4524,24 @@ async function apiAc(){
   const g=$('#giris'); if(g){ g.hidden=true; g.innerHTML=''; }
   $('#app').hidden=false;
   ui.form=null; ui.cekmece=null; ui.eposta=null;
+  await baglantiDurumYukle();
   const acik=acilisUygula(u);
+  const dn=oauthDonusu();
+  if(dn){ ui.form=null; ui.cekmece={tur:'firma', id:'firma'}; ui.ekran='ayar'; ui.ayar='firma'; }
   nasAktar(); render(); acikKaydiAc(acik);
+  if(dn) toast(dn);
+}
+/* ---- dış bağlantılar (firma hesabı): Google Drive + Gmail. Durum sunucudan okunur, belirteç tarayıcıya gelmez. ---- */
+async function baglantiDurumYukle(){ try{ API.baglanti=await apiIstek('/baglanti/durum'); }catch(e){ API.baglanti=null; } }
+const gDurum=()=>(API.baglanti&&API.baglanti.google)||{};
+const gDrive=()=>API.acik&&gDurum().bagli&&gDurum().drive;
+const gGmail=()=>API.acik&&gDurum().bagli&&gDurum().gmail;
+// Google izin ekranından dönüş: /?baglanti=google&sonuc=ok|hata|iptal&mesaj=…
+function oauthDonusu(){
+  const q=new URLSearchParams(location.search); if(!q.get('baglanti')) return '';
+  history.replaceState(null,'',location.pathname);
+  const m=q.get('mesaj')||'', ad=q.get('baglanti')==='google'?'Google':q.get('baglanti');
+  return q.get('sonuc')==='ok'?ad+' bağlandı'+(m?': '+m:''):q.get('sonuc')==='iptal'?ad+' bağlantısı iptal edildi'+(m?' ('+m+')':''):ad+' bağlanamadı: '+(m||'bilinmeyen hata');
 }
 function sifreZorunluGoster(hata){
   let g=$('#giris'); if(!g){ g=document.createElement('div'); g.id='giris'; document.body.appendChild(g); }
@@ -4598,6 +4651,16 @@ function bagla(){
       const v=n=>e.target.elements[n].value.trim();
       const em=ui.eposta, o=em.tur==='proje'?proje(em.id):S.kartlar.find(x=>x.id===em.id);
       const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:e.target.elements.govde.value, kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
+      if(API.acik&&firmaEp().tur==='google'&&gGmail()){
+        const btn=e.target.querySelector('button[type=submit]'); if(btn) btn.disabled=true;
+        apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde}}).then(g=>{
+          Object.assign(kayit,{kanal:'gmail', kimdenAdres:g.kimden, cevap:ben().eposta});
+          S.epostalar.push(kayit);
+          logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi (Gmail) → '+kayit.kime+' · '+kayit.konu});
+          persist(); ui.eposta=null; toast('Gönderildi: '+g.kimden+' → '+kayit.kime); renderDrawer();
+        }).catch(err=>{ if(btn) btn.disabled=false; toast('Gönderilemedi: '+err.message); });
+        return;
+      }
       S.epostalar.push(kayit);
       logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi → '+kayit.kime+' · '+kayit.konu});
       const hs=ben().epostaHesap||{};
@@ -4970,6 +5033,9 @@ function bagla(){
       }
       case 'dosya-indir': dokIndir(S.degerler[+b.dataset.i]); return;
       case 'dosya-paylas': dokPaylas(S.degerler[+b.dataset.i]); return;
+      case 'g-bagla': { b.disabled=true; apiIstek('/baglanti/google/basla',{method:'POST', govde:{}}).then(v=>{ location.href=v.url; }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
+      case 'g-kes': { if(!confirm('Google bağlantısı kesilsin mi? Drive\'daki dosyalar silinmez; yeni yüklemeler sunucuya gider, e-postalar e-posta programıyla açılır.')) return;
+        apiIstek('/baglanti/google/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ render(); toast('Google bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }
       case 'depo-bagla': { if(API.acik){ toast(DEPO[b.dataset.v]+': '+BAGLANTI_YOK); return; } const v=b.dataset.v; S.firma.depoBagli[v]=!S.firma.depoBagli[v]; persist(); toast(S.firma.depoBagli[v]?DEPO[v]+' bağlı olarak işaretlendi (gerçek OAuth sunucu aşamasında)':DEPO[v]+' bağlantısı kesildi'); renderDrawer(); return; }
       case 'sil-kart': kayitSil('kart'); return;
       case 'sil-proje': kayitSil('proje'); return;
