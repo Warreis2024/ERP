@@ -57,3 +57,6 @@ export function oturumCerezleriSil(res) {
 }
 export const csrfUret = () => crypto.randomBytes(24).toString('base64url');
 export const oturumSuresiSn = (hatirla) => (hatirla ? config.oturum.hatirlaGun * 86400 : config.oturum.saat * 3600);
+
+// İstek /oturum altındaki bir uca mı gidiyor? Alt yönlendiricide req.path kısaldığı için baseUrl de katılır.
+export const oturumYolu = (req) => /\/oturum(\/|$)/.test((req.baseUrl || '') + (req.path || ''));

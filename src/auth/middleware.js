@@ -1,4 +1,4 @@
-import { belirtecCoz, cerezleriOku, CEREZ } from './oturum.js';
+import { belirtecCoz, cerezleriOku, CEREZ, oturumYolu } from './oturum.js';
 import { kullaniciYukle } from '../veri.js';
 import { HttpHata } from '../hata.js';
 import { yonetici } from '../kurallar/yetki.js';
@@ -20,7 +20,8 @@ export async function kimlik(req, _res, next) {
 export function girisGerekli(req, _res, next) {
   if (!req.kullanici) return next(new HttpHata(401, 'Oturum açılmamış'));
   // İlk şifreyle girmiş kullanıcı yalnız şifre değiştirme ve oturum uçlarını kullanabilir.
-  if (req.kullanici.sifre_degismeli && !req.path.startsWith('/oturum')) return next(new HttpHata(403, 'Önce şifreni değiştirmelisin', { kod: 'SIFRE_DEGISMELI' }));
+  // Alt yönlendiricide req.path kısalır (/oturum/ben → /ben); tam yol baseUrl + path ile bulunur.
+  if (req.kullanici.sifre_degismeli && !oturumYolu(req)) return next(new HttpHata(403, 'Önce şifreni değiştirmelisin', { kod: 'SIFRE_DEGISMELI' }));
   next();
 }
 

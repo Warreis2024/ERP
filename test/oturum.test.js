@@ -28,3 +28,11 @@ test('şifre kuralı ve özet (scrypt yedeği)', async () => {
   assert.equal(await sifreDogrula(o, 'Deneme123'), true);
   assert.equal(await sifreDogrula(o, 'deneme123'), false);
 });
+
+test('şifre değiştirme zorunluyken /oturum altındaki uçlar açık kalır', async () => {
+  const { oturumYolu } = await import('../src/auth/oturum.js');
+  assert.equal(oturumYolu({ baseUrl: '/api/oturum', path: '/ben' }), true);
+  assert.equal(oturumYolu({ baseUrl: '/api/oturum', path: '/sifre' }), true);
+  assert.equal(oturumYolu({ baseUrl: '/api', path: '/meta' }), false);
+  assert.equal(oturumYolu({ baseUrl: '/api', path: '/projeler' }), false);
+});
