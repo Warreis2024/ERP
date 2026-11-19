@@ -95,8 +95,11 @@ test('değer birleştirme: gizli/gör fonksiyonlar istemciden değiştirilemez',
   assert.ok(s.hatalar.some((h) => /açıklama/.test(h)));
   const bos = degerleriBirlestir(yon, fns, [], [], () => 'x');
   assert.deepEqual(bos.zorunluEksik, ['Ad']);
-  const kotu = degerleriBirlestir(yon, fns, [{ fnUid: 'baska', metin: 'x' }], [], () => 'x');
-  assert.ok(kotu.hatalar.length);
+  // Modülde olmayan (ör. kaldırılmış) fonksiyonun değeri kaydı reddettirmez ama asla kaydedilmez
+  const kotu = degerleriBirlestir(yon, fns, [{ fnUid: 'baska', metin: 'x' }, { fnUid: 'f-ad', metin: 'Ad' }], [], () => 'x');
+  assert.equal(kotu.yeni.some((d) => d.fnUid === 'baska'), false);
+  assert.equal(kotu.yeni.some((d) => d.fnUid === 'f-ad'), true);
+  assert.deepEqual(kotu.hatalar, []);
 });
 
 test('alan logları yalnız değişen fonksiyonlar için', () => {
