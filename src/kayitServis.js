@@ -7,8 +7,10 @@ import { degerleriBirlestir, fnOzetleri, alanLoglari, silinebilir, kartTarihi } 
 import { degerDb, degerApi } from './kurallar/degerler.js';
 import { tanimlar, kodUret, logYaz, yeniId, adCozucu, logApi } from './veri.js';
 
+const IstemciId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional();
 const DegerSema = z.object({ fnUid: z.string().max(40), id: z.string().max(40).optional().nullable() }).passthrough();
 export const ProjeSema = z.object({
+  id: IstemciId, // yeni kayıtta istemcinin verdiği kimlik (arayüz kendi kimliğiyle çalışır)
   ad: z.string().trim().min(1, 'Proje adı zorunlu').max(250),
   durumId: z.string().max(40).optional().nullable(),
   kategori: z.string().max(100).optional().nullable(),
@@ -18,6 +20,7 @@ export const ProjeSema = z.object({
   degerler: z.array(DegerSema).max(2000).optional(),
 });
 export const KartSema = z.object({
+  id: IstemciId,
   modulId: z.string().max(40).optional(),
   projeId: z.string().max(40),
   durumId: z.string().max(40).optional().nullable(),
@@ -74,13 +77,14 @@ export async function kaydet(req, tur, id, govde) {
   const yeniDurum = durumDenetle(m, veri.durumId || mevcut?.durum_id || ilk?.id);
   const onceDurum = mevcut ? tanim.durum(mevcut.durum_id) : null;
   if (!kapanisIzni(u, m.id, onceDurum?.id || ilk?.id, yeniDurum)) throw new HttpHata(403, `${yeniDurum.ad} akışı kapatır; onay yetkisi gerekir`);
+  if (!mevcut && veri.id && await db(proj ? 'projeler' : 'kartlar').where({ id: veri.id }).first()) throw new HttpHata(409, 'Bu kimlikte kayıt var');
   if (!proj) {
     const p = await db('projeler').where({ id: veri.projeId, silindi: false }).first();
     if (!p) throw new HttpHata(400, 'Kayıt bir projeye bağlanmalı');
   }
 
   return db.transaction(async (trx) => {
-    const kayitId = mevcut?.id || yeniId();
+    const kayitId = mevcut?.id || veri.id || yeniId();
     const ortak = proj ? { projeId: kayitId, modulId: m.id, kartId: null } : { projeId: veri.projeId, modulId: m.id, kartId: kayitId };
     const eskiSat = mevcut
       ? await trx('degerler').where(proj ? { proje_id: kayitId, kart_id: null } : { kart_id: kayitId })

@@ -3,11 +3,13 @@ import helmet from 'helmet';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
+import { json } from './db.js';
 import { firmaCoz } from './tenant.js';
 import { kimlik, girisGerekli, csrfDenetle } from './auth/middleware.js';
 import { hataYakala, HttpHata } from './hata.js';
 import oturum from './routes/oturum.js';
 import meta from './routes/meta.js';
+import durum from './routes/durum.js';
 import kayitlar from './routes/kayitlar.js';
 import ayar, { firmaRouter, kullaniciRouter } from './routes/ayar.js';
 
@@ -42,11 +44,18 @@ api.get('/saglik/db', firmaCoz, async (req, res) => {
   try { await req.db.raw('select 1 as x'); res.json({ ok: true, ms: Date.now() - t0 }); }
   catch (e) { console.error('saglik/db:', e.code || '', e.message); res.status(503).json({ ok: false, kod: e.code || 'HATA' }); }
 });
+// Giriş sayfası için firma adı ve logosu (oturum gerektirmez; başka bilgi vermez)
+api.get('/firma-genel', firmaCoz, async (req, res) => {
+  const a = await req.db('ayarlar').where({ anahtar: 'firma' }).first();
+  const f = json.oku(a?.deger, {});
+  res.set('Cache-Control', 'no-store').json({ ad: f.ad || req.firma.ad, sub: req.firma.sub, logo: typeof f.logo === 'string' && f.logo.startsWith('data:image/') ? f.logo : '' });
+});
 api.use(firmaCoz, kimlik, csrfDenetle);
 api.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 api.use('/oturum', oturum);
 api.use(girisGerekli);
 api.use(meta);
+api.use(durum);
 api.use(kayitlar);
 api.use('/ayar/firma', firmaRouter);
 api.use('/ayar/kullanicilar', kullaniciRouter);

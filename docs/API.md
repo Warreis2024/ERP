@@ -60,7 +60,17 @@ Sunucunun uyguladığı kurallar:
 - **Log:** Yeni kayıt, durum değişimi ve fonksiyon bazında alan değişiklikleri (eski → yeni) loga düşer.
 - **Mesaj ve doküman:** Mesajın yazarı ve zamanı, dokümanın yükleyeni sunucuda yazılır. Dosya onayını yalnız onay yetkilisi değiştirir.
 
+## Arayüz durumu
+- `GET /firma-genel`: oturum gerektirmez. Yalnız giriş sayfası için firma adı, alt alan ve logo döner.
+- `GET /durum`: arayüzün (index.html) açılışta yüklediği bütün veri, şablonun kendi biçiminde.
+  - Görünmeyen modül, gizli fonksiyon, gizli dosya ve yetkisiz değer gelmez.
+  - Diğer kullanıcıların yetki ve hesap ayrıntıları yalnız yöneticiye gider.
+
+Arayüz yeni kayıtta kendi kimliğini gönderir (`id`). Kimlik biçim ve teklik denetiminden geçerse kullanılır, yoksa 409 döner. Kayıt kodu (PRJ-1001) her zaman sunucuda üretilir.
+
 ## Ayarlar (yalnız yönetici)
+Personel yalnız `rehber_firmalar`, `rehber_kisiler` ve `malzemeler` tablolarına yeni kayıt ekleyebilir (POST).
+
 | Yöntem | Yol | Açıklama |
 |---|---|---|
 | GET/POST | `/ayar/:tablo` | Tablolar: `moduller, durumlar, fonksiyonlar, opsiyonlar, yetki_gruplari, departmanlar, depolar, malzemeler, rehber_firmalar, rehber_kisiler, sablonlar, panolar, kiosklar, ciktilar` |

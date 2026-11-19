@@ -9,7 +9,14 @@ import { sifreOzetle } from '../auth/sifre.js';
 import { yeniId, kullaniciDis } from '../veri.js';
 
 const r = Router();
-r.use(yoneticiGerekli);
+// Personel rehbere firma/kişi ve malzeme listesine yeni kayıt ekleyebilir (formda yazdığı firma rehbere düşer);
+// listeleme, düzenleme ve silme yöneticinin işidir.
+const HERKES_EKLER = new Set(['rehber_firmalar', 'rehber_kisiler', 'malzemeler']);
+r.use((req, res, next) => {
+  const tablo = req.path.split('/')[1];
+  if (req.method === 'POST' && HERKES_EKLER.has(tablo) && req.path === '/' + tablo) return next();
+  return yoneticiGerekli(req, res, next);
+});
 
 const ad = z.string().trim().min(1).max(150);
 const renk = z.string().regex(/^#[0-9a-fA-F]{3,8}$/).optional();
@@ -44,7 +51,9 @@ r.get('/:tablo', async (req, res) => { const t = tablo(req.params.tablo); res.js
 r.post('/:tablo', async (req, res) => {
   const t = tablo(req.params.tablo);
   const v = t.sema.parse(req.body);
-  const id = t.anahtar === 'ad' ? v.ad : (req.body[t.anahtar] && t.id ? kimlik.parse(req.body[t.anahtar]) : yeniId());
+  // Arayüz kendi kimliğiyle çalışır; verdiği kimlik biçim ve teklik denetiminden geçerse kullanılır.
+  const id = t.anahtar === 'ad' ? v.ad : (req.body[t.anahtar] ? kimlik.parse(req.body[t.anahtar]) : yeniId());
+  if (await req.db(req.params.tablo).where({ [t.anahtar]: id }).first()) throw new HttpHata(409, 'Bu kayıt zaten var');
   await req.db(req.params.tablo).insert({ ...yaz(t, v), ...(t.anahtar !== 'ad' ? { [t.anahtar]: id } : {}) });
   res.status(201).json({ [t.anahtar]: id });
 });
@@ -75,8 +84,15 @@ export const firmaRouter = Router();
 firmaRouter.use(yoneticiGerekli);
 firmaRouter.put('/', async (req, res) => {
   const v = JSONV.parse(req.body);
-  const s = json.yaz(v); if (s.length > 400000) throw new HttpHata(400, 'Firma ayarı çok büyük (logo 300 KB altında olmalı)');
   const db = req.db, var_ = await db('ayarlar').where({ anahtar: 'firma' }).first();
+  // E-posta şifresi/belirteci istemciye hiç gönderilmez; gelmezse eskisi korunur.
+  const eski = json.oku(var_?.deger, {});
+  if (v.eposta && typeof v.eposta === 'object') {
+    delete v.eposta.sifreKayitli;
+    for (const k of ['sifre', 'token']) if (!v.eposta[k] && eski.eposta?.[k]) v.eposta[k] = eski.eposta[k];
+  }
+  delete v.sub;
+  const s = json.yaz(v); if (s.length > 400000) throw new HttpHata(400, 'Firma ayarı çok büyük (logo 300 KB altında olmalı)');
   if (var_) await db('ayarlar').where({ anahtar: 'firma' }).update({ deger: s, guncelleme: new Date() });
   else await db('ayarlar').insert({ anahtar: 'firma', deger: s, guncelleme: new Date() });
   res.json({ ok: true });
@@ -100,7 +116,9 @@ kullaniciRouter.get('/', async (req, res) => {
 kullaniciRouter.post('/', async (req, res) => {
   const v = KSema.parse(req.body);
   if (await req.db('kullanicilar').where({ eposta: v.eposta }).first()) throw new HttpHata(409, 'Bu e-posta kayıtlı');
-  const id = yeniId(), sifre = geciciSifre();
+  const id = req.body.id ? kimlik.parse(req.body.id) : yeniId();
+  if (await req.db('kullanicilar').where({ id }).first()) throw new HttpHata(409, 'Bu kimlikte kullanıcı var');
+  const sifre = geciciSifre();
   await req.db('kullanicilar').insert({ id, ...v, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
   res.status(201).json({ id, geciciSifre: sifre }); // geçici şifre yalnız bir kez gösterilir
 });

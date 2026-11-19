@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yöntem ERP · API denetimi</title>
+<style>
+  :root{--bg:#f7f7f8;--s:#fff;--l:#e4e4e7;--f:#18181b;--m:#63636e;--a:#2b62e3;--b:#cf3640;--o:#1f9d6b}
+  *{box-sizing:border-box}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--f)}
+  main{max-width:1000px;margin:0 auto;padding:24px;display:grid;gap:14px}
+  .k{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:16px;display:grid;gap:10px}
+  h1{font-size:20px;margin:0}h2{font-size:15px;margin:0}p{margin:0;color:var(--m)}
+  .s{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+  label{display:grid;gap:4px;font-weight:600;font-size:12px}
+  input,select{height:34px;border:1px solid var(--l);border-radius:6px;padding:0 10px;font:inherit;min-width:200px}
+  button{height:34px;border:1px solid var(--l);border-radius:6px;background:var(--s);padding:0 12px;font:inherit;font-weight:600;cursor:pointer}
+  button.p{background:var(--a);border-color:var(--a);color:#fff}
+  pre{margin:0;background:#0e0e10;color:#ededef;border-radius:8px;padding:12px;max-height:480px;overflow:auto;font:12px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+  .d{font-weight:700}.ok{color:var(--o)}.hata{color:var(--b)}
+</style>
+</head>
+<body>
+<main>
+  <div class="k">
+    <h1>Yöntem ERP · API denetimi</h1>
+    <p>Kurulumun çalıştığını doğrulamak için. Uygulamanın kendisi: <a href="/">ana sayfa</a>.</p>
+    <p>Durum: <span id="durum" class="d">…</span></p>
+  </div>
+  <form class="k" id="giris">
+    <h2>Giriş</h2>
+    <div class="s">
+      <label>E-posta<input name="eposta" type="email" autocomplete="username" value="admin@iq-sense.com.tr" required></label>
+      <label>Şifre<input name="sifre" type="password" autocomplete="current-password" required></label>
+      <button class="p" type="submit">Giriş</button>
+      <button type="button" data-a="cikis">Çıkış</button>
+    </div>
+  </form>
+  <form class="k" id="sifre" hidden>
+    <h2>Şifre değiştir</h2>
+    <p>İlk girişte şifre değiştirmek zorunludur. En az 8 karakter, bir harf ve bir rakam.</p>
+    <div class="s">
+      <label>Mevcut<input name="eski" type="password" autocomplete="current-password" required></label>
+      <label>Yeni<input name="yeni" type="password" autocomplete="new-password" required minlength="8"></label>
+      <button class="p" type="submit">Değiştir</button>
+    </div>
+  </form>
+  <div class="k">
+    <h2>Uçlar</h2>
+    <div class="s">
+      <button data-a="ben">/oturum/ben</button>
+      <button data-a="meta">/meta</button>
+      <button data-a="projeler">/projeler</button>
+      <select id="modul" aria-label="Modül"><option value="">Tüm modüller</option></select>
+      <button data-a="kartlar">/kartlar</button>
+      <button data-a="saglik">/saglik</button>
+    </div>
+    <pre id="cikti">—</pre>
+  </div>
+</main>
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const csrf = () => (document.cookie.match(/(?:^|; )erp_csrf=([^;]+)/) || [])[1] || '';
+async function api(yol, secenek = {}) {
+  const r = await fetch('/api' + yol, {
+    credentials: 'same-origin', ...secenek,
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent(csrf()), ...(secenek.headers || {}) },
+  });
+  const v = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(v.hata || r.statusText), { durum: r.status, veri: v });
+  return v;
+}
+const yaz = (v) => { $('#cikti').textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+const durum = (m, ok) => { const d = $('#durum'); d.textContent = m; d.className = 'd ' + (ok ? 'ok' : 'hata'); };
+
+async function yenile() {
+  try { await api('/saglik'); } catch { return durum('API çalışmıyor', false); }
+  try {
+    const b = await api('/oturum/ben');
+    durum(`${b.kullanici.ad} (${b.kullanici.rol}) · ${b.firma.ad}`, true);
+    $('#sifre').hidden = !b.kullanici.sifreDegismeli;
+    if (!b.kullanici.sifreDegismeli) {
+      const m = await api('/meta');
+      $('#modul').innerHTML = '<option value="">Tüm modüller</option>' + m.moduller.filter((x) => x.tur !== 'proje').map((x) => `<option value="${x.id}">${x.ad}</option>`).join('');
+    }
+  } catch (e) { durum(e.durum === 401 ? 'Oturum açık değil' : e.message, false); }
+}
+$('#giris').addEventListener('submit', async (e) => {
+  e.preventDefault(); const f = e.target;
+  try { const v = await api('/oturum/giris', { method: 'POST', body: JSON.stringify({ eposta: f.eposta.value, sifre: f.sifre.value, hatirla: false }) }); yaz(v); f.sifre.value = ''; yenile(); }
+  catch (er) { yaz(er.veri || er.message); durum(er.message, false); }
+});
+$('#sifre').addEventListener('submit', async (e) => {
+  e.preventDefault(); const f = e.target;
+  try { yaz(await api('/oturum/sifre', { method: 'POST', body: JSON.stringify({ eski: f.eski.value, yeni: f.yeni.value }) })); f.reset(); yenile(); }
+  catch (er) { yaz(er.veri || er.message); }
+});
+document.addEventListener('click', async (e) => {
+  const a = e.target.dataset?.a; if (!a) return;
+  const yol = { ben: '/oturum/ben', meta: '/meta', projeler: '/projeler', kartlar: '/kartlar' + ($('#modul').value ? '?modul=' + $('#modul').value : ''), saglik: '/saglik' }[a];
+  try {
+    if (a === 'cikis') { yaz(await api('/oturum/cikis', { method: 'POST' })); return yenile(); }
+    yaz(await api(yol));
+  } catch (er) { yaz(er.veri || er.message); }
+});
+yenile();
+</script>
+</body>
+</html>
