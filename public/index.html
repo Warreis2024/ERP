@@ -5036,7 +5036,7 @@ function bagla(){
       case 'g-bagla': { b.disabled=true; apiIstek('/baglanti/google/basla',{method:'POST', govde:{}}).then(v=>{ location.href=v.url; }).catch(e=>{ b.disabled=false; toast(e.message); }); return; }
       case 'g-kes': { if(!confirm('Google bağlantısı kesilsin mi? Drive\'daki dosyalar silinmez; yeni yüklemeler sunucuya gider, e-postalar e-posta programıyla açılır.')) return;
         apiIstek('/baglanti/google/kes',{method:'POST', govde:{}}).then(baglantiDurumYukle).then(()=>{ render(); toast('Google bağlantısı kesildi'); }).catch(e=>toast(e.message)); return; }
-      case 'depo-bagla': { if(API.acik){ toast(DEPO[b.dataset.v]+': '+BAGLANTI_YOK); return; } const v=b.dataset.v; S.firma.depoBagli[v]=!S.firma.depoBagli[v]; persist(); toast(S.firma.depoBagli[v]?DEPO[v]+' bağlı olarak işaretlendi (gerçek OAuth sunucu aşamasında)':DEPO[v]+' bağlantısı kesildi'); renderDrawer(); return; }
+      case 'depo-bagla': { if(API.acik){ toast(b.dataset.v==='gdrive'?'Google kurulumu yapılmamış: Google Cloud Console\'da OAuth istemcisi açılıp GOOGLE_CLIENT_ID ve GOOGLE_CLIENT_SECRET Vercel ortam değişkenlerine eklenmeli. Sonra bu düğme "Google ile bağlan" olur.':DEPO[b.dataset.v]+': '+BAGLANTI_YOK); return; } const v=b.dataset.v; S.firma.depoBagli[v]=!S.firma.depoBagli[v]; persist(); toast(S.firma.depoBagli[v]?DEPO[v]+' bağlı olarak işaretlendi (gerçek OAuth sunucu aşamasında)':DEPO[v]+' bağlantısı kesildi'); renderDrawer(); return; }
       case 'sil-kart': kayitSil('kart'); return;
       case 'sil-proje': kayitSil('proje'); return;
       case 'foto-sil': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u) return; u.foto=''; persist(); render(); return; }
