@@ -20,15 +20,18 @@ const AZAMI_BOYUT = 5 * 1024 ** 3;
 
 // ---------- durum ----------
 r.get('/baglanti/durum', async (req, res) => {
-  const [g, d, m, sm, fa] = await Promise.all([google.durum(req.db), drive.durum(req.db), ms.durum(req.db), smtp.durum(req.db), req.db('ayarlar').where({ anahtar: 'firma' }).first()]);
+  const [g, d, m, sm, fa, km] = await Promise.all([google.durum(req.db), drive.durum(req.db), ms.durum(req.db), smtp.durum(req.db), req.db('ayarlar').where({ anahtar: 'firma' }).first(), smtp.durum(req.db, smtp.kullaniciKasasi(req.kullanici.id))]);
   const fe = json.oku(fa?.deger, {}).eposta || {};
+  const ke = kullaniciHesabi(req.kullanici);
+  // Kullanıcının kendi hesabı: kayıtlı test şimdiki ayarlarıyla mı, firma buna izin veriyor mu
+  const hesabim = { kayitli: km.kayitli, zaman: km.zaman, guncel: km.kayitli && ke.tur === 'smtp' && km.ozet === smtp.ayarOzeti(smtpAyar(ke)), izinli: fe.kullaniciBaglar !== false };
   // Kayıtlı test, şu anki sunucu/port/güvenlik/kullanıcı ayarlarıyla mı yapılmış?
-  const e = { smtp: { ...sm, guncel: sm.kayitli && sm.ozet === smtp.ayarOzeti(smtpAyar(fe)), ozet: undefined } };
+  const e = { smtp: { ...sm, guncel: sm.kayitli && sm.ozet === smtp.ayarOzeti(smtpAyar(fe)), ozet: undefined }, hesabim };
   if (g.bagli) console.log('google durum: drive', !!g.drive, 'kapsam', (g.kapsam || []).join(' '));
   // Yönetici olmayanlara hesap ayrıntısı gerekmez; yalnız ne kullanılabildiği
   if (m.bagli) console.log('microsoft durum: dosya', !!m.dosya, 'tur', m.surucuTur, 'kapsam', (m.kapsam || []).join(' '));
   res.json(yonetici(req.kullanici) ? { google: g, gdrive: d, microsoft: m, eposta: e } : {
-    eposta: { smtp: { kayitli: e.smtp.kayitli, guncel: e.smtp.guncel } },
+    eposta: { smtp: { kayitli: e.smtp.kayitli, guncel: e.smtp.guncel }, hesabim },
     google: { yapilandirildi: g.yapilandirildi, bagli: g.bagli, drive: g.drive, gmail: g.gmail },
     gdrive: { bagli: d.bagli, driveAd: d.driveAd },
     microsoft: { yapilandirildi: m.yapilandirildi, bagli: m.bagli, dosya: m.dosya },
@@ -181,6 +184,9 @@ const GonderV = z.object({
   metin: z.string().max(200000).default(''),
 });
 
+// Kullanıcının kendi e-posta hesabı ayarı (kullanicilar.eposta_hesap; şifre burada değil kasada)
+const kullaniciHesabi = (u) => (typeof u.eposta_hesap === 'string' ? json.oku(u.eposta_hesap, { tur: 'yok' }) : u.eposta_hesap) || { tur: 'yok' };
+
 // Firma SMTP ayarı (ayarlar.firma.eposta) → istemci ayarı
 function smtpAyar(fe, sifre = '') {
   return { host: String(fe.smtp || '').trim(), port: Number(fe.smtpPort || 587), guvenlik: fe.guvenlik || 'starttls', kullanici: String(fe.kullanici || fe.adres || '').trim(), sifre };
@@ -202,12 +208,44 @@ r.post('/eposta/smtp/dene', yoneticiGerekli, async (req, res) => {
 });
 r.post('/eposta/smtp/sil', yoneticiGerekli, async (req, res) => { await smtp.sil(req.db); res.json({ ok: true }); });
 
+// Kullanıcının kendi hesabı (Profilim): her kullanıcı yalnız kendi şifresini dener/kaydeder/siler
+async function kullaniciIzinli(req) {
+  const fe = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {}).eposta || {};
+  if (fe.kullaniciBaglar === false) throw new HttpHata(403, 'Yönetici, kullanıcıların kendi e-posta hesabını bağlamasını kapattı');
+}
+r.post('/eposta/hesabim/dene', async (req, res) => {
+  await kullaniciIzinli(req);
+  const v = SmtpV.parse(req.body);
+  const kasa = smtp.kullaniciKasasi(req.kullanici.id);
+  const a = { host: v.smtp, port: v.smtpPort, guvenlik: v.guvenlik, kullanici: v.kullanici, sifre: v.sifre || (await smtp.sifreOku(req.db, kasa)) };
+  if (a.kullanici && !a.sifre) throw new HttpHata(400, 'Şifre gerekli');
+  await smtp.dene(a);
+  await smtp.kaydet(req.db, { sifre: a.sifre, ozet: smtp.ayarOzeti(a) }, kasa);
+  console.log('smtp hesabim dene: ok', req.kullanici.id, a.host, a.port, a.guvenlik);
+  res.json({ ok: true });
+});
+r.post('/eposta/hesabim/sil', async (req, res) => { await smtp.sil(req.db, smtp.kullaniciKasasi(req.kullanici.id)); res.json({ ok: true }); });
+
 r.post('/eposta/gonder', async (req, res) => {
   const v = GonderV.parse(req.body);
   const kime = v.kime.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
   if (!kime.length || kime.length > 50 || !kime.every((x) => eposta.safeParse(x).success)) throw new HttpHata(400, 'Alıcı adresi geçersiz');
   const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
   const fe = firma.eposta || {};
+  // 1) Kullanıcının kendi hesabı (firma izin veriyorsa ve test edilip şifresi kayıtlıysa)
+  const ke = kullaniciHesabi(req.kullanici);
+  if (fe.kullaniciBaglar !== false && ke.tur === 'smtp') {
+    const sifre = await smtp.sifreOku(req.db, smtp.kullaniciKasasi(req.kullanici.id));
+    if (sifre) {
+      const a = smtpAyar(ke, sifre);
+      const kimden = String(ke.adres || a.kullanici || req.kullanici.eposta).trim();
+      try {
+        await smtp.gonder(a, { kimden, kimdenAd: ke.ad || req.kullanici.ad || '', kime, konu: v.konu, metin: v.metin });
+      } catch (e) { console.error('smtp hesabim gonder:', req.kullanici.id, e.message); throw e; }
+      return res.json({ ok: true, kimden, kanal: 'kisisel' });
+    }
+  }
+  // 2) Firma hesabı
   if (fe.tur === 'smtp') {
     const sifre = await smtp.sifreOku(req.db);
     if (!sifre) throw new HttpHata(409, 'Firma SMTP şifresi kayıtlı değil: Ayarlar → Firma → E-posta → "Test et ve kaydet"', { kod: 'SMTP_YOK' });

@@ -148,12 +148,13 @@ export async function gonder(a, ileti, tlsSecenek) {
   }
 }
 
-// ---- şifre kasası ----
-export async function sifreOku(db) { return (await kasaOku(db, KASA))?.sifre || ''; }
-export async function kaydet(db, { sifre, ozet }) { await kasaYaz(db, KASA, { sifre, ozet, zaman: new Date().toISOString() }); }
-export const sil = (db) => kasaSil(db, KASA);
-export async function durum(db) {
-  const k = await kasaOku(db, KASA);
+// ---- şifre kasası: firma hesabı (varsayılan) ya da kullanıcının kendi hesabı (anahtar = kullaniciKasasi(id)) ----
+export const kullaniciKasasi = (uid) => 'eposta-k:' + uid;
+export async function sifreOku(db, ad = KASA) { return (await kasaOku(db, ad))?.sifre || ''; }
+export async function kaydet(db, { sifre, ozet }, ad = KASA) { await kasaYaz(db, ad, { sifre, ozet, zaman: new Date().toISOString() }); }
+export const sil = (db, ad = KASA) => kasaSil(db, ad);
+export async function durum(db, ad = KASA) {
+  const k = await kasaOku(db, ad);
   return k ? { kayitli: true, zaman: k.zaman, ozet: k.ozet || '' } : { kayitli: false };
 }
 // Ayar özeti: sunucu/port/kullanıcı değişince eski test geçersiz sayılır

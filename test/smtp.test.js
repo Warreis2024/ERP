@@ -127,3 +127,17 @@ test('ayar özeti: sunucu/port/kullanıcı değişince değişir, şifre değiş
   assert.equal(smtp.ayarOzeti(a), smtp.ayarOzeti({ ...a, sifre: 'baska' }));
   assert.notEqual(smtp.ayarOzeti(a), smtp.ayarOzeti({ ...a, port: 465 }));
 });
+
+test('kasa: firma ve kullanıcı şifreleri ayrı anahtarlarda, şifreli', async () => {
+  const satir = new Map();
+  const db = () => { let k; const q = { where(o) { k = o.anahtar; return q; }, first: async () => (satir.has(k) ? { deger: satir.get(k) } : undefined), update: async (o) => satir.set(k, o.deger), insert: async (o) => satir.set(o.anahtar, o.deger), del: async () => satir.delete(k) }; return q; };
+  await smtp.kaydet(db, { sifre: 'Firma.1', ozet: 'a' });
+  await smtp.kaydet(db, { sifre: 'Can.2', ozet: 'b' }, smtp.kullaniciKasasi('u4'));
+  assert.equal(await smtp.sifreOku(db), 'Firma.1');
+  assert.equal(await smtp.sifreOku(db, smtp.kullaniciKasasi('u4')), 'Can.2');
+  assert.equal(await smtp.sifreOku(db, smtp.kullaniciKasasi('u5')), '');
+  assert.ok(![...satir.values()].some((v) => v.includes('Firma.1') || v.includes('Can.2')));
+  await smtp.sil(db, smtp.kullaniciKasasi('u4'));
+  assert.equal((await smtp.durum(db, smtp.kullaniciKasasi('u4'))).kayitli, false);
+  assert.equal((await smtp.durum(db)).kayitli, true);
+});

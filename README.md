@@ -61,5 +61,6 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
   - Projedeki kayıtların (servis, CRM…) dosyaları aynı proje klasöründe, kendi kodlarıyla alt klasörde: `NetERP/PRJ-1048/SRV-1001`.
   - Kurulum: Google Cloud OAuth istemcisi / Microsoft Entra uygulama kaydı, dönüş adresi `https://<alan>/api/baglanti/<saglayici>/donus`, istemci kimliği ve gizli anahtar Vercel ortam değişkeni; belirteç sunucuda şifreli saklanır.
 - [x] Firma e-postası SMTP ile gönderim (Ayarlar → Firma → E-posta → "Test et ve kaydet"): harici paket olmadan SMTP istemcisi (`src/baglanti/smtp.js`, STARTTLS 587 / SSL 465, AUTH PLAIN/LOGIN), şifre bağlantı kasasında şifreli; kayıttan "Gönder" firma hesabından, cevap adresi gönderen kullanıcı. Vercel port 25'i engeller; 465/587 açık.
-- [ ] Gelen e-postalar (IMAP) ve kullanıcının kendi hesabıyla gönderim (Profilim).
+- [x] Kullanıcının kendi hesabıyla gönderim (Profilim → E-posta hesabım → SMTP → Test et ve kaydet); şifre kullanıcıya özel kasada. Firma ayarında "Kullanıcılar kendi e-posta hesabını bağlayabilir" açık olmalı. Öncelik: kendi hesabı → firma hesabı → e-posta programı.
+- [ ] Gelen e-postalar (IMAP); Google/Microsoft hesabıyla doğrudan (OAuth) kişisel gönderim.
 - [ ] Kiosk, çıktı formu, gelen kutusu, e-posta uçları
