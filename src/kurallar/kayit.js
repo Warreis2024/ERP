@@ -1,5 +1,5 @@
 // Kayıt kuralları (saf): silme kuralı, alan değişikliği logu, değer birleştirme.
-import { COKLU, degerBos, ozet } from './degerler.js';
+import { COKLU, degerBos, ozet, sayiOku } from './degerler.js';
 import { fnErisim } from './yetki.js';
 
 // README genel kuralı: yalnız ilk durumda olan VE işlem görmemiş kayıt veritabanından silinir.
@@ -53,6 +53,19 @@ export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId) {
     if (!COKLU.has(f.tip)) liste = liste.slice(0, 1);
     liste = liste.map((r, i) => ({ ...r, fnTip: f.tip, sira: Number.isInteger(r.sira) ? r.sira : i, ustId: r.ustId && idHarita.has(r.ustId) ? idHarita.get(r.ustId) : (r.ustId || null) }));
     if (f.zorunlu && !liste.length) zorunluEksik.push(f.ad);
+    if (f.tip === 'tarihara' || f.tip === 'saatara') {
+      const saat = /^([01]\d|2[0-3]):[0-5]\d$/;
+      for (const r of liste) {
+        const [x, y] = f.tip === 'tarihara' ? [r.tarih, r.vade] : [r.bas, r.bit];
+        if (!x || !y) hatalar.push(f.ad + ': başlangıç ve bitiş birlikte girilmeli');
+        else if (f.tip === 'saatara' && (!saat.test(x) || !saat.test(y))) hatalar.push(f.ad + ': saat SS:DD biçiminde olmalı');
+        else if (String(y) < String(x)) hatalar.push(f.ad + ': bitiş başlangıçtan önce olamaz');
+      }
+    }
+    if (f.tip === 'puan') {
+      const mx = f.tarihVarsayilan === '10' ? 10 : 5;
+      for (const r of liste) { const v = sayiOku(r.adet); if (!Number.isInteger(v) || v < 1 || v > mx) hatalar.push(`${f.ad}: puan 1 ile ${mx} arasında tam sayı olmalı`); }
+    }
     if (f.tip === 'kontrol') {
       if (liste.some((r) => r.tur === 'sorun' && !String(r.not || '').trim())) hatalar.push(f.ad + ': "Uygun değil" maddesine açıklama yazılmalı');
       if (f.zorunlu && liste.some((r) => !r.tur)) hatalar.push(f.ad + ': bütün maddeler işaretlenmeli');

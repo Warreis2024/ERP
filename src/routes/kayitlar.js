@@ -5,7 +5,7 @@ import { HttpHata } from '../hata.js';
 import { okuyabilir, fnErisim } from '../kurallar/yetki.js';
 import { degerDb } from '../kurallar/degerler.js';
 import { tanimlar, yeniId } from '../veri.js';
-import { kaydet, durumDegistir, sil, kayitLog, projeKisileri, gorunurDegerler, projeApi, kartApi } from '../kayitServis.js';
+import { kaydet, durumDegistir, sil, kayitLog, projeKisileri, gorunurDegerler, projeApi, kartApi, aliciTemizle } from '../kayitServis.js';
 
 const r = Router();
 const Sayfa = z.object({ sayfa: z.coerce.number().int().min(1).default(1), adet: z.coerce.number().int().min(1).max(1000).default(500) });
@@ -78,7 +78,7 @@ r.delete('/kartlar/:id', async (req, res) => res.json(await sil(req, 'kart', req
 // ---------- mesaj: kaydı açıp Kaydet'e basmadan mesaj yazma ----------
 r.post('/mesaj', async (req, res) => {
   const u = req.kullanici, db = req.db, tanim = await tanimlar(req);
-  const v = z.object({ projeId: z.string().max(40), kartId: z.string().max(40).optional().nullable(), fnUid: z.string().max(40), metin: z.string().trim().min(1).max(10000), ustId: z.string().max(40).optional().nullable() }).parse(req.body);
+  const v = z.object({ projeId: z.string().max(40), kartId: z.string().max(40).optional().nullable(), fnUid: z.string().max(40), metin: z.string().trim().min(1).max(10000), ustId: z.string().max(40).optional().nullable(), alici: z.array(z.string().max(40)).max(50).optional() }).parse(req.body);
   const kayit = v.kartId ? await db('kartlar').where({ id: v.kartId, silindi: false }).first() : await db('projeler').where({ id: v.projeId, silindi: false }).first();
   if (!kayit) throw new HttpHata(404, 'Kayıt bulunamadı');
   const m = v.kartId ? tanim.modul(kayit.modul_id) : tanim.moduller.find((x) => x.tur === 'proje');
@@ -86,7 +86,7 @@ r.post('/mesaj', async (req, res) => {
   if (!f || !okuyabilir(u, m.id) || fnErisim(u, f) !== 'duzenle') throw new HttpHata(403, 'Bu kayda mesaj yazma yetkin yok');
   const ortak = { modulId: m.id, projeId: v.kartId ? kayit.proje_id : kayit.id, kartId: v.kartId || null };
   const id = yeniId(), zaman = new Date();
-  await db('degerler').insert({ ...degerDb({ id, fnUid: f.uid, fnTip: 'mesaj', metin: v.metin, kisi: u.id, ustId: v.ustId || null, zaman: zaman.toISOString(), okuyan: [u.id] }, ortak), olusturan: u.id, olusturma: zaman, guncelleyen: u.id, guncelleme: zaman });
+  await db('degerler').insert({ ...degerDb({ id, fnUid: f.uid, fnTip: 'mesaj', metin: v.metin, kisi: u.id, ustId: v.ustId || null, zaman: zaman.toISOString(), okuyan: [u.id], alici: aliciTemizle(v.alici, u.id) }, ortak), olusturan: u.id, olusturma: zaman, guncelleyen: u.id, guncelleme: zaman });
   res.status(201).json({ id });
 });
 

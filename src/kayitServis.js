@@ -9,6 +9,9 @@ import { tanimlar, kodUret, logYaz, yeniId, adCozucu, logApi } from './veri.js';
 
 const IstemciId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional();
 const DegerSema = z.object({ fnUid: z.string().max(40), id: z.string().max(40).optional().nullable() }).passthrough();
+// Mesaj alıcıları: kullanıcı kimlikleri; tekrar ve gönderenin kendisi atılır.
+export const aliciTemizle = (a, ben) => (Array.isArray(a) ? [...new Set(a.filter((x) => typeof x === 'string' && x && x.length <= 40 && x !== ben))].slice(0, 50) : []);
+
 export const ProjeSema = z.object({
   id: IstemciId, // yeni kayıtta istemcinin verdiği kimlik (arayüz kendi kimliğiyle çalışır)
   ad: z.string().trim().min(1, 'Proje adı zorunlu').max(250),
@@ -97,7 +100,8 @@ export async function kaydet(req, tur, id, govde) {
     // mesaj / imza: yazan ve zaman sunucuda doldurulur
     const simdi = new Date().toISOString();
     for (const r of yeni) {
-      if (r.fnTip === 'mesaj' && !eski.some((e) => e.id === r.id)) { r.kisi = u.id; r.zaman = simdi; r.okuyan = [u.id]; }
+      if (r.fnTip === 'mesaj' && !eski.some((e) => e.id === r.id)) { r.kisi = u.id; r.zaman = simdi; r.okuyan = [u.id]; r.alici = aliciTemizle(r.alici, u.id); }
+      else if (r.fnTip === 'mesaj') r.alici = eski.find((e) => e.id === r.id)?.alici; // gönderilmiş mesajın alıcıları değişmez
       if (r.fnTip === 'imza' && r.url && !r.zaman) r.zaman = simdi;
       if (r.fnTip === 'dokuman' && !eski.some((e) => e.id === r.id)) { r.yukleyen = u.id; r.onay = 'bekliyor'; }
       if (r.fnTip === 'dokuman' && eski.some((e) => e.id === r.id && e.onay !== r.onay) && !izin(u, m.id, 'onay')) {

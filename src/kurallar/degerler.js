@@ -36,6 +36,9 @@ export function degerBos(tip, r) {
   const d = (x) => String(x ?? '').trim();
   switch (tip) {
     case 'tarih': return !r.tarih;
+    case 'tarihara': return !r.tarih && !r.vade;
+    case 'saatara': return !r.bas && !r.bit;
+    case 'puan': return !(sayiOku(r.adet) > 0);
     case 'kisi': return !d(r.kisi);
     case 'firma': return !d(r.firma);
     case 'yer': { const u = d(r.ulke); return ![r.yer, r.il, r.ilce].some((x) => d(x)) && (!u || u === 'Türkiye'); }
@@ -69,6 +72,9 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
   switch (r.fnTip) {
     case 'mali': return f(r.hareket, sayiMi(r.tutar) ? r.tutar + ' ' + (r.para || '') : '', r.odeme, m);
     case 'tarih': return trh(r.tarih);
+    case 'tarihara': return [trh(r.tarih), trh(r.vade)].filter(Boolean).join(' – ');
+    case 'saatara': return [r.bas, r.bit].filter(Boolean).join(' – ');
+    case 'puan': return sayiOku(r.adet) > 0 ? '★ ' + sayiOku(r.adet) : '';
     case 'kisi': case 'ekip': return [ad.kisi(r.kisi), m].filter(Boolean).join(': ');
     case 'firma': return r.firma || '';
     case 'yer': return f(r.yer, r.ilce, r.il, r.ulke);
@@ -93,7 +99,7 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
 // ---- API (şablonla aynı alan adları) ↔ veritabanı sütunları ----
 const DUZ = ['metin', 'kisi', 'tur', 'firma', 'hareket', 'odeme', 'para', 'url', 'dosya', 'depo', 'hedef', 'malzeme', 'birim',
   'rev', 'onem', 'onay', 'yukleyen', 'renk', 'yer', 'il', 'ilce', 'ulke'];
-const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId'];
+const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici']; // bas/bit: Saat Aralığı (SS:DD)
 const TARIH = (v) => (v && /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0, 10) : null);
 const ZAMAN = (v) => { if (!v) return null; const d = new Date(String(v).replace(' ', 'T')); return Number.isNaN(d.getTime()) ? null : d; };
 const KES = (v, n) => (v === undefined || v === null ? null : String(v).slice(0, n));
