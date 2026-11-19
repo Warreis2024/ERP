@@ -220,7 +220,7 @@ tr.clk{cursor:pointer}tr.clk:hover td{background:var(--surface-2)}
 .dhead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .dhead .ust{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);margin-bottom:6px}
 .dacts{display:flex;gap:2px;flex:none}
-.denetim{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--muted);padding:8px 10px;background:var(--surface-2);border-radius:8px}
+.denetim{margin-top:14px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--muted);padding:8px 10px;background:var(--surface-2);border-radius:8px}
 .denetim b{color:var(--fg);font-weight:600}
 .tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
 .tabs button{all:unset;cursor:pointer;padding:7px 10px;font-weight:700;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
@@ -2114,21 +2114,21 @@ function projeFormHTML(){
       ${yaz?`<div class="rowbtns"><button class="btn pri" type="submit">${ic('onay')}Kaydet</button>${p?`<button class="btn danger" type="button" data-act="sil-proje">${ic('sil')}Sil</button>`:''}</div>`:'<p class="zaman">Salt okunur</p>'}
     </form>`;
   const mail=(p?ckKayitButon('ana',p.id):'')+(p?`<button class="ibtn" type="button" data-act="eposta-yaz" title="E-posta gönder" aria-label="E-posta gönder">${ic('mail')}</button>`:'');
-  return panelUst(p?p.kod:'Yeni proje', f.ad||'Proje', mail)+denetimHTML(p)+`
+  return panelUst(p?p.kod:'Yeni proje', f.ad||'Proje', mail)+`
     <div class="tabs"><button type="button" data-act="sekme" data-v="bilgi" class="${ui.sekme==='bilgi'?'on':''}">Bilgi</button><button type="button" data-act="sekme" data-v="analiz" class="${ui.sekme==='analiz'?'on':''}">Tarih analizi</button></div>
-    ${ui.sekme==='analiz'?analizHTML(f.id):bilgi}${dl()}`;
+    ${ui.sekme==='analiz'?analizHTML(f.id):bilgi}${denetimHTML(p)}${dl()}`;
 }
 function kartFormHTML(){
   const f=ui.form, m=modul(f.modulId), yaz=yazabilir(m.id);
   const k=f.id&&S.kartlar.find(x=>x.id===f.id);
   const mail=(k?ckKayitButon(m.id,k.id):'')+(k?`<button class="ibtn" type="button" data-act="eposta-yaz" title="E-posta gönder" aria-label="E-posta gönder">${ic('mail')}</button>`:'');
-  return panelUst(m.ad+' · '+(k?k.kod:'Yeni'), k?kartBaslik(k):'Yeni kayıt', mail)+denetimHTML(k)+`
+  return panelUst(m.ad+' · '+(k?k.kod:'Yeni'), k?kartBaslik(k):'Yeni kayıt', mail)+`
     <form id="kayitForm" class="form">
       <div class="two"><label>Proje *<select data-pf="projeId" required ${yaz?'':'disabled'}>${secOp(projelerA().filter(p=>!p.arsiv||p.id===f.projeId).map(p=>[p.id,p.kod+' · '+p.ad]), f.projeId, 'Seç…')}</select></label>
       <label>Durum<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis(f.modulId).map(d=>[d.id,d.ad+(d.kapat?' (kapatır)':'')]), f.durumId)}</select></label></div>
       ${fonksiyonAlani(m)}
       ${yaz?`<div class="rowbtns"><button class="btn pri" type="submit">${ic('onay')}Kaydet</button>${k?`<button class="btn danger" type="button" data-act="sil-kart">${ic('sil')}Sil</button>`:''}</div>`:'<p class="zaman">Salt okunur</p>'}
-    </form>${dl()}`;
+    </form>${denetimHTML(k)}${dl()}`;
 }
 
 function doldur(m, pred){
