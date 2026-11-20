@@ -1817,7 +1817,7 @@ function kontrol(f, row, ck){
         ? `${ortak('tur',`<input type="hidden" value="${esc(sabl.id)}">`)}<span class="tag">${ic('sablon')} ${esc(sabl.ad)}</span>`
         : secenek.length?ortak('tur',`<select data-sablon-sec="1">${secOp(secenek.map(s=>[s.id,s.ad]), row.tur, 'Şablon seç…')}</select>`)
         : `<span class="zaman">Bu modüle bağlı şablon yok (Ayarlar → Şablonlar).</span>`;
-      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu formdaki güncel değerlerle baştan yerleştirir">${ic('yenile')}Formdan yenile</button>`:''}${bos.length?`<span class="zaman">Boş {{…}} alanlarına tıklayıp yaz</span>`:''}</div>${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}`;
+      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm pri" data-act="sablon-doldur" data-uid="${f.uid}" title="Metindeki {{alan}} boşluklarını formdaki güncel değerlerle doldurur; yazdıklarına dokunmaz">${ic('onay')}Formdan doldur</button><button type="button" class="btn sm" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu baştan yerleştirir (düzenlemeler gider)">${ic('yenile')}Baştan yükle</button>`:''}${bos.length?`<span class="zaman">Boş {{…}} alanlarına tıklayıp yaz</span>`:''}</div>${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}`;
     }
   }
   return ortak('metin',`<input value="${esc(row.metin)}">`);
@@ -5280,12 +5280,22 @@ function bagla(){
       case 'yanitla': formDomOku(); msgT(b.dataset.uid).yanit=b.dataset.id; renderDrawer(); { const ta=document.querySelector(`[data-mesaj-yaz="${b.dataset.uid}"]`); if(ta) ta.focus(); } return;
       case 'yanit-iptal': formDomOku(); msgT(b.dataset.uid).yanit=null; renderDrawer(); return;
       case 'ek-sil': formDomOku(); msgT(b.dataset.uid).ekler.splice(+b.dataset.j,1); renderDrawer(); return;
+      case 'sablon-doldur': {
+        formDomOku();
+        const r=ui.form.skaler[b.dataset.uid]; if(!r) return;
+        const say=m=>[...String(m||'').matchAll(/\{\{[^}]+\}\}/g)].length;
+        const once=say(r.metin); r.metin=sablonBoslukDoldur(r.metin, r.slot);
+        const dolan=once-say(r.metin), kalan=[...new Set([...String(r.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))];
+        renderDrawer();
+        toast((dolan?dolan+' alan dolduruldu':'Formdan doldurulacak alan bulunamadı')+(kalan.length?' · formda değeri olmayan: '+kalan.join(', '):''), kalan.length?7000:0);
+        return;
+      }
       case 'sablon-uygula': {
         formDomOku();
         const r=ui.form.skaler[b.dataset.uid]; const sb=r&&S.sablonlar.find(x=>x.id===r.tur); if(!sb) return;
         if(duz(r.metin)&&!confirm('Editördeki metin şablonun formdan doldurulmuş hâliyle değiştirilsin mi? Yaptığın düzenlemeler gider.')) return;
         r.metin=sablonDoldur(sb, r.slot);
-        renderDrawer(); toast('Şablon formdan yenilendi'); return;
+        renderDrawer(); toast('Şablon baştan yüklendi'); return;
       }
       case 'depo-sil': S.depolar=S.depolar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return;
       case 'eposta-iptal': ui.eposta=null; renderDrawer(); return;
