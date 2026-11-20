@@ -765,6 +765,11 @@ img.ku-foto{font-size:1em}
 .kagit .ck-belge{display:grid;text-align:right;line-height:1.25}.kagit .ck-belge b{font-size:11pt}.kagit .ck-belge span{font-size:9pt;color:#555}
 .kagit .ck-alt{display:flex;justify-content:space-between;gap:12px;margin-top:16px;padding-top:6px;border-top:1px solid #bbb;font-size:8pt;color:#666}
 .kagit td.ck-icerik{padding:0}
+.kagit .ck-icerik,.kagit .sb-baski{max-width:100%;overflow-wrap:anywhere}
+.kagit .ck-icerik table,.kagit .sb-baski table{max-width:100%}
+.kagit .ck-icerik td,.kagit .ck-icerik th{overflow-wrap:anywhere;word-break:break-word;white-space:normal!important}
+.kagit img{max-width:100%;height:auto}
+table.ck-sayfa{width:100%;table-layout:fixed}
 .ck-sorgu{display:grid;gap:8px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px;background:var(--surface);margin-bottom:8px}
 .ck-sorgu-bas{display:flex;gap:8px;align-items:center}.ck-sorgu-bas input{flex:1;font-family:var(--f-mono);font-weight:700}
 .ck-bag{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}.ck-bag>span{padding-bottom:9px;font-weight:800;color:var(--muted)}
@@ -4393,7 +4398,23 @@ function ckRender(F, veri){
   return isle(F.sablon||'', [], 0);
 }
 function ckLogo(){ return S.firma.logo?`<img class="ck-logo" src="${S.firma.logo}" alt="">`:`<span class="ck-logo ck-logo-y">${esc(kisalt(S.firma.ad))}</span>`; }
+// Kâğıda sığdırma: editörde px ile ayarlanmış tablo/sütun genişlikleri orana çevrilir (oranlar korunur),
+// tablolar ve resimler sayfa genişliğini aşamaz.
+function zSigdir(html){
+  const d=document.createElement('div'); d.innerHTML=html||'';
+  d.querySelectorAll('table').forEach(t=>{
+    const satirlar=[...t.rows];
+    let toplam=parseFloat(t.style.width)||0;
+    const ilk=satirlar.find(r=>[...r.cells].every(c=>parseFloat(c.style.width)));
+    if(ilk) toplam=[...ilk.cells].reduce((a,c)=>a+(parseFloat(c.style.width)||0)*(c.colSpan||1)/(c.colSpan||1),0)||toplam;
+    t.style.width='100%'; t.style.maxWidth='100%'; t.style.tableLayout=toplam>0?'fixed':'auto';
+    satirlar.forEach(r=>[...r.cells].forEach(c=>{ const w=parseFloat(c.style.width); if(w&&/px$/.test(c.style.width)&&toplam>0) c.style.width=(w/toplam*100).toFixed(2)+'%'; else if(w&&/px$/.test(c.style.width)) c.style.width=''; }));
+  });
+  d.querySelectorAll('img').forEach(i=>{ i.style.maxWidth='100%'; i.style.height='auto'; });
+  return d.innerHTML;
+}
 function ckSarmal(F, ic){
+  ic=zSigdir(ic);
   if(F.ustAlt===false) return ic;
   const u=ben();
   return `<table class="ck-sayfa"><thead><tr><td><div class="ck-ust">${ckLogo()}<div class="ck-firma"><b>${esc(S.firma.ad)}</b><span>${esc(S.firma.sub)}.iq-sense.com.tr</span></div><div class="ck-belge"><b>${esc(F.ad)}</b><span>${esc(trh(bugun()))}</span></div></div></td></tr></thead><tfoot><tr><td><div class="ck-alt"><span>${esc(S.firma.ad)} · ${esc(F.ad)}</span><span>Çıktı: ${esc(trh(simdi()))} · ${esc(u.ad)}</span></div></td></tr></tfoot><tbody><tr><td class="ck-icerik">${ic}</td></tr></tbody></table>`;
@@ -4514,7 +4535,7 @@ function sablonYazdir(uid, antet, pencere){
   const ic=`<div class="sb-baski">${govdeQr}</div>`;
   const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${esc(ad)} · ${esc(S.firma.ad)}</title><style>@page{size:A4;margin:12mm}html,body{margin:0;background:#fff;color:#111;font-family:Inter,Arial,sans-serif;font-size:13px}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}${css}
 .sb-baski{line-height:1.5}.sb-baski table{border-collapse:collapse;width:100%;margin:6px 0}.sb-baski td,.sb-baski th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}.sb-baski th{background:#f1f3f6}.sb-baski img{max-width:100%}.sb-baski h2{margin:0 0 10px}.sb-bos{display:inline-block;min-width:120px;border-bottom:1px dotted #555}.sb-qr{width:110px;height:110px}.sb-qrkutu{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#555;width:120px;text-align:center}.sb-qrkutu.sag-ust{float:right;margin:0 0 8px 12px}.sb-qrkutu.sag-alt{margin:12px 0 0 auto}.sb-qrkutu.sol-alt{margin:12px auto 0 0}.sb-imza{max-height:80px;max-width:260px}.sb-yanit{margin-top:12px;font-size:12px;color:#333}
-.kagit.baski{box-shadow:none;margin:0;padding:0;width:auto;min-height:0}@media screen{.kagit.baski{max-width:210mm;margin:10mm auto}}</style></head><body><div class="kagit baski">${antet?ckSarmal({ad}, ic):ic}</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250)}<\/script></body></html>`;
+.kagit.baski{box-shadow:none;margin:0;padding:0;width:auto;min-height:0}@media screen{.kagit.baski{max-width:210mm;margin:10mm auto}}</style></head><body><div class="kagit baski">${antet?ckSarmal({ad}, ic):zSigdir(ic)}</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250)}<\/script></body></html>`;
   let w=pencere&&pencere!=='yok'?pencere:null; if(!pencere){ try{ w=window.open('','_blank'); }catch(e){} }
   if(w&&w.document){ w.document.open(); w.document.write(html); w.document.close(); return; }
   const b=new Blob([html],{type:'text/html'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=ad+'.html'; a.click();
