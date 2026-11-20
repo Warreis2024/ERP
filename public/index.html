@@ -1596,7 +1596,8 @@ function sablonListe(mid){ return S.sablonlar.filter(s=>!(s.moduller||[]).length
 // açık formdaki değerler: {normalize(ad): metin}. Modülün kendi alanları önce gelir.
 function sablonFormDegerleri(){
   const F=ui.form||{}, m=modul(formModulId()), V={};
-  const koy=(ad,v)=>{ const k=nrm(ad); v=duz(String(v??'')).replace(/\s+/g,' ').trim(); if(k&&v&&!(k in V)) V[k]=v; };
+  const bilinen=new Set();
+  const koy=(ad,v)=>{ const k=nrm(ad); if(k) bilinen.add(k); v=duz(String(v??'')).replace(/\s+/g,' ').trim(); if(k&&v&&!(k in V)) V[k]=v; };
   (m?.fn||[]).forEach(f=>{
     if(['sablon','gecmis','mesaj','imza'].includes(f.tip)) return;
     const r=F.skaler?.[f.uid], L=F.coklu?.[f.uid];
@@ -1614,6 +1615,7 @@ function sablonFormDegerleri(){
   const bugun=trh(new Date().toISOString().slice(0,10));
   koy('Bugün', bugun); koy('Tarih', bugun);
   koy('Kullanıcı', ben()?.ad); koy('Hazırlayan', ben()?.ad); koy('Şirket', S.firma.ad);
+  bilinen.forEach(k=>{ if(!(k in V)) V[k]='--'; });   // formda olan ama boş alan: "--" (alan yok sanılmasın)
   return V;
 }
 // şablon metnini doldurur: elle yazılan > formdan gelen; ikisi de yoksa {{alan}} kalır (bosBirak ise boş)
@@ -3308,6 +3310,7 @@ function zenginKur(){
       <button type="button" class="zb" data-z="ul" title="Madde listesi">${ic('liste')}</button>
       <button type="button" class="zb" data-z="ol" title="Numaralı liste">1.</button>
       <button type="button" class="zb" data-z="link" title="Bağlantı">${ic('bag')}</button>
+      <button type="button" class="zb" data-z="bosluk" title="Doldurulacak alan ekle: {{Alan adı}}" style="font-family:monospace;font-weight:700">{{ }}</button>
       <button type="button" class="zb" data-z="clear" title="Biçimi temizle">${ic('x')}</button>
       ${ek}
     </div><div class="zed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(src.placeholder||'')}"></div>`;
@@ -3447,6 +3450,16 @@ function zenginKur(){
         }
         const k=b.dataset.z;
         if(k==='geri'||k==='ileri'){ gecmisGit(k==='ileri'); return; }
+        if(k==='bosluk'){
+          const sel=getSelection(), secili=sel.toString().trim();
+          if(secili){ document.execCommand('insertText', false, '{{'+secili.replace(/[{}]/g,'')+'}}'); }
+          else {
+            document.execCommand('insertText', false, '{{}}');
+            const s2=getSelection(), n=s2.anchorNode;
+            if(n&&n.nodeType===3&&s2.anchorOffset>=2){ const rg=document.createRange(); rg.setStart(n, s2.anchorOffset-2); rg.collapse(true); s2.removeAllRanges(); s2.addRange(rg); }
+          }
+          yaz(); return;
+        }
         if(k==='link'){ const u=prompt('Bağlantı','https://'); if(u) document.execCommand('createLink', false, /^(https?:|mailto:)/i.test(u)?u:'https://'+u); }
         else if(k==='clear') document.execCommand('removeFormat');
         else if(k==='tablo') document.execCommand('insertHTML', false, '<table><tbody><tr><td><br></td><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td><td><br></td></tr></tbody></table>');
