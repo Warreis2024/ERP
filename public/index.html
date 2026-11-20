@@ -275,6 +275,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .renk-sec:hover,.renk-sec[aria-expanded=true]{border-color:var(--brand)}
 .palet-pop[hidden]{display:none!important}
 .yaz-menu{position:relative;display:inline-flex}
+.ep-eksik{display:flex;gap:8px;align-items:flex-start;margin:0;padding:8px 10px;border-radius:8px;background:rgba(207,54,64,.08);color:var(--bad,#cf3640);font-size:13px}.ep-eksik svg{width:16px;height:16px;flex:none;margin-top:2px}
 .yaz-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:40;min-width:240px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);display:grid;gap:2px}
 .yaz-pop[hidden]{display:none!important}
 .yaz-pop button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:7px 8px;font:inherit;font-size:13px;color:var(--fg);cursor:pointer}
@@ -973,7 +974,7 @@ const anahtar = sub => 'yerp-sablon:'+sub;
 
 let S, ui = {uid:'u1', ekran:'pano', panoId:'', modulId:'ana', gorunum:'kanban', q:'', proje:'', durum:'', ekip:'', benim:false, plan:'', arsiv:false, sira:null, ayar:'firma', durumModul:'ana', takvim:'modul', ay:'', form:null, cekmece:null, sekme:'bilgi', formSekme:'', menu:false, genis:false, scroll:false, gelen:'mesaj', dokDuz:null, dosyaQ:'', rehber:'firma', panoProje:'', dosyaProje:'', onizle:null, emoji:null, msg:{}, caret:null};
 
-function toast(m){ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,3200); }
+function toast(m, sure){ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,sure||3200); }
 function nid(p){ S.seq=(S.seq||1000)+1; return (p||'n')+S.seq; }
 let gec=0;
 function gecici(){ return 'gec'+(++gec); }
@@ -1809,6 +1810,7 @@ function kontrol(f, row, ck){
       if(liste.length===1&&!liste.some(x=>x.id===row.tur)&&!duz(row.metin)) row.tur=liste[0].id;   // tek şablon: seçtirme
       const sabl=S.sablonlar.find(x=>x.id===row.tur);
       if(sabl&&!duz(row.metin)) row.metin=sablonDoldur(sabl, row.slot);
+      else if(/\{\{[^}]+\}\}/.test(row.metin||'')) row.metin=sablonBoslukDoldur(row.metin, row.slot);
       const bos=sabl?[...new Set([...String(row.metin||'').matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))]:[];
       const secenek=liste.some(x=>x.id===row.tur)||!sabl?liste:[...liste,sabl];
       const secici=secenek.length===1&&sabl
@@ -2359,6 +2361,24 @@ function sablonUygula(){
   });
   return [...new Set(kalan)];
 }
+// açık formdaki şablon alanlarında formdan da dolmayan boşluklar: ['Arıza', …]
+function sablonEksikler(){
+  const F=ui.form; if(!F?.skaler) return [];
+  const oto=sablonFormDegerleri(), L=[];
+  Object.values(F.skaler).forEach(r=>{
+    if(r.fnTip!=='sablon') return;
+    let metin=String(r.metin||'');
+    if(!duz(metin)){ const L=sablonListe(formModulId()); const sb=S.sablonlar.find(x=>x.id===(r.tur||(L.length===1?L[0].id:''))); metin=sb?sb.metin:''; }
+    for(const m of metin.matchAll(/\{\{([^}]+)\}\}/g)){ const k=m[1].trim(); if(!(r.slot||{})[k]&&!oto[nrm(k)]) L.push(k); }
+  });
+  return [...new Set(L)];
+}
+// metindeki {{alan}} boşluklarından formda karşılığı olanları doldurur, kalanlara dokunmaz
+function sablonBoslukDoldur(metin, slot){
+  const oto=sablonFormDegerleri();
+  return String(metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(slot||{})[k]||oto[nrm(k)]; return v?esc(v):t; });
+}
+function eksikSoru(L, is){ return !L.length||confirm(`Şablonda doldurulmamış alan var: ${L.join(', ')}.\nBu alanlar boş ${is}. Devam edilsin mi?`); }
 // kayıt mesajı: dolmamış {{alan}} varsa uyarır (kayıt yine yapılır)
 function kayitMesaji(kalan){ return kalan&&kalan.length?`Kaydedildi · doldurulmamış şablon alanı: ${kalan.join(', ')}`:'Kaydedildi'; }
 
@@ -2442,7 +2462,7 @@ function kaydetForm(){
     if(oncePrj!==k.projeId) logEkle({...ortak, tip:'alan', alan:'Proje', eski:proje(oncePrj)?.ad||'', yeni:proje(k.projeId)?.ad||'', metin:'Proje değişti'});
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
-  ui.form=null; persist(); toast(kayitMesaji(kalan)); render();
+  ui.form=null; persist(); toast(kayitMesaji(kalan), kalan.length?7000:0); render();
 }
 function kaydetProje(kalan){
   if(!yazabilir('ana')) return toast('Proje yazma yetkin yok');
@@ -2470,7 +2490,7 @@ function kaydetProje(kalan){
     Object.keys(AD).forEach(k=>{ if(eskiP[k]!==yeniP[k]) logEkle({...ortak, tip:k==='durum'?'durum':'alan', alan:AD[k], eski:eskiP[k], yeni:yeniP[k], metin:AD[k]+' değişti'}); });
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
-  ui.form=null; persist(); toast(kalan&&kalan.length?'Proje kaydedildi · doldurulmamış şablon alanı: '+kalan.join(', '):'Proje kaydedildi'); render();
+  ui.form=null; persist(); toast(kalan&&kalan.length?'Proje kaydedildi · doldurulmamış şablon alanı: '+kalan.join(', '):'Proje kaydedildi', kalan&&kalan.length?7000:0); render();
 }
 function tasi(tip,id,durumId){
   if(tip==='p'){
@@ -2828,6 +2848,7 @@ function epostaHTML(){
   const hs=firmadan?{bagli:true, ad:fe.gonderenAd||S.firma.ad, adres:fe.adres||fe.kullanici, tur:fe.tur}:hs0, bagli=kendi||firmadan;
   return panelUst('E-posta · '+e.kod, 'Yeni e-posta')+`<form class="form" id="epostaForm">
     <div class="ep-kimden ${bagli?'ok':''}">${ic(bagli?'onay':'mail')}<span>${bagli?`Kimden: <b>${esc(hs.ad||ben().ad)}</b> &lt;${esc(hs.adres||ben().eposta)}&gt; · ${firmadan?'firma hesabı, cevap: '+esc(ben().eposta):esc(EP_TUR[hs.tur])}`:'E-posta hesabın bağlı değil; Gönder e-posta programını açar.'}</span>${kb&&!kendi?`<button type="button" class="btn sm" data-act="profil-eposta">Hesabımı bağla</button>`:''}</div>
+    ${(e.eksik||[]).length?`<p class="ep-eksik">${ic('uyari')}<span>Şablonda doldurulmamış alan var: <b>${esc(e.eksik.join(', '))}</b>. Bu alanlar iletide boş gidecek.</span></p>`:''}
     <label>Kime<input name="kime" list="epostaDL" value="${esc(e.kime)}" placeholder="ad@firma.com" required></label>
     <datalist id="epostaDL">${[...new Map(adresler.map(a=>[a[0],a])).values()].map(a=>`<option value="${esc(a[0])}">${esc(a[1])}</option>`).join('')}</datalist>
     <label>Konu<input name="konu" value="${esc(e.konu)}" required></label>
@@ -3326,6 +3347,19 @@ function zenginKur(){
     });
     dugmeDurum();
     ed.addEventListener('input', yaz);
+    if(src.dataset.sk&&fnBul(src.dataset.sk)?.tip==='sablon') ed.addEventListener('input', e=>{
+      const sel=getSelection(), n=sel.anchorNode;
+      if(!n||n.nodeType!==3||!/\}\}/.test(n.textContent.slice(0, sel.anchorOffset))) return;
+      formDomOku();
+      const oto=sablonFormDegerleri(), satir=ui.form?.skaler?.[src.dataset.sk];
+      let son=-1;
+      const yeni=n.textContent.replace(/\{\{([^{}]+)\}\}/g,(t,k,i)=>{ const v=(satir?.slot||{})[k.trim()]||oto[nrm(k.trim())]; if(!v) return t; if(i<sel.anchorOffset) son=i+v.length; return v; });
+      if(yeni===n.textContent) return;
+      gecmisKaydet();
+      n.textContent=yeni;
+      if(son>=0){ const rg=document.createRange(); rg.setStart(n, Math.min(son, yeni.length)); rg.collapse(true); sel.removeAllRanges(); sel.addRange(rg); }
+      yaz();
+    });
     ed.addEventListener('blur', ()=>{ yaz(); src.dispatchEvent(new Event('change',{bubbles:true})); });
     let aralik=null;
     const sakla=()=>{ const sel=getSelection(); if(sel.rangeCount && ed.contains(sel.anchorNode)) aralik=sel.getRangeAt(0).cloneRange(); };
@@ -3560,7 +3594,7 @@ function epostaBaslat(){
   const pred=tur==='proje'?(d=>d.projeId===o.id&&!d.kartId):(d=>d.kartId===o.id);
   const satir=m.fn.filter(x=>fnGorunur(x)&&!['gecmis','imza','mesaj','dokuman'].includes(x.tip)).map(x=>{ const v=S.degerler.filter(d=>pred(d)&&d.fnUid===x.uid).map(ozet).filter(Boolean).join(' | '); return v?x.ad+': '+v:''; }).filter(Boolean);
   const adres=S.degerler.find(d=>pred(d)&&d.fnTip==='eposta'&&d.metin)?.metin || (firmaBul(projeFirma(p)||'')||{}).eposta || '';
-  ui.eposta={tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`Merhaba,\n\n${satir.join('\n')}\n\n${sunucuImzasi()?'':(imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad)}`};
+  ui.eposta={eksik:sablonEksikler(), tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`Merhaba,\n\n${satir.join('\n')}\n\n${sunucuImzasi()?'':(imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad)}`};
   ui.scroll=true; renderDrawer();
 }
 /* ---------- kiosk (büyük ekran, menüsüz, kendiliğinden döner) ---------- */
@@ -4939,6 +4973,7 @@ function bagla(){
     if(e.target.id==='kayitForm') kaydetForm();
     if(e.target.id==='ayarForm') kaydetAyar(e.target);
     if(e.target.id==='epostaForm'){
+      if(!eksikSoru(ui.eposta?.eksik||[],'gönderilecek')) return;
       const v=n=>e.target.elements[n].value.trim();
       const em=ui.eposta, o=em.tur==='proje'?proje(em.id):S.kartlar.find(x=>x.id===em.id);
       const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:e.target.elements.govde.value, kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
@@ -5461,8 +5496,8 @@ function bagla(){
       case 'ck-duzenle': kapatEkran(); ui.ekran='ayar'; ui.ayar='cikti'; ui.cekmece={tur:'cikti', id:b.dataset.id}; render(); return;
       case 'ck-onizle': { const id=b.dataset.id; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:id}; render(); return; }
       case 'yaz-ac': { const pop=b.parentElement.querySelector('.yaz-pop'); if(pop) pop.hidden=!pop.hidden; return; }
-      case 'sablon-yazdir': { const a=b.closest('.yaz-pop')?.querySelector('[data-yaz-antet]'); const antet=a?a.checked:true; try{ localStorage.setItem('yerp-antet', antet?'1':'0'); }catch(e){} b.closest('.yaz-pop').hidden=true; sablonYazdir(b.dataset.uid, antet); return; }
-      case 'ck-kayit': { const id=b.dataset.id, fid=b.dataset.form; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:fid, kartId:id}; render(); return; }
+      case 'sablon-yazdir': { formDomOku(); if(!eksikSoru(sablonEksikler(),'yazdırılacak')) return; const a=b.closest('.yaz-pop')?.querySelector('[data-yaz-antet]'); const antet=a?a.checked:true; try{ localStorage.setItem('yerp-antet', antet?'1':'0'); }catch(e){} b.closest('.yaz-pop').hidden=true; sablonYazdir(b.dataset.uid, antet); return; }
+      case 'ck-kayit': { if(ui.form){ formDomOku(); if(!eksikSoru(sablonEksikler(),'çıktıya girecek')) return; } const id=b.dataset.id, fid=b.dataset.form; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:fid, kartId:id}; render(); return; }
       case 'ck-ekle': { const F={id:nid('ck'), ad:'Yeni çıktı formu', modulId:S.moduller[0]?.id||'ana', kapsam:'liste', satir:'kayit', tarihAlan:'', donem:'tum', kisi:'tum', sirala:'', kagit:'dikey', kosullar:[], alanlar:[], sablon:'<h2>{{form}}</h2><p>{{firma}} · {{bugun}}</p><p>||tablo||</p>'}; S.ciktilar.push(F); ui.cekmece={tur:'cikti', id:F.id}; persist(); render(); return; }
       case 'ck-sil': { if(!confirm('Çıktı formu silinsin mi?')) return; S.ciktilar=S.ciktilar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return; }
       case 'ckq-ekle': { const F=S.ciktilar.find(x=>x.id===b.dataset.id); if(!F) return; F.kosullar.push({alan:'',op:'=',deger:''}); persist(); render(); return; }
