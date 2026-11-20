@@ -14,6 +14,7 @@ import kayitlar from './routes/kayitlar.js';
 import ayar, { firmaRouter, kullaniciRouter } from './routes/ayar.js';
 import baglanti, { donusRouter } from './routes/baglanti.js';
 import { disYonetim, disGenel } from './routes/disOnay.js';
+import bildirim from './routes/bildirim.js';
 
 const kok = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const app = express();
@@ -64,6 +65,7 @@ api.use(durum);
 api.use(kayitlar);
 api.use(baglanti);
 api.use(disYonetim);
+api.use(bildirim);
 api.use('/ayar/firma', firmaRouter);
 api.use('/ayar/kullanicilar', kullaniciRouter);
 api.use('/ayar', ayar);

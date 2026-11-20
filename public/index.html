@@ -275,6 +275,12 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .renk-sec:hover,.renk-sec[aria-expanded=true]{border-color:var(--brand)}
 .palet-pop[hidden]{display:none!important}
 .yaz-menu{position:relative;display:inline-flex}
+#bildirimler{position:fixed;top:64px;right:16px;z-index:900;display:grid;gap:8px;width:min(360px,calc(100vw - 32px))}
+.bld{display:flex;gap:10px;align-items:flex-start;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.18);cursor:pointer;animation:bldGir .25s ease}
+.bld-ik svg{width:18px;height:18px;margin-top:2px}.bld-ic{display:grid;gap:2px;flex:1;font-size:13px;min-width:0}.bld-ic span{color:var(--muted,#66708a);overflow-wrap:anywhere}
+.bld-x{border:0;background:none;color:var(--muted,#66708a);font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+.bld-izin{justify-self:start;margin-top:4px;border:1px solid var(--line);background:none;border-radius:8px;padding:3px 8px;font:inherit;font-size:12px;cursor:pointer;color:var(--fg)}
+@keyframes bldGir{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .dis-onay{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
 .do-bas{display:flex;align-items:center;gap:6px;font-size:13px}.do-bas svg{width:16px;height:16px}
 .do-aktif{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}.do-qr{width:120px;height:120px;border:1px solid var(--line);border-radius:6px;background:#fff}
@@ -4713,7 +4719,8 @@ function profilHTML(){
     <div class="two"><label>Ünvan<input value="${esc(u.unvan||'')}" disabled></label><label>Departman<input value="${esc(u.departman||'—')}" disabled></label></div>
     <div class="two"><label>E-posta (giriş)<input value="${esc(u.eposta||'')}" disabled></label><label>Yetki grubu<input value="${esc(S.yetkiGruplari.find(g=>g.id===u.grup)?.ad||'')}${u.rol==='yonetici'?' · Yönetici':''}" disabled></label></div>
     <p class="zaman">Ünvan, departman, giriş e-postası ve yetkiyi yönetici değiştirir.</p></div>`;
-  const tercih=`<div class="form"><div class="two"><label>Tema<select data-profil="tema">${secOp([['','Cihaz ayarı'],['light','Açık'],['dark','Koyu']], localStorage.getItem('yerp-tema')||'')}</select></label><label>Açılış sayfası<select data-profil="acilis">${secOp([['pano','Ana Sayfa'],...S.moduller.filter(m=>m.acik&&yetki(m.id)!=='yok').map(m=>['modul:'+m.id,m.ad]),['gelen','Gelen kutusu'],['profil','Profilim']], u.acilis||'pano')}</select></label></div></div>`;
+  const bldDurum=!('Notification' in window)?'Bu tarayıcı desteklemiyor':Notification.permission==='granted'?'Açık':Notification.permission==='denied'?'Tarayıcıda engellenmiş (adres çubuğundaki kilit simgesinden izin ver)':'Kapalı';
+  const tercih=`<div class="form"><div class="lbl">Masaüstü bildirimleri<div class="rowbtns" style="align-items:center"><span class="zaman">${esc(bldDurum)}</span>${'Notification' in window&&Notification.permission==='default'?`<button type="button" class="btn sm" data-act="bld-izin">${ic('onay')}Aç</button>`:''}</div><p class="zaman">Yeni mesaj, sana atanan iş ve müşteri onayı ERP açıkken ekranın sağ üstünde; sekme arkadaysa masaüstünde bildirilir.</p></div><div class="two"><label>Tema<select data-profil="tema">${secOp([['','Cihaz ayarı'],['light','Açık'],['dark','Koyu']], localStorage.getItem('yerp-tema')||'')}</select></label><label>Açılış sayfası<select data-profil="acilis">${secOp([['pano','Ana Sayfa'],...S.moduller.filter(m=>m.acik&&yetki(m.id)!=='yok').map(m=>['modul:'+m.id,m.ad]),['gelen','Gelen kutusu'],['profil','Profilim']], u.acilis||'pano')}</select></label></div></div>`;
   const hb=hesabimDurum(), epBag=API.acik?(ep.tur==='smtp'&&!!hb.kayitli&&!!hb.guncel):(ep.tur!=='yok'&&ep.bagli);
   if(API.acik&&epBag) ep={...ep, zaman:(hb.zaman||'').slice(0,16).replace('T',' ')};
   const fe=firmaEp();
@@ -5025,10 +5032,62 @@ async function apiGirisYap(form){
     await apiAc();
   }catch(e){ girisGoster(e.message, ep); }
 }
+/* ---------- sayfa açıkken bildirimler ---------- */
+const BILDIRIM_SN=45;
+function bildirimBaslat(){
+  clearInterval(API.bildirimZ); API.bildirimSon=null;
+  const sor=()=>{ if(!API.acik||!API.ben||KS) return; apiIstek('/bildirimler'+(API.bildirimSon?'?son='+encodeURIComponent(API.bildirimSon):'')).then(v=>{ API.bildirimSon=v.simdi; if(v.olaylar?.length) bildirimIsle(v.olaylar); }).catch(()=>{}); };
+  sor(); API.bildirimZ=setInterval(sor, BILDIRIM_SN*1000);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') sor(); });
+}
+function bildirimIsle(L){
+  // yerel kaydedilmemiş değişiklik yoksa veriyi tazele (rozetler, gelen kutusu, yeni kayıtlar)
+  API.kuyruk=API.kuyruk.then(async()=>{
+    if(JSON.stringify(iz(S))!==JSON.stringify(API.son)) return;
+    await durumYukle();
+    if(ui.form) formDomOku();
+    renderSide(); renderTop();
+    if(!ui.form&&!ui.eposta&&!ui.cekmece){ renderMain(); zenginKur(); }
+  }).catch(()=>{}).then(()=>{ L.forEach(bildirimGoster); });
+}
+function bildirimMetni(o){
+  const k=o.kartId&&S.kartlar.find(x=>x.id===o.kartId), p=proje(o.projeId);
+  const kayit=k?`${k.kod} · ${kartBaslik(k)}`:p?`${p.kod} · ${p.ad}`:'Kayıt';
+  if(o.tur==='mesaj') return {baslik:'Yeni mesaj · '+(kisiAd(o.kimden)||''), govde:kayit+'\n'+(o.metin||''), ikon:'mesaj'};
+  if(o.tur==='atama') return {baslik:'Sana iş atandı', govde:kayit+(o.alan?' · '+o.alan:'')+(o.kimden?' · '+o.kimden:''), ikon:'kisi'};
+  if(o.tur==='onay') return {baslik:o.karar==='red'?'Müşteri reddetti':o.karar==='onay'?'Müşteri onayladı':'Müşteri yanıtladı', govde:kayit+(o.baslik?' · '+o.baslik:''), ikon:'qr'};
+  return {baslik:'Bildirim', govde:kayit, ikon:'mesaj'};
+}
+function bildirimAc(o){
+  window.focus();
+  if(o.kartId&&S.kartlar.some(x=>x.id===o.kartId)) kartAc(o.kartId);
+  else if(o.projeId&&proje(o.projeId)) projeAc(o.projeId);
+}
+function bildirimGoster(o){
+  const b=bildirimMetni(o);
+  // tarayıcı (masaüstü) bildirimi: sekme arkadaysa ve izin verildiyse
+  if(document.hidden&&'Notification' in window&&Notification.permission==='granted'){
+    try{ const n=new Notification(b.baslik,{body:b.govde, tag:(o.tur+':'+(o.kartId||o.projeId)+':'+o.zaman), icon:S.firma.logo||undefined}); n.onclick=()=>{ bildirimAc(o); n.close(); }; }catch(e){}
+  }
+  let kap=document.getElementById('bildirimler');
+  if(!kap){ kap=document.createElement('div'); kap.id='bildirimler'; kap.setAttribute('aria-live','polite'); document.body.appendChild(kap); }
+  const el=document.createElement('div'); el.className='bld';
+  const izinSor='Notification' in window&&Notification.permission==='default'&&!localStorage.getItem('yerp-bld-sorma')&&!kap.querySelector('.bld-izin');
+  el.innerHTML=`<span class="bld-ik">${ic(b.ikon)}</span><div class="bld-ic"><b>${esc(b.baslik)}</b><span>${esc(b.govde).replace(/\n/g,'<br>')}</span>${izinSor?`<button type="button" class="bld-izin">Masaüstüne de bildir</button>`:''}</div><button type="button" class="bld-x" aria-label="Kapat">×</button>`;
+  el.addEventListener('click', e=>{
+    if(e.target.closest('.bld-x')){ el.remove(); return; }
+    if(e.target.closest('.bld-izin')){ Notification.requestPermission().then(p=>{ if(p!=='granted') localStorage.setItem('yerp-bld-sorma','1'); toast(p==='granted'?'Masaüstü bildirimleri açıldı':'Masaüstü bildirimi izni verilmedi'); }); e.target.remove(); return; }
+    bildirimAc(o); el.remove();
+  });
+  kap.prepend(el);
+  while(kap.children.length>4) kap.lastChild.remove();
+  setTimeout(()=>el.remove(), 12000);
+}
 async function apiAc(){
   const b=await apiIstek('/oturum/ben');
   if(b.kullanici.sifreDegismeli) return sifreZorunluGoster();
   API.ben=b.kullanici; ui.uid=b.kullanici.id;
+  bildirimBaslat();
   API.yukleniyor=true;
   try{ await durumYukle(); } finally{ API.yukleniyor=false; }
   const u=ben();
@@ -5506,6 +5565,7 @@ function bagla(){
         disOlustur(b.dataset.uid, saat).then(()=>{ formDomOku(); renderDrawer(); toast('QR bağlantısı oluşturuldu; yazdırınca {{QR}} yerine basılır'); }).catch(e=>{ b.disabled=false; toast(e.message); });
         return;
       }
+      case 'bld-izin': { if('Notification' in window) Notification.requestPermission().then(p=>{ toast(p==='granted'?'Masaüstü bildirimleri açıldı':'İzin verilmedi'); render(); }); return; }
       case 'dis-yenile': { if(ui.form?.id){ formDomOku(); disYukle(ui.form.id, true); toast('Denetleniyor…'); } return; }
       case 'dis-kopya': { const u=b.dataset.url; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast('Bağlantı kopyalandı'),()=>prompt('Bağlantı',u)); return; }
       case 'dis-iptal': {
