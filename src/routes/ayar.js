@@ -8,6 +8,21 @@ import { yoneticiGerekli } from '../auth/middleware.js';
 import { sifreOzetle } from '../auth/sifre.js';
 import { yeniId, kullaniciDis } from '../veri.js';
 import { fonksiyonVerisiniGecmiseYaz } from '../fonksiyonSil.js';
+import { firmaEpostasiGonder } from './baglanti.js';
+
+const kacisH = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Geçici şifreyi kullanıcıya firma e-postasıyla iletir (ilk girişte değiştirmesi istenir)
+async function sifreEpostasi(req, u, sifre, yeni) {
+  if (!u.eposta) return { gonderildi: false, neden: 'Kullanıcının e-posta adresi yok' };
+  const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
+  const adres = `${req.protocol}://${req.get('host')}/`;
+  const firmaAd = firma.ad || req.firma.ad || 'NetERP';
+  const konu = yeni ? `${firmaAd} · NetERP hesabınız açıldı` : `${firmaAd} · NetERP şifreniz sıfırlandı`;
+  const giris = yeni ? 'Sizin için bir NetERP hesabı açıldı.' : 'NetERP şifreniz yönetici tarafından sıfırlandı.';
+  const metin = `Merhaba ${u.ad},\n\n${giris}\n\nGiriş adresi: ${adres}\nE-posta: ${u.eposta}\nGeçici şifre: ${sifre}\n\nİlk girişte kendi şifrenizi belirlemeniz istenecek. Bu isteği siz beklemiyorsanız yöneticinize bildirin.\n\n${firmaAd}`;
+  const html = `<p>Merhaba ${kacisH(u.ad)},</p><p>${kacisH(giris)}</p><table cellpadding="6" style="border-collapse:collapse"><tr><td><b>Giriş adresi</b></td><td><a href="${kacisH(adres)}">${kacisH(adres)}</a></td></tr><tr><td><b>E-posta</b></td><td>${kacisH(u.eposta)}</td></tr><tr><td><b>Geçici şifre</b></td><td style="font-family:Consolas,monospace;font-size:16px"><b>${kacisH(sifre)}</b></td></tr></table><p>İlk girişte kendi şifrenizi belirlemeniz istenecek. Bu isteği siz beklemiyorsanız yöneticinize bildirin.</p><p>${kacisH(firmaAd)}</p>`;
+  return firmaEpostasiGonder(req, { kime: u.eposta, konu, metin, html });
+}
 
 const r = Router();
 // Personel rehbere firma/kişi ve malzeme listesine yeni kayıt ekleyebilir (formda yazdığı firma rehbere düşer);
@@ -110,6 +125,7 @@ kullaniciRouter.use(yoneticiGerekli);
 const KSema = z.object({
   ad, unvan: z.string().max(150).optional(), eposta: z.string().trim().toLowerCase().email().max(254),
   tel: z.string().max(40).optional(), rol: z.enum(['yonetici', 'personel']).optional(),
+  foto: z.string().max(60000).regex(/^(data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)?$/).optional(), // 96 px küçük resim
   grup_id: z.string().max(40).nullable().optional(), departman: z.string().max(100).nullable().optional(), aktif: z.boolean().optional(),
 });
 const geciciSifre = () => crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x') + '7';
@@ -125,8 +141,9 @@ kullaniciRouter.post('/', async (req, res) => {
   const id = req.body.id ? kimlik.parse(req.body.id) : yeniId();
   if (await req.db('kullanicilar').where({ id }).first()) throw new HttpHata(409, 'Bu kimlikte kullanıcı var');
   const sifre = geciciSifre();
-  await req.db('kullanicilar').insert({ id, ...v, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
-  res.status(201).json({ id, geciciSifre: sifre }); // geçici şifre yalnız bir kez gösterilir
+  await req.db('kullanicilar').insert({ id, ...v, foto: v.foto || null, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
+  const eposta = await sifreEpostasi(req, { ad: v.ad, eposta: v.eposta }, sifre, true);
+  res.status(201).json({ id, geciciSifre: sifre, eposta }); // geçici şifre yalnız bir kez gösterilir
 });
 kullaniciRouter.put('/:id', async (req, res) => {
   const v = KSema.partial().parse(req.body);
@@ -138,6 +155,7 @@ kullaniciRouter.put('/:id', async (req, res) => {
     if (n < 2) throw new HttpHata(400, 'Son aktif yönetici pasife alınamaz ya da personele çevrilemez');
   }
   const d = { ...v, guncelleyen: req.kullanici.id, guncelleme: new Date() };
+  if (v.foto !== undefined) d.foto = v.foto || null;
   if (v.aktif === false || (v.rol && v.rol !== u.rol)) d.oturum_surumu = u.oturum_surumu + 1; // açık oturumları düşür
   await db('kullanicilar').where({ id: u.id }).update(d);
   res.json({ ok: true });
@@ -150,7 +168,8 @@ kullaniciRouter.post('/:id/sifre-sifirla', async (req, res) => {
   if (u.id === req.kullanici.id) throw new HttpHata(400, 'Kendi şifreni Profilim → Güvenlik bölümünden değiştir');
   const sifre = geciciSifre();
   await req.db('kullanicilar').where({ id: u.id }).update({ sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, hatali: 0, kilit: null, oturum_surumu: u.oturum_surumu + 1 });
-  res.json({ geciciSifre: sifre });
+  const eposta = await sifreEpostasi(req, u, sifre, false);
+  res.json({ geciciSifre: sifre, eposta });
 });
 kullaniciRouter.put('/:id/yetkiler', async (req, res) => {
   const v = z.record(z.object({ yetki: z.enum(['yok', 'oku', 'yaz']), onay: z.boolean().optional(), disa: z.boolean().optional() })).parse(req.body);

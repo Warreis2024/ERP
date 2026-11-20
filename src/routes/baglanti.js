@@ -268,4 +268,29 @@ r.post('/eposta/gonder', async (req, res) => {
   res.json({ ok: true, id: g.id, kimden: g.kimden, kanal: 'gmail' });
 });
 
+// Sistem iletisi (şifre sıfırlama vb.) firma hesabından gönderilir. Hata fırlatmaz; sonucu döner.
+export async function firmaEpostasiGonder(req, { kime, konu, metin, html }) {
+  try {
+    const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
+    const fe = firma.eposta || {};
+    const govde = (kimden) => google.iletiGovdesi(metin, '', String(kimden).split('@')[1], html);
+    if (fe.tur === 'smtp') {
+      const sifre = await smtp.sifreOku(req.db);
+      if (!sifre) return { gonderildi: false, neden: 'Firma SMTP şifresi kayıtlı değil (Ayarlar → Firma → E-posta → Test et ve kaydet)' };
+      const a = smtpAyar(fe, sifre);
+      const kimden = String(fe.adres || a.kullanici).trim();
+      await smtp.gonder(a, { kimden, kimdenAd: fe.gonderenAd || firma.ad || '', kime: [kime], konu, ...govde(kimden) });
+      return { gonderildi: true, kanal: 'smtp' };
+    }
+    if (fe.tur === 'google') {
+      await google.gmailGonder(req.db, { kimdenAd: fe.gonderenAd || firma.ad || '', kime: [kime], konu, ...govde(fe.adres || 'neterp.local') });
+      return { gonderildi: true, kanal: 'gmail' };
+    }
+    return { gonderildi: false, neden: 'Firma e-posta hesabı ayarlı değil (Ayarlar → Firma → E-posta)' };
+  } catch (e) {
+    console.error('sistem e-postası:', e.message);
+    return { gonderildi: false, neden: 'E-posta gönderilemedi: ' + String(e.message || '').slice(0, 200) };
+  }
+}
+
 export default r;

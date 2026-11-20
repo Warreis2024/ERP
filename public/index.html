@@ -4831,7 +4831,7 @@ const AYAR_TABLO=[
   {t:'rehber_kisiler', k:'id', herkes:true, L:s=>s.kisiler.map(k=>({id:k.id, ad:k.ad, firma_id:k.firmaId||null, unvan:k.unvan||'', tel:k.tel||'', eposta:k.eposta||''}))},
   ...['sablonlar','panolar','kiosklar','ciktilar'].map(t=>({t, k:'id', L:s=>s[t].map((x,i)=>{ const {id,ad,sira,...tanim}=x; return {id, ad, sira:i, tanim}; })})),
 ];
-const KUL_ALAN=u=>({ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false});
+const KUL_ALAN=u=>({ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false, foto:/^data:image\/(png|jpeg|webp);base64,/.test(u.foto||'')?u.foto:''});
 const KUL_YETKI=u=>{ const o={}; new Set([...Object.keys(u.yetki||{}), ...Object.keys(u.ek||{})]).forEach(m=>{ const y=(u.yetki||{})[m]||'yok', e=(u.ek||{})[m]||{}; if(y!=='yok') o[m]={yetki:y, onay:!!e.onay, disa:!!e.disa}; }); return o; };
 const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}}});
 const EPOSTA=u=>{ const h={...(u.epostaHesap||{tur:'yok'})}; ['bagli','zaman','sifre','sifreKayitli'].forEach(k=>delete h[k]); Object.keys(h).forEach(k=>{ if(k!=='tur'&&(h[k]===''||h[k]==null)) delete h[k]; }); h.tur=h.tur||'yok'; return h; };
@@ -4900,14 +4900,14 @@ async function esitle(){
         if(!(id in son.kul)){
           const v=await apiIstek('/ayar/kullanicilar', {method:'POST', govde:{id, ...KUL_ALAN(u)}});
           u.sifre=null; degisti=true;
-          geciciSifreGoster(u, v.geciciSifre);
+          geciciSifreGoster(u, v.geciciSifre, v.eposta);
         } else if(son.kul[id]!==simdiki.kul[id]) await adim(()=>apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id), {method:'PUT', govde:KUL_ALAN(u)}));
         if(son.kulY[id]!==simdiki.kulY[id]&&!u.sistem) await adim(()=>apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id)+'/yetkiler', {method:'PUT', govde:KUL_YETKI(u)}));
         // Şifre yalnız yöneticinin "Şifreyi sıfırla" düğmesiyle sıfırlanır; veri değişiminden çıkarım yapılmaz.
         if(u.sifreSifirla&&id in son.kul){
           delete u.sifreSifirla;
           const v=await apiIstek('/ayar/kullanicilar/'+encodeURIComponent(id)+'/sifre-sifirla', {method:'POST', govde:{}});
-          degisti=true; geciciSifreGoster(u, v.geciciSifre);
+          degisti=true; geciciSifreGoster(u, v.geciciSifre, v.eposta);
         }
       }
     }
@@ -4944,9 +4944,11 @@ async function esitle(){
     render();
   }
 }
-function geciciSifreGoster(u, sifre){
+function geciciSifreGoster(u, sifre, ep){
   if(!sifre) return;
-  const m=u.ad+' için geçici şifre: '+sifre+'\n\nBu şifre yalnız şimdi gösterilir. Kullanıcıya güvenli bir yoldan ilet; ilk girişte kendi şifresini belirleyecek.';
+  const m=ep&&ep.gonderildi
+    ? u.ad+' için geçici şifre '+u.eposta+' adresine e-postalandı.\n\nGeçici şifre: '+sifre+'\n(Yalnız şimdi gösterilir.) İlk girişte kendi şifresini belirleyecek.'
+    : u.ad+' için geçici şifre: '+sifre+'\n\nE-posta GÖNDERİLEMEDİ'+(ep&&ep.neden?': '+ep.neden:'')+'.\nBu şifre yalnız şimdi gösterilir. Kullanıcıya güvenli bir yoldan ilet; ilk girişte kendi şifresini belirleyecek.';
   try{ alert(m); }catch(e){ toast(m); }
 }
 
@@ -5622,7 +5624,7 @@ function bagla(){
       case 'profil': kapatEkran(); ui.ekran='profil'; render(); return;
       case 'cikis': if(!confirm('Çıkış yapılsın mı?')) return; oturumKapat(); return;
       case 'benim-git': kapatEkran(); ui.ekran='modul'; ui.modulId=(S.moduller.find(m=>m.id==='is'&&yetki('is')!=='yok')||S.moduller.find(m=>m.tur!=='proje'&&yetki(m.id)!=='yok'))?.id||'ana'; ui.benim=true; render(); return;
-      case 'sifre-sifirla': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u||!confirm(u.ad+' kullanıcısının şifresi ilk şifreye dönsün mü? Sunucu aşamasında bunun yerine sıfırlama bağlantısı e-postalanır.')) return; u.sifre=null; u.sifreTarih=''; u.kilit=''; u.hatali=0; if(API.acik) u.sifreSifirla=true; persist(); render(); toast('Şifre sıfırlandı'); return; }
+      case 'sifre-sifirla': { const u=S.kullanicilar.find(x=>x.id===b.dataset.id); if(!u||!confirm(u.ad+' kullanıcısının şifresi sıfırlansın mı?'+(API.acik?' Yeni geçici şifre '+(u.eposta||'e-posta adresine')+' gönderilir; ilk girişte kendi şifresini belirler.':''))) return; u.sifre=null; u.sifreTarih=''; u.kilit=''; u.hatali=0; if(API.acik) u.sifreSifirla=true; persist(); render(); toast('Şifre sıfırlandı'); return; }
       case 'sifre-degis': { const u=ben(), eski=$('#prEski').value, y1=$('#prYeni').value, y2=$('#prYeni2').value;
         (async()=>{ if(!(await sifreDogru(u,eski))) return toast('Mevcut şifre yanlış'); if(y1.length<8) return toast('Yeni şifre en az 8 karakter olmalı'); if(y1!==y2) return toast('Yeni şifreler aynı değil'); if(y1===eski) return toast('Yeni şifre eskisiyle aynı'); await sifreAyarla(u,y1); persist(); renderMain(); toast('Şifren değişti'); })(); return; }
       case 'fep-test': { if(API.acik){ const fe=firmaEp();
