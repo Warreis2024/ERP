@@ -842,6 +842,7 @@ const YER={"ulke":["Türkiye","KKTC","Almanya","Amerika Birleşik Devletleri","�
 
 /* ---------- ikonlar ---------- */
 const ICONS={
+  yenile:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
   resim:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-9 9"/>',
   kopya:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -1798,18 +1799,13 @@ function kontrol(f, row, ck){
       if(liste.length===1&&!liste.some(x=>x.id===row.tur)&&!duz(row.metin)) row.tur=liste[0].id;   // tek şablon: seçtirme
       const sabl=S.sablonlar.find(x=>x.id===row.tur);
       if(sabl&&!duz(row.metin)) row.metin=sablonDoldur(sabl, row.slot);
-      const oto=sablonFormDegerleri();
-      const slots=sabl?[...new Set([...sabl.metin.matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))]:[];
-      const formdan=slots.filter(sl=>oto[nrm(sl)]&&!(row.slot||{})[sl]);
-      const sorulan=slots.filter(sl=>!formdan.includes(sl));
-      const alanlar=sorulan.length?`<div class="two">${sorulan.map(sl=>`<label class="lbl">${esc(sl)}<input data-${ck?'ck':'sk'}="${f.uid}"${ck?` data-i="${ck.i}"`:''} data-k="slot" data-slot="${esc(sl)}" value="${esc((row.slot||{})[sl]||'')}"></label>`).join('')}</div>`:'';
-      const otoBilgi=formdan.length?`<p class="zaman">Formdan otomatik: ${formdan.map(sl=>`<span class="tag" title="${esc(oto[nrm(sl)])}">${esc(sl)}</span>`).join(' ')}</p>`:'';
+      const bos=sabl?[...new Set([...String(row.metin||'').matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))]:[];
       const secenek=liste.some(x=>x.id===row.tur)||!sabl?liste:[...liste,sabl];
       const secici=secenek.length===1&&sabl
         ? `${ortak('tur',`<input type="hidden" value="${esc(sabl.id)}">`)}<span class="tag">${ic('sablon')} ${esc(sabl.ad)}</span>`
         : secenek.length?ortak('tur',`<select data-sablon-sec="1">${secOp(secenek.map(s=>[s.id,s.ad]), row.tur, 'Şablon seç…')}</select>`)
         : `<span class="zaman">Bu modüle bağlı şablon yok (Ayarlar → Şablonlar).</span>`;
-      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm pri" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu boşluk değerleriyle yeniden yerleştirir">${ic('onay')}Uygula</button>`:''}</div>${otoBilgi}${alanlar}${sabl&&sorulan.length?`<p class="zaman">Boşlukları doldurup Uygula'ya bas; metin aşağıdaki editöre yerleşir, sonra serbestçe düzenlenir.</p>`:''}${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}`;
+      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu formdaki güncel değerlerle baştan yerleştirir">${ic('yenile')}Formdan yenile</button>`:''}${bos.length?`<span class="zaman">Boş {{…}} alanlarına tıklayıp yaz</span>`:''}</div>${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}`;
     }
   }
   return ortak('metin',`<input value="${esc(row.metin)}">`);
@@ -2342,15 +2338,19 @@ function formDomOku(){
   });
 }
 function sablonUygula(){
+  const kalan=[];
   Object.values(ui.form.skaler||{}).forEach(r=>{
     if(r.fnTip!=='sablon'||!r.tur) return;
     const s=S.sablonlar.find(x=>x.id===r.tur); if(!s) return;
-    if(!duz(r.metin)){ r.metin=sablonDoldur(s, r.slot, true); return; }
+    if(!duz(r.metin)) return;   // kullanıcı metni bilerek boşalttı
     // metinde kalan boşluklardan değeri bilinenler kayıtta doldurulur
     const oto=sablonFormDegerleri();
-    r.metin=String(r.metin).replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(r.slot||{})[k]||oto[nrm(k)]; return v?esc(v):t; });
+    r.metin=String(r.metin).replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(r.slot||{})[k]||oto[nrm(k)]; if(v) return esc(v); kalan.push(k); return t; });
   });
+  return [...new Set(kalan)];
 }
+// kayıt mesajı: dolmamış {{alan}} varsa uyarır (kayıt yine yapılır)
+function kayitMesaji(kalan){ return kalan&&kalan.length?`Kaydedildi · doldurulmamış şablon alanı: ${kalan.join(', ')}`:'Kaydedildi'; }
 
 /* ---------- kayıt, log ve silme ---------- */
 function logEkle(o){ S.log.push(Object.assign({id:nid('l'),tip:'alan',kisi:ben().ad,zaman:simdi()}, o)); }
@@ -2406,8 +2406,8 @@ function kapanisIzni(mid, once, yeni){
   return false;
 }
 function kaydetForm(){
-  formDomOku(); sablonUygula();
-  if(ui.form.tur==='proje') return kaydetProje();
+  formDomOku(); const kalan=sablonUygula();
+  if(ui.form.tur==='proje') return kaydetProje(kalan);
   const m=modul(ui.form.modulId);
   if(!yazabilir(m.id)) return toast('Bu modülde yazma yetkin yok');
   if(!ui.form.projeId) return toast('Kayıt bir projeye bağlanmalı');
@@ -2432,9 +2432,9 @@ function kaydetForm(){
     if(oncePrj!==k.projeId) logEkle({...ortak, tip:'alan', alan:'Proje', eski:proje(oncePrj)?.ad||'', yeni:proje(k.projeId)?.ad||'', metin:'Proje değişti'});
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
-  ui.form=null; persist(); toast('Kaydedildi'); render();
+  ui.form=null; persist(); toast(kayitMesaji(kalan)); render();
 }
-function kaydetProje(){
+function kaydetProje(kalan){
   if(!yazabilir('ana')) return toast('Proje yazma yetkin yok');
   if(!String(ui.form.ad||'').trim()) return toast('Proje adı zorunlu');
   const m=modul('ana');
@@ -2460,7 +2460,7 @@ function kaydetProje(){
     Object.keys(AD).forEach(k=>{ if(eskiP[k]!==yeniP[k]) logEkle({...ortak, tip:k==='durum'?'durum':'alan', alan:AD[k], eski:eskiP[k], yeni:yeniP[k], metin:AD[k]+' değişti'}); });
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
-  ui.form=null; persist(); toast('Proje kaydedildi'); render();
+  ui.form=null; persist(); toast(kalan&&kalan.length?'Proje kaydedildi · doldurulmamış şablon alanı: '+kalan.join(', '):'Proje kaydedildi'); render();
 }
 function tasi(tip,id,durumId){
   if(tip==='p'){
@@ -3305,7 +3305,13 @@ function zenginKur(){
     const secimiKaldir=()=>{ if(secili) secili.classList.remove('zsecili'); secili=null; };
     ed.addEventListener('click', e=>{
       secimiKaldir();
-      if(e.target.tagName==='IMG'){ secili=e.target; secili.classList.add('zsecili'); const r=document.createRange(); r.selectNode(secili); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+      if(e.target.tagName==='IMG'){ secili=e.target; secili.classList.add('zsecili'); const r=document.createRange(); r.selectNode(secili); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); return; }
+      // {{alan}} boşluğuna tıklanınca tamamı seçilir; yazılan metin yerine geçer
+      const sel=getSelection(); if(!sel.isCollapsed||!sel.anchorNode||sel.anchorNode.nodeType!==3) return;
+      const dugum=sel.anchorNode, ofs=sel.anchorOffset, metin=dugum.textContent;
+      for(const m of metin.matchAll(/\{\{[^{}]+\}\}/g)){
+        if(ofs>=m.index&&ofs<=m.index+m[0].length){ const r=document.createRange(); r.setStart(dugum,m.index); r.setEnd(dugum,m.index+m[0].length); sel.removeAllRanges(); sel.addRange(r); break; }
+      }
     });
     ed.addEventListener('keydown', e=>{
       if(secili&&(e.key==='Delete'||e.key==='Backspace')){ e.preventDefault(); secili.remove(); secili=null; yaz(); }
@@ -5170,8 +5176,9 @@ function bagla(){
       case 'sablon-uygula': {
         formDomOku();
         const r=ui.form.skaler[b.dataset.uid]; const sb=r&&S.sablonlar.find(x=>x.id===r.tur); if(!sb) return;
+        if(duz(r.metin)&&!confirm('Editördeki metin şablonun formdan doldurulmuş hâliyle değiştirilsin mi? Yaptığın düzenlemeler gider.')) return;
         r.metin=sablonDoldur(sb, r.slot);
-        renderDrawer(); toast('Şablon uygulandı; editörde düzenleyebilirsin'); return;
+        renderDrawer(); toast('Şablon formdan yenilendi'); return;
       }
       case 'depo-sil': S.depolar=S.depolar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return;
       case 'eposta-iptal': ui.eposta=null; renderDrawer(); return;
