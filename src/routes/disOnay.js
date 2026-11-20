@@ -29,6 +29,7 @@ const disApi = (r, u) => {
     olusturma: r.olusturma ? new Date(r.olusturma).toISOString() : null, olusturan: r.olusturan,
     alanlar: json.oku(r.alanlar, []), onay: !!r.onay_istenir, not: !!r.not_istenir,
     yanit: json.oku(r.yanit, null), yanitZaman: r.yanit_zaman ? new Date(r.yanit_zaman).toISOString() : null,
+    yanitIp: r.yanit_ip || null, yanitTarayici: r.yanit_tarayici || null,
     anahtar,
   };
 };
@@ -143,7 +144,8 @@ disGenel.post('/:anahtar', async (req, res) => {
       .update({ durum: 'yanitlandi', yanit: json.yaz(sonuc), yanit_zaman: simdi, yanit_ip: ip(req), yanit_tarayici: String(req.headers['user-agent'] || '').slice(0, 250), guncelleme: simdi });
     if (!n) throw new HttpHata(409, 'Bu belge zaten yanıtlandı ya da süresi doldu');
     const ozet = [sonuc.karar === 'onay' ? 'ONAYLANDI' : sonuc.karar === 'red' ? 'REDDEDİLDİ' : 'Yanıtlandı',
-      ...Object.entries(sonuc.alanlar).map(([k, v]) => `${k}: ${v}`), sonuc.notu ? 'Not: ' + sonuc.notu : ''].filter(Boolean).join(' · ');
+      ...Object.entries(sonuc.alanlar).map(([k, v]) => `${k}: ${v}`), Object.keys(sonuc.imzalar).length ? 'İmzalı' : '',
+      sonuc.notu ? 'Not: ' + sonuc.notu : '', 'IP: ' + ip(req)].filter(Boolean).join(' · ');
     await logYaz(trx, { id: null, ad: 'Dış onay (müşteri)' }, { projeId: r.proje_id, modulId: r.modul_id, kartId: r.kart_id },
       { tip: 'alan', alan: r.baslik, metin: ozet.slice(0, 3000) });
   });

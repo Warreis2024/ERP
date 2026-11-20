@@ -1820,6 +1820,7 @@ function kontrol(f, row, ck){
       const sabl=S.sablonlar.find(x=>x.id===row.tur);
       if(sabl&&!duz(row.metin)) row.metin=sablonDoldur(sabl, row.slot);
       else if(/\{\{[^}]+\}\}/.test(row.metin||'')) row.metin=sablonBoslukDoldur(row.metin, row.slot);
+      if(!ck&&ui.form?.id&&ui.dis?.[ui.form.id]&&disYanitIsle(row, disDurum(f.uid).yanit)) ui.disIslendi=true;
       const bos=sabl?[...new Set([...String(row.metin||'').matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].filter(k=>!ozelBosluk(k)):[];
       const secenek=liste.some(x=>x.id===row.tur)||!sabl?liste:[...liste,sabl];
       const secici=secenek.length===1&&sabl
@@ -2245,6 +2246,7 @@ function kartAc(id){
   if(yetki(mid)==='yok') return;
   const m=modul(mid);
   if(k&&(ui.ekran!=='modul'||ui.modulId!==mid)){ ui.ekran='modul'; ui.modulId=mid; }
+  if(id&&ui.disYuk) delete ui.disYuk[id]; ui.disIslendi=false;   // dış onay yanıtı her açılışta yeniden denetlenir
   ui.formSekme=''; ui.scroll=true; ui.eposta=null; ui.msg={}; ui.emoji=null; ui.form={tur:'kart', yeni:!k, id:k?k.id:null, modulId:mid, projeId:k?.projeId||ui.proje||projelerA().find(p=>!p.arsiv)?.id||'', durumId:k?.durumId||akis(mid)[0]?.id||''};
   doldur(m, d=>d.kartId===id);
   if(k) okunduYap(d=>d.kartId===id);
@@ -2398,6 +2400,15 @@ function disYukle(kid, zorla){
   apiIstek('/dis-onay?kartId='+encodeURIComponent(kid)).then(L=>{ ui.dis[kid]=L; }).catch(e=>{ ui.dis[kid]=[]; toast(e.message); })
     .finally(()=>{ if(ui.form?.id===kid&&!ui.eposta){ formDomOku(); renderDrawer(); } });
 }
+const cihazAd=ua=>{ ua=String(ua||''); const os=/iPhone|iPad/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Windows/.test(ua)?'Windows':/Mac OS/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':''; const br=/Edg\//.test(ua)?'Edge':/OPR\//.test(ua)?'Opera':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':''; return [br,os].filter(Boolean).join(' · ')||ua.slice(0,60); };
+// müşteri yanıtını şablon metnine işler: [[Alan]] → değer / imza resmi
+function disYanitIsle(row, yanit){
+  const y=yanit?.yanit; if(!y||!/\[\[[^\[\]]+\]\]|\{\{\s*m(ü|u)ş?teri\s*:/i.test(row.metin||'')) return false;
+  const deger=ad=>{ ad=duz(ad).trim(); const im=y.imzalar?.[ad]; if(im&&/^data:image\/png;base64,/.test(im)) return `<img src="${im}" alt="${esc(ad)}">`; return y.alanlar?.[ad]!=null?esc(y.alanlar[ad]):null; };
+  const yeni=String(row.metin).replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>deger(ad)??t).replace(/\{\{\s*m(?:ü|u)ş?teri\s*:\s*([^{}]+?)\s*\}\}/gi,(t,ad)=>deger(ad)??t);
+  if(yeni===row.metin) return false;
+  row.metin=yeni; return true;
+}
 function disDurum(uid){
   const L=(ui.dis?.[ui.form?.id]||[]).filter(x=>x.fnUid===uid);
   return {L, aktif:L.find(x=>x.durum==='bekliyor'&&x.anahtar), yanit:L.find(x=>x.durum==='yanitlandi')};
@@ -2426,9 +2437,9 @@ function disPanel(f, row){
   const ak=aktif?`<div class="do-aktif"><img class="do-qr" src="${QR.dataUrl(disUrl(aktif.anahtar))}" alt="QR kod"><div class="do-bilgi"><span class="pill p-ok">Bağlantı etkin</span><span class="zaman">Son geçerlilik: <b>${esc(zamanYaz(aktif.son))}</b></span><span class="zaman">Müşteri ${aktif.alanlar.length?esc(aktif.alanlar.map(a=>a.ad).join(', '))+' alanlarını doldurur':'alan doldurmaz'}${aktif.onay?', onaylar ya da reddeder':''}${aktif.not?', not yazabilir':''}.</span><div class="rowbtns"><button type="button" class="btn sm" data-act="dis-kopya" data-url="${esc(disUrl(aktif.anahtar))}">${ic('kopya')}Bağlantıyı kopyala</button><a class="btn sm" href="${esc(disUrl(aktif.anahtar))}" target="_blank" rel="noopener noreferrer">Aç</a><button type="button" class="btn sm danger" data-act="dis-iptal" data-id="${esc(aktif.id)}">İptal et</button></div></div></div>`
     :`<div class="rowbtns" style="align-items:center"><select class="mini" data-dis-saat="${f.uid}" aria-label="Geçerlilik süresi">${sure}</select><button type="button" class="btn sm pri" data-act="dis-olustur" data-uid="${f.uid}">${ic('qr')}${yanit?'Yeni QR oluştur':'QR oluştur'}</button><span class="zaman">Bağlantı şifresizdir; yalnız bu belgeyi gösterir ve bir kez yanıt alır.</span></div>`;
   const y=yanit?.yanit;
-  const yn=yanit?`<div class="do-yanit"><div><span class="pill ${y.karar==='red'?'p-bad':'p-ok'}">${y.karar==='red'?'Müşteri reddetti':y.karar==='onay'?'Müşteri onayladı':'Müşteri yanıtladı'}</span> <span class="zaman">${esc(zamanYaz(yanit.yanitZaman))}</span></div>${Object.entries(y.alanlar||{}).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join('')}${Object.entries(y.imzalar||{}).map(([k,v])=>/^data:image\/png;base64,/.test(v)?`<div><b>${esc(k)}:</b><br><img class="do-imza" src="${v}" alt="${esc(k)}"></div>`:'').join('')}${y.notu?`<div><b>Not:</b> ${esc(y.notu)}</div>`:''}</div>`:'';
+  const yn=yanit?`<div class="do-yanit"><div><span class="pill ${y.karar==='red'?'p-bad':'p-ok'}">${y.karar==='red'?'Müşteri reddetti':y.karar==='onay'?'Müşteri onayladı':'Müşteri yanıtladı'}</span></div><div class="zaman">Yanıt zamanı: <b>${esc(zamanYaz(yanit.yanitZaman))}</b>${yanit.yanitIp?` · IP: <b>${esc(yanit.yanitIp)}</b>`:''}</div>${yanit.yanitTarayici?`<div class="zaman" title="${esc(yanit.yanitTarayici)}">Cihaz: ${esc(cihazAd(yanit.yanitTarayici))}</div>`:''}${Object.entries(y.alanlar||{}).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join('')}${Object.entries(y.imzalar||{}).map(([k,v])=>/^data:image\/png;base64,/.test(v)?`<div><b>${esc(k)}:</b><br><img class="do-imza" src="${v}" alt="${esc(k)}"></div>`:'').join('')}${y.notu?`<div><b>Not:</b> ${esc(y.notu)}</div>`:''}</div>`:'';
   const eski=L.filter(x=>x!==aktif&&x!==yanit).length;
-  return kap(ak+yn+(eski?`<p class="zaman">${eski} eski bağlantı (süresi dolmuş / iptal).</p>`:''));
+  return kap(ak+yn+(yanit&&ui.disIslendi?`<p class="zaman"><b>Müşterinin doldurdukları şablona yazıldı; kalıcı olması için Kaydet.</b></p>`:'')+`<div class="rowbtns" style="align-items:center"><button type="button" class="btn sm" data-act="dis-yenile">${ic('yenile')}Yanıtı denetle</button>${eski?`<span class="zaman">${eski} eski bağlantı (süresi dolmuş / iptal).</span>`:''}</div>`);
 }
 function eksikSoru(L, is){ return !L.length||confirm(`Şablonda doldurulmamış alan var: ${L.join(', ')}.\nBu alanlar boş ${is}. Devam edilsin mi?`); }
 // kayıt mesajı: dolmamış {{alan}} varsa uyarır (kayıt yine yapılır)
@@ -4421,7 +4432,7 @@ function sablonYazdir(uid, antet, pencere){
     if(mm) return musteriDeger(mm[1].trim());
     const v=(r?.slot||{})[k]||oto[nrm(k)]; return v?esc(v):'<span class="sb-bos">&nbsp;</span>';
   }).replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>musteriDeger(duz(ad).trim()))).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'')
-    +(y&&(y.karar||y.notu)?`<p class="sb-yanit"><b>Müşteri yanıtı:</b> ${y.karar==='red'?'Reddedildi':y.karar==='onay'?'Onaylandı':'Yanıtlandı'} · ${esc(zamanYaz(yanit.yanitZaman))}${y.notu?' · Not: '+esc(y.notu):''}</p>`:'');
+    +(y&&(y.karar||y.notu)?`<p class="sb-yanit"><b>Müşteri yanıtı:</b> ${y.karar==='red'?'Reddedildi':y.karar==='onay'?'Onaylandı':'Yanıtlandı'} · ${esc(zamanYaz(yanit.yanitZaman))}${yanit.yanitIp?' · IP: '+esc(yanit.yanitIp):''}${y.notu?' · Not: '+esc(y.notu):''}</p>`:'');
   if(!duz(govde)&&!/<(img|table)/i.test(govde)) return toast('Şablon alanı boş; önce şablonu doldur');
   const sb=S.sablonlar.find(x=>x.id===r?.tur);
   const ad=sb?.ad||f?.ad||'Şablon';
@@ -5371,6 +5382,7 @@ function bagla(){
         disOlustur(b.dataset.uid, saat).then(()=>{ formDomOku(); renderDrawer(); toast('QR bağlantısı oluşturuldu; yazdırınca {{QR}} yerine basılır'); }).catch(e=>{ b.disabled=false; toast(e.message); });
         return;
       }
+      case 'dis-yenile': { if(ui.form?.id){ formDomOku(); disYukle(ui.form.id, true); toast('Denetleniyor…'); } return; }
       case 'dis-kopya': { const u=b.dataset.url; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast('Bağlantı kopyalandı'),()=>prompt('Bağlantı',u)); return; }
       case 'dis-iptal': {
         if(!confirm('QR bağlantısı iptal edilsin mi? Müşteri artık belgeyi açamaz.')) return;
