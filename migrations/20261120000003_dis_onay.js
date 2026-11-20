@@ -35,6 +35,12 @@ export async function up(knex) {
     await knex.raw('alter table public.dis_onaylar enable row level security');
     const roller = await knex.raw("select rolname from pg_roles where rolname in ('anon','authenticated')");
     if (roller.rows.length === 2) await knex.raw('revoke all on public.dis_onaylar from anon, authenticated');
+    // Uygulama ayrı bir rolle (erp_app) bağlanıyorsa diğer tablolardaki gibi yetki ve politika verilir
+    const app = await knex.raw("select 1 from pg_roles where rolname = 'erp_app'");
+    if (app.rows.length) {
+      await knex.raw('grant select, insert, update, delete on public.dis_onaylar to erp_app');
+      await knex.raw('create policy erp_app_tam on public.dis_onaylar for all to erp_app using (true) with check (true)');
+    }
   }
 }
 
