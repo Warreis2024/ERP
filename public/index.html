@@ -375,7 +375,11 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .zed td,.zed th,.zgos td,.zgos th{border:1px solid var(--line);padding:4px 6px;min-width:28px;vertical-align:top;text-transform:none;letter-spacing:0;font-size:13px;color:var(--fg);background:transparent}
 .zed img,.zgos img{max-width:100%;height:auto;border-radius:6px}
 .zed img{cursor:pointer;max-width:100%}.zed img.zsecili{outline:3px solid var(--brand);outline-offset:2px}
-.zb-sil{color:var(--bad,#cf3640)}.zb:disabled{opacity:.35;cursor:default}.zayir{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.zb-sil{color:var(--bad,#cf3640)}.zb:disabled,.zsel:disabled{opacity:.35;cursor:default}
+.bp-ort{position:fixed;inset:0;z-index:1000;background:rgba(10,16,30,.45);display:grid;place-items:center;padding:16px}
+.bp-kutu{background:var(--surface);color:var(--fg);border-radius:14px;padding:20px;width:min(460px,100%);box-shadow:0 20px 50px rgba(0,0,0,.3);display:grid;gap:10px}
+.bp-kutu h3{margin:0;font-size:17px}.bp-kutu p{margin:0}
+.bp-deger{display:flex;gap:8px}.bp-deger input{flex:1;font:600 16px/1 var(--mono,monospace);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg,#fff);color:var(--fg)}.zayir{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .zgos{font-size:14px;font-weight:400;color:var(--fg);line-height:1.6}
 .form textarea.zk-src{display:none}
 
@@ -3384,6 +3388,8 @@ function zenginKur(){
       <button type="button" class="zb" data-z="bosluk" title="Formdan dolan alan ekle: {{Alan adı}}" style="font-family:monospace;font-weight:700">{{ }}</button>
       <button type="button" class="zb" data-z="musteri" title="Müşterinin dolduracağı alan ekle (QR ile): [[Alan adı]]" style="font-family:monospace;font-weight:700">[[ ]]</button>
       <button type="button" class="zb" data-z="clear" title="Biçimi temizle">${ic('x')}</button>
+      <select class="zsel" data-zr="1" aria-label="Resim boyutu" title="Resim boyutu: önce resme tıkla" disabled><option value="">Resim boyu</option>${[10,20,25,33,50,66,75,100].map(p=>`<option value="${p}">%${p}</option>`).join('')}<option value="orj">Orijinal</option></select>
+      <button type="button" class="zb" data-z="rkucult" title="Seçili resmi küçült" disabled>−</button><button type="button" class="zb" data-z="rbuyut" title="Seçili resmi büyüt" disabled>+</button>
       ${ek}
     </div><div class="zed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(src.placeholder||'')}"></div>`;
     src.after(w);
@@ -3450,10 +3456,12 @@ function zenginKur(){
     };
     // Resim seçimi: Chrome düzenlenebilir alandaki resmi tıklamayla seçmez; tıklanan resim işaretlenir, Delete/Backspace siler
     let secili=null;
-    const secimiKaldir=()=>{ if(secili) secili.classList.remove('zsecili'); secili=null; };
+    const resimDugme=()=>{ const v=!!(secili&&ed.contains(secili)); w.querySelectorAll('[data-zr],[data-z=rkucult],[data-z=rbuyut]').forEach(x=>{ x.disabled=!v; }); };
+    const secimiKaldir=()=>{ if(secili) secili.classList.remove('zsecili'); secili=null; resimDugme(); };
+    const resimGenislik=gw=>{ if(!secili) return; gecmisKaydet(); const en=Math.max(16, Math.min(Math.round(gw), ed.clientWidth-24)); secili.style.width=en+'px'; secili.style.height='auto'; yaz(); };
     ed.addEventListener('click', e=>{
       secimiKaldir();
-      if(e.target.tagName==='IMG'){ secili=e.target; secili.classList.add('zsecili'); const r=document.createRange(); r.selectNode(secili); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); return; }
+      if(e.target.tagName==='IMG'){ secili=e.target; secili.classList.add('zsecili'); resimDugme(); const r=document.createRange(); r.selectNode(secili); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); return; }
       // {{alan}} boşluğuna tıklanınca tamamı seçilir; yazılan metin yerine geçer
       const sel=getSelection(); if(!sel.isCollapsed||!sel.anchorNode||sel.anchorNode.nodeType!==3) return;
       const dugum=sel.anchorNode, ofs=sel.anchorOffset, metin=dugum.textContent;
@@ -3469,7 +3477,7 @@ function zenginKur(){
     const KENAR=5;
     const kenar=(e)=>{
       // resim: sağ alt köşeden sürükleyerek boyut
-      if(e.target.tagName==='IMG'&&ed.contains(e.target)){ const b=e.target.getBoundingClientRect(); if(b.right-e.clientX<=14&&b.bottom-e.clientY<=14) return {img:e.target, yon:'resim'}; return null; }
+      if(e.target.tagName==='IMG'&&ed.contains(e.target)){ const b=e.target.getBoundingClientRect(); if(b.right-e.clientX<=Math.max(18,b.width*.2)&&b.bottom-e.clientY<=Math.max(18,b.height*.2)) return {img:e.target, yon:'resim'}; return null; }
       const td=e.target.closest&&e.target.closest('td,th'); if(!td||!ed.contains(td)) return null;
       const r=td.getBoundingClientRect();
       if(r.right-e.clientX<=KENAR) return {td, yon:'sutun'};
@@ -3528,6 +3536,7 @@ function zenginKur(){
         }
         const k=b.dataset.z;
         if(k==='geri'||k==='ileri'){ gecmisGit(k==='ileri'); return; }
+        if(k==='rkucult'||k==='rbuyut'){ if(!secili) return toast('Önce resme tıkla'); resimGenislik(secili.getBoundingClientRect().width*(k==='rbuyut'?1.15:0.87)); return; }
         if(k==='bosluk'||k==='musteri'){
           const [a1,a2]=k==='bosluk'?['{{','}}']:['[[',']]'];
           const sel=getSelection(), secili=sel.toString().trim();
@@ -3564,6 +3573,13 @@ function zenginKur(){
         yaz();
       });
     });
+    const rs=w.querySelector('select[data-zr]');
+    if(rs){ rs.addEventListener('mousedown', e=>{ if(secili) e.stopPropagation(); }); rs.addEventListener('change', ()=>{
+      if(!secili||!rs.value){ rs.value=''; return; }
+      if(rs.value==='orj'){ gecmisKaydet(); secili.style.width=Math.min(secili.naturalWidth, ed.clientWidth-24)+'px'; secili.style.height='auto'; yaz(); }
+      else resimGenislik((ed.clientWidth-24)*(+rs.value)/100);
+      rs.value='';
+    }); }
     w.querySelectorAll('select[data-z]').forEach(s=>{
       s.addEventListener('mousedown', sakla);
       s.addEventListener('change', ()=>{
@@ -4946,10 +4962,22 @@ async function esitle(){
 }
 function geciciSifreGoster(u, sifre, ep){
   if(!sifre) return;
-  const m=ep&&ep.gonderildi
-    ? u.ad+' için geçici şifre '+u.eposta+' adresine e-postalandı.\n\nGeçici şifre: '+sifre+'\n(Yalnız şimdi gösterilir.) İlk girişte kendi şifresini belirleyecek.'
-    : u.ad+' için geçici şifre: '+sifre+'\n\nE-posta GÖNDERİLEMEDİ'+(ep&&ep.neden?': '+ep.neden:'')+'.\nBu şifre yalnız şimdi gösterilir. Kullanıcıya güvenli bir yoldan ilet; ilk girişte kendi şifresini belirleyecek.';
-  try{ alert(m); }catch(e){ toast(m); }
+  if(ep&&ep.gonderildi) bilgiPenceresi('Geçici şifre e-postalandı', 'Bu şifre yalnız şimdi gösterilir. Kullanıcı ilk girişte kendi şifresini belirleyecek.', sifre, `${u.ad} için geçici şifre ${u.eposta} adresine gönderildi.`);
+  else bilgiPenceresi('Geçici şifre', `E-posta gönderilemedi${ep&&ep.neden?': '+ep.neden:''}.\nBu şifre yalnız şimdi gösterilir; kullanıcıya güvenli bir yoldan ilet. İlk girişte kendi şifresini belirleyecek.`, sifre, `${u.ad} için geçici şifre:`);
+}
+// Kopyalanabilir bilgi penceresi (alert yerine): başlık, açıklama, kopyalanacak değer
+function bilgiPenceresi(baslik, aciklama, deger, ust){
+  document.getElementById('bilgiPen')?.remove();
+  const d=document.createElement('div'); d.id='bilgiPen'; d.className='bp-ort'; d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true');
+  d.innerHTML=`<div class="bp-kutu"><h3>${esc(baslik)}</h3>${ust?`<p>${esc(ust)}</p>`:''}<div class="bp-deger"><input readonly value="${esc(deger)}" aria-label="Değer"><button type="button" class="btn pri" data-bp="kopya">${ic('kopya')}Kopyala</button></div><p class="zaman">${esc(aciklama).replace(/\n/g,'<br>')}</p><div class="rowbtns" style="justify-content:flex-end"><button type="button" class="btn" data-bp="kapat">Tamam</button></div></div>`;
+  document.body.appendChild(d);
+  const inp=d.querySelector('input'); inp.focus(); inp.select();
+  d.addEventListener('click', e=>{
+    const b=e.target.closest('[data-bp]'); if(!b) return;
+    if(b.dataset.bp==='kapat'){ d.remove(); return; }
+    inp.select(); (navigator.clipboard?navigator.clipboard.writeText(deger):Promise.reject()).then(()=>{ b.textContent='Kopyalandı ✓'; },()=>{ try{ document.execCommand('copy'); b.textContent='Kopyalandı ✓'; }catch(e){ toast('Seçili; Ctrl+C ile kopyala'); } });
+  });
+  d.addEventListener('keydown', e=>{ if(e.key==='Escape') d.remove(); });
 }
 
 /* ---- giriş / çıkış ---- */
