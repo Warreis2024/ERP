@@ -785,6 +785,7 @@ table.ck-sayfa{width:100%;table-layout:fixed}
 .ck-grup>div{display:flex;flex-wrap:wrap;gap:4px 8px}
 .ck-alan{display:inline-flex;align-items:center;gap:3px}
 .ck-alan input{display:none}
+.ck-kayit{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}.ck-kayit label{min-width:min(420px,100%)}
 .kt-liste{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;margin-bottom:6px}.kt-liste select{max-width:320px}
 .ck-cip{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:2px 7px;font-size:12px;cursor:grab;display:inline-flex;gap:5px;align-items:center}
 .ck-cip:hover{border-color:var(--accent);color:var(--accent)}
@@ -4455,8 +4456,13 @@ function ckHTML(){
   const k=ckKagit(F);
   let par='';
   if(F.kapsam==='kayit'){
-    const KL=m.tur==='proje'?projelerA():S.kartlar.filter(x=>!x.silindi&&x.modulId===m.id);
-    par=`<label>Kayıt<select id="ckKart">${secOp(KL.map(x=>[x.id,x.kod+' · '+(m.tur==='proje'?x.ad:kartBaslik(x))]), o.kartId)}</select></label>`;
+    // Yüzlerce kayıtta şişmesin: yazarak ara (kod ya da başlık), son kayıtlar önerilir; "Son kayıt" düğmesi
+    const KL=(m.tur==='proje'?projelerA():S.kartlar.filter(x=>!x.silindi&&x.modulId===m.id))
+      .slice().sort((a,b)=>String(b.olusturma||'').localeCompare(String(a.olusturma||''))||String(b.kod).localeCompare(String(a.kod),'tr',{numeric:true}));
+    const etiket=x=>x.kod+' · '+(m.tur==='proje'?x.ad:kartBaslik(x));
+    if(!KL.some(x=>x.id===o.kartId)) o.kartId=KL[0]?.id||'';
+    const sec=KL.find(x=>x.id===o.kartId);
+    par=`<div class="ck-kayit"><label>Kayıt<input id="ckKartAra" list="ckKartDL" value="${esc(sec?etiket(sec):'')}" placeholder="Kod ya da başlık yaz…" autocomplete="off"></label><datalist id="ckKartDL">${KL.slice(0,200).map(x=>`<option value="${esc(etiket(x))}">`).join('')}</datalist><button type="button" class="btn sm" data-act="ck-son" title="En son açılan kayıt">${ic('saat')}Son kayıt</button><span class="zaman">${KL.length} kayıt</span></div>`;
   } else {
     if(F.tarihAlan||(F.ekSorgular||[]).some(q=>q.tarihAlan)) par+=`<label>Dönem${F.tarihAlan?' ('+esc(F.tarihAlan)+')':''}<span class="ck-donem"><select id="ckDonem">${secOp(CK_DONEM, o.donem)}</select>${o.donem==='ay'?`<input type="month" id="ckAy" value="${esc(o.ay||bugun().slice(0,7))}">`:''}</span></label>`;
     par+=`<label>Proje<select id="ckProje">${secOp(projelerA().map(p=>[p.id,p.kod+' · '+p.ad]), o.projeId||'', 'Tüm projeler')}</select></label>`;
@@ -5308,6 +5314,14 @@ function bagla(){
     if(t.id==='ckProje'){ ui.ck.projeId=t.value; renderMain(); return; }
     if(t.id==='ckKisi'){ ui.ck.kisi=t.value; renderMain(); return; }
     if(t.id==='ckKart'){ ui.ck.kartId=t.value; renderMain(); return; }
+    if(t.id==='ckKartAra'){
+      const F=ckSec(), m=modul(F.modulId), q=nrm(t.value);
+      const KL=m.tur==='proje'?projelerA():S.kartlar.filter(x=>!x.silindi&&x.modulId===m.id);
+      const etiket=x=>x.kod+' · '+(m.tur==='proje'?x.ad:kartBaslik(x));
+      const b=KL.find(x=>nrm(etiket(x))===q)||KL.find(x=>nrm(x.kod)===q)||KL.find(x=>nrm(etiket(x)).includes(q));
+      if(b){ ui.ck.kartId=b.id; renderMain(); } else { toast('Kayıt bulunamadı'); renderMain(); }
+      return;
+    }
     if(t.dataset.ckf){
       const F=S.ciktilar.find(x=>x.id===t.dataset.ckf); if(!F) return;
       const a=t.dataset.alan;
@@ -5800,6 +5814,7 @@ function bagla(){
       case 'ck-onizle': { const id=b.dataset.id; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:id}; render(); return; }
       case 'yaz-ac': { const pop=b.parentElement.querySelector('.yaz-pop'); if(pop) pop.hidden=!pop.hidden; return; }
       case 'sablon-yazdir': { formDomOku(); if(!eksikSoru(sablonEksikler(),'yazdırılacak')) return; const a=b.closest('.yaz-pop')?.querySelector('[data-yaz-antet]'); const antet=a?a.checked:true; try{ localStorage.setItem('yerp-antet', antet?'1':'0'); }catch(e){} b.closest('.yaz-pop').hidden=true; sablonYazdir(b.dataset.uid, antet); return; }
+      case 'ck-son': { const F=ckSec(), m=modul(F.modulId); const KL=(m.tur==='proje'?projelerA():S.kartlar.filter(x=>!x.silindi&&x.modulId===m.id)).slice().sort((a,b)=>String(b.olusturma||'').localeCompare(String(a.olusturma||''))); if(KL[0]){ ui.ck.kartId=KL[0].id; renderMain(); } return; }
       case 'ck-kayit': { if(ui.form){ formDomOku(); if(!eksikSoru(sablonEksikler(),'çıktıya girecek')) return; } const id=b.dataset.id, fid=b.dataset.form; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:fid, kartId:id}; render(); return; }
       case 'ck-ekle': { const F={id:nid('ck'), ad:'Yeni çıktı formu', modulId:S.moduller[0]?.id||'ana', kapsam:'liste', satir:'kayit', tarihAlan:'', donem:'tum', kisi:'tum', sirala:'', kagit:'dikey', kosullar:[], alanlar:[], sablon:'<h2>{{form}}</h2><p>{{firma}} · {{bugun}}</p><table><tbody><tr><th>#</th><th>Kod</th><th>Durum</th></tr><tr><td>{{sira}}</td><td>{{s.Kod}}</td><td>{{s.Durum}}</td></tr></tbody></table>'}; S.ciktilar.push(F); ui.cekmece={tur:'cikti', id:F.id}; persist(); render(); return; }
       case 'ck-sil': { if(!confirm('Çıktı formu silinsin mi?')) return; S.ciktilar=S.ciktilar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return; }
