@@ -182,6 +182,7 @@ const GonderV = z.object({
   kime: z.string().max(2000),
   konu: z.string().max(500).default(''),
   metin: z.string().max(200000).default(''),
+  html: z.string().max(3_500_000).optional(), // zengin gövde (resimler gömülü eke dönüşür)
   imza: z.boolean().default(false), // gönderenin kayıtlı HTML imzası (logo dahil) eklensin mi
 });
 
@@ -231,7 +232,7 @@ r.post('/eposta/gonder', async (req, res) => {
   const v = GonderV.parse(req.body);
   // Gövde: düz metin + (istenirse) gönderenin HTML imzası; imzadaki resimler gömülü eke dönüşür
   const imzaHtml = v.imza ? String(kullaniciHesabi(req.kullanici).imza || '') : '';
-  const govdeYap = (kimden) => google.iletiGovdesi(v.metin, imzaHtml, String(kimden).split('@')[1]);
+  const govdeYap = (kimden) => google.iletiGovdesi(v.metin, imzaHtml, String(kimden).split('@')[1], v.html);
   const kime = v.kime.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
   if (!kime.length || kime.length > 50 || !kime.every((x) => eposta.safeParse(x).success)) throw new HttpHata(400, 'Alıcı adresi geçersiz');
   const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});

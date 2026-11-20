@@ -167,6 +167,20 @@ test('HTML imza: logo gömülü (cid) eke döner, betik temizlenir, düz metin k
   assert.deepEqual(Buffer.from(resimB64, 'base64'), png);
 });
 
+test('HTML gövde: tablo korunur, resimler cid olur ve imzanınkilerle çakışmaz, betik temizlenir', async () => {
+  const { iletiGovdesi } = await import('../src/baglanti/google.js');
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex').toString('base64');
+  const html = `<p>Merhaba,</p><table><tr><th>Müşteri</th><td>Atlas</td></tr></table><p><img src="data:image/png;base64,${png}" style="width:120px"></p><img src=x onerror="alert(1)"><script>alert(2)</script>`;
+  const imza = `<p>Savaş</p><img src="data:image/png;base64,${png}">`;
+  const g = iletiGovdesi('', imza, 'firma.com', html);
+  assert.equal(g.satirIci.length, 2);
+  assert.notEqual(g.satirIci[0].cid, g.satirIci[1].cid);
+  assert.match(g.html, /<table><tr><th>Müşteri<\/th><td>Atlas<\/td><\/tr><\/table>/);
+  assert.match(g.html, /src="cid:govde1\./); assert.match(g.html, /src="cid:imza1\./);
+  assert.ok(!/data:image|<script|onerror/i.test(g.html));
+  assert.match(g.metin, /^Merhaba,\n+Müşteri\s*Atlas/);
+});
+
 test('imzasız ileti eskisi gibi tek parça düz metin', async () => {
   const { mimeOlustur } = await import('../src/baglanti/google.js');
   const m = mimeOlustur({ kimden: 'a@b.com', kime: ['c@d.com'], konu: 'x', metin: 'y' });

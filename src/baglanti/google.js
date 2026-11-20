@@ -209,7 +209,7 @@ export const htmlDuz = (h) => String(h || '').replace(/<br\s*\/?>/gi, '\n').repl
   .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 
 // İmza HTML'i: betik/olay öznitelikleri/javascript: temizlenir; data: resimler cid'li gömülü eke çevrilir.
-export function imzaHazirla(imzaHtml, alan = 'neterp.local') {
+export function imzaHazirla(imzaHtml, alan = 'neterp.local', onek = 'imza') {
   let h = String(imzaHtml || '')
     .replace(/<(script|style|iframe|object|embed|form)[\s\S]*?<\/\1\s*>/gi, '')
     .replace(/<(script|iframe|object|embed|form|meta|link|base)\b[^>]*>/gi, '')
@@ -217,22 +217,28 @@ export function imzaHazirla(imzaHtml, alan = 'neterp.local') {
     .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
   const satirIci = [];
   h = h.replace(/(<img\b[^>]*?\bsrc\s*=\s*)(["'])data:(image\/(png|jpe?g|gif|webp));base64,([A-Za-z0-9+/=\s]+)\2/gi, (_t, on, tirnak, tip, uz, veri) => {
-    const cid = `imza${satirIci.length + 1}.${Date.now().toString(36)}@${alan}`;
-    satirIci.push({ cid, tip: tip.toLowerCase().replace('jpg', 'jpeg'), ad: `imza${satirIci.length + 1}.${uz.toLowerCase().replace('jpeg', 'jpg')}`, veri: Buffer.from(veri.replace(/\s+/g, ''), 'base64') });
+    const cid = `${onek}${satirIci.length + 1}.${Date.now().toString(36)}@${alan}`;
+    satirIci.push({ cid, tip: tip.toLowerCase().replace('jpg', 'jpeg'), ad: `${onek}${satirIci.length + 1}.${uz.toLowerCase().replace('jpeg', 'jpg')}`, veri: Buffer.from(veri.replace(/\s+/g, ''), 'base64') });
     return `${on}${tirnak}cid:${cid}${tirnak}`;
   });
   return { html: h, satirIci, metin: htmlDuz(imzaHtml) };
 }
 
-// Gövde metni + (varsa) imza → { metin, html, satirIci }
-export function iletiGovdesi(metin, imzaHtml, alan) {
-  const govdeHtml = `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5">${kacis(metin || '').replace(/\r?\n/g, '<br>')}</div>`;
-  if (!imzaHtml || !String(imzaHtml).trim()) return { metin, html: govdeHtml, satirIci: [] };
+// Gövde (düz metin ya da HTML) + (varsa) imza → { metin, html, satirIci }
+// HTML gövde imzayla aynı temizlikten geçer; içindeki data: resimler (QR, imza) gömülü eke dönüşür.
+export function iletiGovdesi(metin, imzaHtml, alan, html) {
+  let govdeHtml, satirIci = [];
+  if (html && String(html).trim()) {
+    const g = imzaHazirla(html, alan, 'govde');
+    govdeHtml = `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5">${g.html}</div>`;
+    metin = g.metin; satirIci = g.satirIci;
+  } else govdeHtml = `<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5">${kacis(metin || '').replace(/\r?\n/g, '<br>')}</div>`;
+  if (!imzaHtml || !String(imzaHtml).trim()) return { metin, html: govdeHtml, satirIci };
   const im = imzaHazirla(imzaHtml, alan);
   return {
     metin: `${metin || ''}\n\n-- \n${im.metin}`,
     html: `${govdeHtml}<br><div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:14px">${im.html}</div>`,
-    satirIci: im.satirIci,
+    satirIci: [...satirIci, ...im.satirIci],
   };
 }
 

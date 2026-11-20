@@ -374,7 +374,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .zed td,.zed th{word-break:break-word}
 .zed td,.zed th,.zgos td,.zgos th{border:1px solid var(--line);padding:4px 6px;min-width:28px;vertical-align:top;text-transform:none;letter-spacing:0;font-size:13px;color:var(--fg);background:transparent}
 .zed img,.zgos img{max-width:100%;height:auto;border-radius:6px}
-.zed img{cursor:pointer}.zed img.zsecili{outline:3px solid var(--brand);outline-offset:2px}
+.zed img{cursor:pointer;max-width:100%}.zed img.zsecili{outline:3px solid var(--brand);outline-offset:2px}
 .zb-sil{color:var(--bad,#cf3640)}.zb:disabled{opacity:.35;cursor:default}.zayir{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .zgos{font-size:14px;font-weight:400;color:var(--fg);line-height:1.6}
 .form textarea.zk-src{display:none}
@@ -2917,7 +2917,7 @@ function epostaHTML(){
     <label>Kime<input name="kime" list="epostaDL" value="${esc(e.kime)}" placeholder="ad@firma.com" required></label>
     <datalist id="epostaDL">${[...new Map(adresler.map(a=>[a[0],a])).values()].map(a=>`<option value="${esc(a[0])}">${esc(a[1])}</option>`).join('')}</datalist>
     <label>Konu<input name="konu" value="${esc(e.konu)}" required></label>
-    <label>İleti<textarea name="govde" style="min-height:200px">${esc(e.govde)}</textarea></label>
+    <label>İleti<textarea name="govde" class="zk-src" data-zmod="tam">${esc(e.govde)}</textarea></label>
     ${bagli&&sunucuImzasi()?`<div class="ep-imza"><label class="anahtar" style="width:auto"><input type="checkbox" name="imzaEkle" checked><span>İmzamı ekle (logosuyla)</span></label><div class="ep-imza-on">${imzaOnizle(ben().epostaHesap.imza)}</div></div>`:''}
     <p class="zaman">İleti kaydın geçmişine yazılır.${bagli?' Cevaplar kendi gelen kutuna ve kayda düşer (konudaki '+esc(e.kod)+' koduyla).':''}</p>
     <div class="rowbtns"><button class="btn pri" type="submit">${ic('gonder')}${bagli?'Gönder':'E-posta programında aç'}</button><button class="btn" type="button" data-act="eposta-iptal">Vazgeç</button></div></form>`;
@@ -3324,7 +3324,9 @@ function zBoyut(el){
   else { const gh=px(el.style.height, 18, 2000); if(gh) tut.push('height:'+gh+'px'); }
   return tut.join(';');
 }
-const Z_GECMIS={};   // editör geri al geçmişi (alan anahtarına göre)
+const Z_GECMIS={};
+// zengin metin → okunur düz metin (satır sonları korunur)
+const zDuzMetin=h=>String(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(p|div|li|h\d|tr)>/gi,'\n').replace(/<\/t[dh]>/gi,'\t').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();   // editör geri al geçmişi (alan anahtarına göre)
 function zTemiz(html){
   const d=document.createElement('div'); d.innerHTML=html||'';
   const izin2=new Set(['P','BR','B','STRONG','I','EM','U','S','STRIKE','DEL','UL','OL','LI','A','H2','H3','BLOCKQUOTE','DIV','SPAN','TABLE','THEAD','TBODY','TR','TH','TD','IMG']);
@@ -3343,8 +3345,14 @@ function zTemiz(html){
     }
     if(el.tagName==='IMG'){
       const src=el.getAttribute('src')||'';
+      const g=/^(\d+(?:\.\d+)?)px$/.exec((el.style.width||'').trim())||/^(\d+)$/.exec(el.getAttribute('width')||'');
+      const alt=el.getAttribute('alt')||'';
       [...el.attributes].forEach(a=>el.removeAttribute(a.name));
-      if(/^data:image\/(png|jpeg|webp);base64,/i.test(src) && src.length<500000) el.setAttribute('src', src);
+      if(/^data:image\/(png|jpeg|webp);base64,/i.test(src) && src.length<500000){
+        el.setAttribute('src', src);
+        if(alt) el.setAttribute('alt', alt.slice(0,100));
+        if(g){ const w=Math.min(2000, Math.max(16, Math.round(+g[1]))); el.setAttribute('width', String(w)); el.setAttribute('style', 'width:'+w+'px;height:auto'); }
+      }
       else el.remove();
       return;
     }
@@ -3460,6 +3468,8 @@ function zenginKur(){
     // Tablo: hücre kenarından sürükleyerek sütun genişliği / satır yüksekliği
     const KENAR=5;
     const kenar=(e)=>{
+      // resim: sağ alt köşeden sürükleyerek boyut
+      if(e.target.tagName==='IMG'&&ed.contains(e.target)){ const b=e.target.getBoundingClientRect(); if(b.right-e.clientX<=14&&b.bottom-e.clientY<=14) return {img:e.target, yon:'resim'}; return null; }
       const td=e.target.closest&&e.target.closest('td,th'); if(!td||!ed.contains(td)) return null;
       const r=td.getBoundingClientRect();
       if(r.right-e.clientX<=KENAR) return {td, yon:'sutun'};
@@ -3467,11 +3477,12 @@ function zenginKur(){
       return null;
     };
     let surukle=null;
-    ed.addEventListener('mousemove', e=>{ if(surukle||ed.contentEditable==='false') return; const k=kenar(e); ed.style.cursor=k?(k.yon==='sutun'?'col-resize':'row-resize'):''; });
+    ed.addEventListener('mousemove', e=>{ if(surukle||ed.contentEditable==='false') return; const k=kenar(e); ed.style.cursor=k?(k.yon==='sutun'?'col-resize':k.yon==='resim'?'nwse-resize':'row-resize'):''; });
     ed.addEventListener('mousedown', e=>{
       if(ed.contentEditable==='false') return;
       const k=kenar(e); if(!k) return;
       e.preventDefault();
+      if(k.yon==='resim'){ gecmisKaydet(); surukle={yon:'resim', img:k.img, x:e.clientX, w:k.img.getBoundingClientRect().width}; document.body.style.cursor='nwse-resize'; return; }
       const tablo=k.td.closest('table');
       if(k.yon==='sutun'){
         // tüm sütunların o anki genişliği sabitlenir; tablo genişliği sütunların toplamı olur
@@ -3491,7 +3502,10 @@ function zenginKur(){
     const surukleHareket=e=>{
       if(!surukle) return;
       if(!ed.isConnected){ document.removeEventListener('mousemove', surukleHareket); document.removeEventListener('mouseup', surukleBit); return; }
-      if(surukle.yon==='sutun'){
+      if(surukle.yon==='resim'){
+        const w=Math.max(16, Math.min(Math.round(surukle.w+e.clientX-surukle.x), ed.clientWidth-8));
+        surukle.img.style.width=w+'px'; surukle.img.style.height='auto';
+      } else if(surukle.yon==='sutun'){
         const w=Math.max(24, Math.round(surukle.w+e.clientX-surukle.x));
         [...surukle.tablo.rows].forEach(tr=>{ const c=tr.cells[surukle.i]; if(c) c.style.width=w+'px'; });
         surukle.tablo.style.width=Math.round(surukle.tw-surukle.w+w)+'px';
@@ -3663,16 +3677,46 @@ function acFirma(sub){
   $('#app').hidden=false; const g=$('#giris'); if(g) g.hidden=true;
   render();
 }
+// QR → PNG (e-posta istemcileri SVG göstermez); sunucu gömülü eke çevirir
+function qrPng(metin, px){
+  const M=QR.matris(metin), n=M.length, k=4, o=Math.max(2, Math.floor((px||220)/(n+2*k)));
+  const c=document.createElement('canvas'); c.width=c.height=(n+2*k)*o; const x=c.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.fillStyle='#000';
+  M.forEach((s,y)=>s.forEach((d,i)=>{ if(d) x.fillRect((i+k)*o,(y+k)*o,o,o); }));
+  return c.toDataURL('image/png');
+}
+function epostaSablonHtml(f){
+  const r=ui.form?.skaler?.[f.uid]; if(!r) return '';
+  if(!duz(r.metin)&&!/<(img|table)/i.test(r.metin||'')){   // alan henüz açılmadıysa şablon formdan doldurulur
+    const L=sablonListe(formModulId()); if(!r.tur&&L.length===1) r.tur=L[0].id;
+    const sb0=S.sablonlar.find(x=>x.id===r.tur); if(!sb0) return ''; r.metin=sablonDoldur(sb0, r.slot);
+  }
+  const {aktif, yanit}=disDurum(f.uid), y=yanit?.yanit;
+  const deger=ad=>{ ad=duz(ad).trim(); const im=y?.imzalar?.[ad]; if(im&&/^data:image\/png;base64,/.test(im)) return `<img src="${im}" alt="${esc(ad)}" style="max-height:70px">`; return y?.alanlar?.[ad]!=null?esc(y.alanlar[ad]):'______'; };
+  let h=sablonBoslukDoldur(r.metin, r.slot).replace(/\{\{\s*qr\s*\}\}/gi,'').replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>deger(ad)).replace(/\{\{\s*m(?:ü|u)ş?teri\s*:\s*([^{}]+?)\s*\}\}/gi,(t,ad)=>deger(ad));
+  h=zTemiz(h);
+  const sb=S.sablonlar.find(x=>x.id===r.tur);
+  if(aktif&&sablonQr(sb, r.metin)) h+=`<p><img src="${qrPng(disUrl(aktif.anahtar), 200)}" alt="QR" width="140" style="width:140px"><br>Belgeyi görüntülemek / onaylamak için: <a href="${esc(disUrl(aktif.anahtar))}">${esc(disUrl(aktif.anahtar))}</a></p>`;
+  return h;
+}
 function epostaBaslat(){
   formDomOku();
   const f=ui.form; if(!f||!f.id) return;
+  // QR'lı şablon için dış onay durumu önce yüklenir (bağlantı iletiye eklenir)
+  if(API.acik&&f.tur==='kart'&&!ui.dis?.[f.id]){
+    ui.dis=ui.dis||{}; ui.disYuk=ui.disYuk||{}; ui.disYuk[f.id]=true;
+    apiIstek('/dis-onay?kartId='+encodeURIComponent(f.id)).then(L=>{ ui.dis[f.id]=L; },()=>{ ui.dis[f.id]=[]; }).finally(()=>{ if(ui.form?.id===f.id) epostaBaslat(); });
+    return;
+  }
   const tur=f.tur, o=tur==='proje'?proje(f.id):S.kartlar.find(x=>x.id===f.id);
   const m=modul(tur==='proje'?'ana':o.modulId);
   const p=tur==='proje'?o:proje(o.projeId);
   const pred=tur==='proje'?(d=>d.projeId===o.id&&!d.kartId):(d=>d.kartId===o.id);
-  const satir=m.fn.filter(x=>fnGorunur(x)&&!['gecmis','imza','mesaj','dokuman'].includes(x.tip)).map(x=>{ const v=S.degerler.filter(d=>pred(d)&&d.fnUid===x.uid).map(ozet).filter(Boolean).join(' | '); return v?x.ad+': '+v:''; }).filter(Boolean);
+  const satir=m.fn.filter(x=>fnGorunur(x)&&!['gecmis','imza','mesaj','dokuman','sablon'].includes(x.tip)).map(x=>{ const v=S.degerler.filter(d=>pred(d)&&d.fnUid===x.uid).map(ozet).filter(Boolean).join(' | '); return v?`<b>${esc(x.ad)}:</b> ${esc(duz(v))}`:''; }).filter(Boolean);
+  // şablon alanları HTML olarak (formdaki güncel metin; {{…}} formdan, [[…]] müşteri yanıtından, QR resim + bağlantı)
+  const sablonlar=m.fn.filter(x=>x.tip==='sablon'&&fnGorunur(x)).map(x=>epostaSablonHtml(x)).filter(Boolean);
   const adres=S.degerler.find(d=>pred(d)&&d.fnTip==='eposta'&&d.metin)?.metin || (firmaBul(projeFirma(p)||'')||{}).eposta || '';
-  ui.eposta={eksik:sablonEksikler(), tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`Merhaba,\n\n${satir.join('\n')}\n\n${sunucuImzasi()?'':(imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad)}`};
+  ui.eposta={eksik:sablonEksikler(), tur, id:o.id, kod:o.kod, kime:adres, konu:`[${o.kod}] ${tur==='proje'?o.ad:kartBaslik(o)}`, govde:`<p>Merhaba,</p>${satir.length?`<p>${satir.join('<br>')}</p>`:''}${sablonlar.join('<hr>')}${sunucuImzasi()?'':`<p>${esc(imzaDuz(ben())||'Saygılarımızla,\n'+ben().ad+'\n'+S.firma.ad).replace(/\n/g,'<br>')}</p>`}`};
   ui.scroll=true; renderDrawer();
 }
 /* ---------- kiosk (büyük ekran, menüsüz, kendiliğinden döner) ---------- */
@@ -5076,11 +5120,12 @@ function bagla(){
       if(!eksikSoru(ui.eposta?.eksik||[],'gönderilecek')) return;
       const v=n=>e.target.elements[n].value.trim();
       const em=ui.eposta, o=em.tur==='proje'?proje(em.id):S.kartlar.find(x=>x.id===em.id);
-      const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:e.target.elements.govde.value, kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
+      const govdeHtml=e.target.elements.govde.value;
+      const kayit={id:nid('ep'), kime:v('kime'), konu:v('konu'), govde:zDuzMetin(govdeHtml), kimden:ui.uid, zaman:simdi(), kod:em.kod, projeId:em.tur==='proje'?o.id:o.projeId, kartId:em.tur==='proje'?null:o.id, modulId:em.tur==='proje'?'ana':o.modulId};
       if(kendiGonderir()||firmaGonderir()||(API.acik&&firmaEp().tur==='google'&&gGmail())){
         const btn=e.target.querySelector('button[type=submit]'); if(btn) btn.disabled=true;
         const imzaEkle=!!e.target.elements.imzaEkle?.checked;
-        apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde, imza:imzaEkle}}).then(g=>{
+        apiIstek('/eposta/gonder',{method:'POST', govde:{kime:kayit.kime, konu:kayit.konu, metin:kayit.govde, html:govdeHtml, imza:imzaEkle}}).then(g=>{
           Object.assign(kayit,{kanal:g.kanal||'firma', kimdenAdres:g.kimden, ...(g.kanal==='kisisel'?{}:{cevap:ben().eposta})});
           S.epostalar.push(kayit);
           logEkle({projeId:kayit.projeId, modulId:kayit.modulId, kartId:kayit.kartId, tip:'eposta', metin:'E-posta gönderildi ('+(g.kanal==='kisisel'?'kendi hesabı':g.kanal==='smtp'?'firma hesabı':'Gmail')+') → '+kayit.kime+' · '+kayit.konu});
