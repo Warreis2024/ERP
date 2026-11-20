@@ -6,6 +6,7 @@ import { yazabilir, okuyabilir, fnGorunur, fnErisim, dosyaGorur, kapanisIzni, iz
 import { degerleriBirlestir, fnOzetleri, alanLoglari, silinebilir, kartTarihi } from './kurallar/kayit.js';
 import { degerDb, degerApi } from './kurallar/degerler.js';
 import { tanimlar, kodUret, logYaz, yeniId, adCozucu, logApi } from './veri.js';
+import { kayitBildir } from './bildirimServis.js';
 
 const IstemciId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional();
 const DegerSema = z.object({ fnUid: z.string().max(40), id: z.string().max(40).optional().nullable() }).passthrough();
@@ -87,7 +88,8 @@ export async function kaydet(req, tur, id, govde) {
     if (!p) throw new HttpHata(400, 'Kayıt bir projeye bağlanmalı');
   }
 
-  return db.transaction(async (trx) => {
+  let bildirim = null;
+  const sonuc = await db.transaction(async (trx) => {
     const kayitId = mevcut?.id || veri.id || yeniId();
     const ortak = proj ? { projeId: kayitId, modulId: m.id, kartId: null } : { projeId: veri.projeId, modulId: m.id, kartId: kayitId };
     const eskiSat = mevcut
@@ -152,8 +154,12 @@ export async function kaydet(req, tur, id, govde) {
       const L = alanLoglari(m.fn, fnOzetleri(m.fn, eski, ad), fnOzetleri(m.fn, yeni, ad));
       await logYaz(trx, u, ortak, L);
     }
+    bildirim = { eski, yeni, projeId: ortak.projeId, kartId: ortak.kartId, kod, baslik: proj ? veri.ad : (yeni.find((r) => r.fnTip === 'light')?.metin || '') };
     return { id: kayitId, kod };
   });
+  // mobil bildirim: yeni mesaj ve işe atanma (yanıtı bozmaz, en çok birkaç saniye bekler)
+  if (bildirim) await kayitBildir(req, bildirim);
+  return sonuc;
 }
 
 // ---- yalnız durum (kanbanda sürükle-bırak) ----

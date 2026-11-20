@@ -11,7 +11,17 @@ export async function kimlik(req, _res, next) {
     const yuk = belirtecCoz(req.cerezler[CEREZ.oturum]);
     if (yuk && yuk.f === req.firma.sub) {
       const u = await kullaniciYukle(req.db, yuk.uid);
-      if (u && u.aktif && u.oturum_surumu === yuk.sv) req.kullanici = u;
+      // Eşlenmiş cihaz oturumu şifre değişince düşmez; cihaz listesinden ayrı ayrı iptal edilir.
+      if (u && u.aktif && (yuk.c || u.oturum_surumu === yuk.sv)) {
+        if (yuk.c) {
+          // eşlenmiş cihaz (mobil): cihaz iptal edilmemiş olmalı
+          const c = await req.db('cihazlar').where({ id: yuk.c, kullanici_id: u.id, durum: 'aktif' }).first();
+          if (c) {
+            req.kullanici = u; req.cihazId = c.id;
+            if (!c.son_kullanim || Date.now() - new Date(c.son_kullanim) > 3600_000) await req.db('cihazlar').where({ id: c.id }).update({ son_kullanim: new Date() });
+          }
+        } else req.kullanici = u;
+      }
     }
     next();
   } catch (e) { next(e); }

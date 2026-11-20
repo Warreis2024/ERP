@@ -6,6 +6,12 @@ import { okuyabilir, fnErisim } from '../kurallar/yetki.js';
 import { degerDb } from '../kurallar/degerler.js';
 import { tanimlar, yeniId } from '../veri.js';
 import { kaydet, durumDegistir, sil, kayitLog, projeKisileri, gorunurDegerler, projeApi, kartApi, aliciTemizle } from '../kayitServis.js';
+import { mesajBildir } from '../bildirimServis.js';
+
+// Mesaj ekleri: küçük resim / ses / video (data URL). Toplam ~3,4 MB (Vercel istek sınırı 4,5 MB).
+const EK_RE = /^data:(image\/(png|jpeg|webp)|audio\/(webm|ogg|mp4|mpeg|aac|x-m4a)|video\/(webm|mp4|quicktime))(;codecs=[\w.,]+)?;base64,[A-Za-z0-9+/]+=*$/;
+const EkSema = z.array(z.object({ ad: z.string().trim().max(120).default(''), url: z.string().max(3_600_000).regex(EK_RE, 'Desteklenmeyen dosya') })).max(6).default([])
+  .refine((L) => L.reduce((t, e) => t + e.url.length, 0) <= 4_500_000, 'Ekler çok büyük (toplam 3 MB)');
 
 const r = Router();
 const Sayfa = z.object({ sayfa: z.coerce.number().int().min(1).default(1), adet: z.coerce.number().int().min(1).max(1000).default(500) });
@@ -76,18 +82,27 @@ r.patch('/kartlar/:id/durum', async (req, res) => res.json(await durumDegistir(r
 r.delete('/kartlar/:id', async (req, res) => res.json(await sil(req, 'kart', req.params.id)));
 
 // ---------- mesaj: kaydı açıp Kaydet'e basmadan mesaj yazma ----------
-r.post('/mesaj', async (req, res) => {
+// Kayda mesaj yazar (masaüstü, mobil ve "Notlarım"dan taşıma aynı yoldan geçer).
+// fnUid verilmezse modülün yazma yetkisi olan ilk mesaj fonksiyonu kullanılır.
+export async function mesajYaz(req, v) {
   const u = req.kullanici, db = req.db, tanim = await tanimlar(req);
-  const v = z.object({ projeId: z.string().max(40), kartId: z.string().max(40).optional().nullable(), fnUid: z.string().max(40), metin: z.string().trim().min(1).max(10000), ustId: z.string().max(40).optional().nullable(), alici: z.array(z.string().max(40)).max(50).optional() }).parse(req.body);
+  if (!v.metin && !(v.ekler || []).length) throw new HttpHata(400, 'Mesaj boş');
   const kayit = v.kartId ? await db('kartlar').where({ id: v.kartId, silindi: false }).first() : await db('projeler').where({ id: v.projeId, silindi: false }).first();
   if (!kayit) throw new HttpHata(404, 'Kayıt bulunamadı');
   const m = v.kartId ? tanim.modul(kayit.modul_id) : tanim.moduller.find((x) => x.tur === 'proje');
-  const f = m?.fn.find((x) => x.uid === v.fnUid && x.tip === 'mesaj');
+  const f = m?.fn.find((x) => x.tip === 'mesaj' && (v.fnUid ? x.uid === v.fnUid : fnErisim(u, x) === 'duzenle'));
   if (!f || !okuyabilir(u, m.id) || fnErisim(u, f) !== 'duzenle') throw new HttpHata(403, 'Bu kayda mesaj yazma yetkin yok');
   const ortak = { modulId: m.id, projeId: v.kartId ? kayit.proje_id : kayit.id, kartId: v.kartId || null };
   const id = yeniId(), zaman = new Date();
-  await db('degerler').insert({ ...degerDb({ id, fnUid: f.uid, fnTip: 'mesaj', metin: v.metin, kisi: u.id, ustId: v.ustId || null, zaman: zaman.toISOString(), okuyan: [u.id], alici: aliciTemizle(v.alici, u.id) }, ortak), olusturan: u.id, olusturma: zaman, guncelleyen: u.id, guncelleme: zaman });
-  res.status(201).json({ id });
+  const alici = aliciTemizle(v.alici, u.id);
+  await db('degerler').insert({ ...degerDb({ id, fnUid: f.uid, fnTip: 'mesaj', metin: v.metin, kisi: u.id, ustId: v.ustId || null, zaman: zaman.toISOString(), okuyan: [u.id], alici, ekler: v.ekler || [] }, ortak), olusturan: u.id, olusturma: zaman, guncelleyen: u.id, guncelleme: zaman });
+  await mesajBildir(req, { projeId: ortak.projeId, kartId: ortak.kartId, alici, metin: v.metin, kod: kayit.kod, baslik: v.kartId ? '' : kayit.ad });
+  return { id, zaman: zaman.toISOString() };
+}
+export const MesajSema = z.object({ projeId: z.string().max(40).default(''), kartId: z.string().max(40).optional().nullable(), fnUid: z.string().max(40).optional(), metin: z.string().trim().max(10000).default(''), ustId: z.string().max(40).optional().nullable(), alici: z.array(z.string().max(40)).max(50).optional(), ekler: EkSema });
+
+r.post('/mesaj', async (req, res) => {
+  res.status(201).json(await mesajYaz(req, MesajSema.parse(req.body)));
 });
 
 export default r;

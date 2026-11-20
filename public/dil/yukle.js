@@ -22,5 +22,5 @@
     var a = arguments;
     return String(s).replace(/\{(\d+)\}/g, function (x, i) { var v = a[+i + 1]; return v == null ? '' : v; });
   };
-  if (d !== 'tr') document.write('<script src="dil/' + d + '.js"><\/script>');
+  if (d !== 'tr') document.write('<script src="' + (window.DIL_YOL || 'dil/') + d + '.js"><\/script>');
 })();

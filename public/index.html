@@ -496,6 +496,9 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .bal.ben .kutu{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 30%,transparent);border-radius:12px 4px 12px 12px}
 .bal .alinti{border-left:3px solid var(--accent);padding:2px 8px;margin-bottom:6px;font-size:12px;color:var(--muted);white-space:normal;background:color-mix(in srgb,var(--surface) 60%,transparent);border-radius:0 6px 6px 0}
 .bal .ekler{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.bal .ekler audio{width:260px;max-width:100%}.bal .ekler video{width:220px;max-height:180px;border-radius:8px;background:#000}
+.tel-qr{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.tel-qr-kod{width:190px;height:190px;background:#fff;padding:6px;border-radius:10px;border:1px solid var(--line)}.tel-qr-kod svg{width:100%;height:100%;display:block}.tel-qr>div:last-child{flex:1;min-width:200px}
+.tel-liste{display:flex;flex-direction:column;gap:6px;margin-top:4px}.tel-cihaz{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.tel-cihaz>div{flex:1;display:flex;flex-direction:column}
 .bal .ekler img{width:120px;height:90px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block}
 .bal .eyl{display:flex;gap:2px}
 .bal .eyl button{all:unset;cursor:pointer;font-size:11.5px;color:var(--muted);padding:1px 6px;border-radius:6px}
@@ -1195,7 +1198,7 @@ function ozet(row){
     case 'depo': return depoAd(row.depo);
     case 'karar': return (row.tur==='tamam'?'✓ ':'')+metin;
     case 'kontrol': return ({uygun:'✓ ',sorun:'✗ ',yok:'– '}[row.tur]||'○ ')+metin+(row.not?' ('+row.not+')':'');
-    case 'mesaj': return metin+((row.ekler||[]).length?' 📷':'');
+    case 'mesaj': return metin+((row.ekler||[]).length?' 📎':'');
   }
   return metin||row.tur||trh(row.tarih)||row.firma||'';
 }
@@ -2061,7 +2064,7 @@ function cokluHTML(f){
     const bal=r=>{
       const i=rows.indexOf(r), kim=kisiAd(r.kisi)||benAd, benim=kim===benAd, ust=r.ustId&&rows.find(x=>x.id===r.ustId);
       const alinti=ust?`<div class="alinti">↪ ${esc(kisiAd(ust.kisi))}: ${esc(String(ust.metin||'').slice(0,90))}</div>`:'';
-      const ekler=(r.ekler||[]).length?`<div class="ekler">${r.ekler.map((e,j)=>`<img src="${e.url}" alt="${esc(e.ad||'resim')}" data-act="onizle-resim" data-uid="${f.uid}" data-i="${i}" data-j="${j}">`).join('')}</div>`:'';
+      const ekler=(r.ekler||[]).length?`<div class="ekler">${r.ekler.map((e,j)=>{ const u=String(e.url||''); if(/^data:audio\//.test(u)) return `<audio controls preload="none" src="${esc(u)}" title="${esc(e.ad||'')}"></audio>`; if(/^data:video\//.test(u)) return `<video controls preload="metadata" src="${esc(u)}" title="${esc(e.ad||'')}"></video>`; return `<img src="${esc(u)}" alt="${esc(e.ad||'resim')}" data-act="onizle-resim" data-uid="${f.uid}" data-i="${i}" data-j="${j}">`; }).join('')}</div>`:'';
       const sil=String(r.id||'').startsWith('gec')?`<button type="button" data-act="satir-sil" data-uid="${f.uid}" data-i="${i}">${_t('Geri al')}</button>`:'';
       return `<div class="bal ${benim?'ben':''} ${t.yanit===r.id?'yanitta':''}">${av(kim)}<div class="gov"><div class="ust"><b>${esc(kim)}</b>${(r.alici||[]).length?`<span class="alici-ok" title="${_t('Alıcılar')}">→ ${esc(r.alici.map(kisiAd).join(', '))}</span>`:''}<span>${esc(trh(r.zaman))}</span></div><div class="kutu">${alinti}${esc(r.metin)}${ekler}</div><div class="eyl"><button type="button" data-act="yanitla" data-uid="${f.uid}" data-id="${r.id}">${_t('Yanıtla')}</button>${sil}</div></div></div>`;
     };
@@ -4959,7 +4962,27 @@ function profilHTML(){
     <div class="lbl">${_t('Son girişler')}<div class="pr-girisler">${(u.girisler||[]).map(g=>`<span>${esc(trh(g.zaman))} · ${esc(g.tarayici)}</span>`).join('')||`<span class="zaman">${_t('Kayıt yok')}</span>`}</div></div>
     <button type="button" class="btn danger" style="justify-self:start" data-act="cikis">${ic('sol')}${_t('Çıkış yap')}</button></div>`;
   return `<div class="phead"><span class="pic">${u.foto?`<img src="${u.foto}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:ic('kisi')}</span><div><h3>${esc(u.ad)}</h3><p>${esc([u.unvan,u.departman].filter(Boolean).join(' · '))}</p></div><div class="tools"><button type="button" class="btn" data-act="cikis">${ic('sol')}${_t('Çıkış')}</button></div></div>
-    <div class="pr-izgara">${bolum('kimlik','Bilgilerim','kisi',kimlik)}${bolum('eposta',_t('E-posta hesabım'),'mail',epIc)}${bolum('tercih','Tercihler','ayar',tercih)}${bolum('guvenlik',_t('Güvenlik'),'kilit',guv)}</div>`;
+    <div class="pr-izgara">${bolum('kimlik','Bilgilerim','kisi',kimlik)}${bolum('eposta',_t('E-posta hesabım'),'mail',epIc)}${bolum('tercih','Tercihler','ayar',tercih)}${API.acik?bolum('telefon',_t('Telefonu bağla'),'bag',telefonHTML()):''}${bolum('guvenlik',_t('Güvenlik'),'kilit',guv)}</div>`;
+}
+/* --- Mobil uygulama: telefonu QR ile eşleme --- */
+function telYukle(zorla){
+  ui.tel=ui.tel||{};
+  if(ui.tel.yuk&&!zorla) return;
+  ui.tel.yuk=true;
+  const once=ui.tel.cihazlar, iz=JSON.stringify(once);
+  return apiIstek('/cihaz').then(L=>{ ui.tel.cihazlar=L;
+    if(ui.tel.kod&&once&&L.some(c=>!once.find(x=>x.id===c.id))){ ui.tel.kod=null; clearInterval(ui.tel.zaman); toast(_t('Telefon bağlandı')); }
+  }).catch(()=>{ ui.tel.cihazlar=[]; }).finally(()=>{ if(ui.ekran==='profil'&&JSON.stringify(ui.tel.cihazlar)!==iz) renderMain(); });
+}
+function telefonHTML(){
+  telYukle();
+  const t=ui.tel||{}, L=t.cihazlar;
+  const url=t.kod?location.origin+'/m/#e='+t.kod:'';
+  const qr=url?`<div class="tel-qr"><div class="tel-qr-kod">${QR.svg(url,{kenar:4})}</div><div><b>${_t('Telefonunun kamerasıyla okut')}</b><p class="zaman">${_t('Kod 10 dakika geçerli ve tek kullanımlık. Telefonda açılan sayfada "Ana ekrana ekle" / "Yükle" dersen uygulama gibi çalışır.')}</p><div class="rowbtns"><button type="button" class="btn sm" data-act="dis-kopya" data-url="${esc(url)}">${ic('kopya')}${_t('Bağlantıyı kopyala')}</button><button type="button" class="btn sm" data-act="tel-iptal">${_t('Vazgeç')}</button></div></div></div>`:'';
+  const liste=L===undefined?`<p class="zaman">${_t('Yükleniyor…')}</p>`:L.length?`<div class="tel-liste">${L.map(c=>`<div class="tel-cihaz">${ic('bag')}<div><b>${esc(c.ad||_t('Telefon'))}</b><span class="zaman">${_t('Bağlandı')}: ${esc(trh(c.olusturma||''))}${c.sonKullanim?' · '+_t('Son kullanım')+': '+esc(trh(c.sonKullanim)):''}</span></div><button type="button" class="btn sm danger" data-act="tel-kaldir" data-id="${esc(c.id)}">${_t('Kaldır')}</button></div>`).join('')}</div>`:`<p class="zaman">${_t('Bağlı telefon yok.')}</p>`;
+  return `<div class="form"><p class="zaman">${_t('Mobil uygulama ile mesajları ve bildirimleri telefonundan takip eder, sesli not, fotoğraf ve video ekleyebilirsin. Şifre gerekmez: telefon bu QR ile sana bağlanır, istediğin zaman buradan kaldırırsın.')}</p>
+    ${qr||`<div class="rowbtns"><button type="button" class="btn pri" data-act="tel-esle">${ic('bag')}${_t('QR kod oluştur')}</button></div>`}
+    <div class="lbl">${_t('Bağlı telefonlar')}${liste}</div></div>`;
 }
 // E-posta sunucudan gidecek ve kullanıcının imzası varsa imza HTML (logolu) olarak sunucuda eklenir
 function sunucuImzasi(){ return API.acik&&(kendiGonderir()||firmaGonderir())&&!!String((ben().epostaHesap||{}).imza||'').trim(); }
@@ -5812,6 +5835,9 @@ function bagla(){
       }
       case 'bld-izin': { if('Notification' in window) Notification.requestPermission().then(p=>{ toast(p==='granted'?_t('Masaüstü bildirimleri açıldı'):_t('İzin verilmedi')); render(); }); return; }
       case 'dis-yenile': { if(ui.form?.id){ formDomOku(); disYukle(ui.form.id, true); toast(_t('Denetleniyor…')); } return; }
+      case 'tel-esle': { apiIstek('/cihaz/eslestir',{method:'POST',govde:{}}).then(r=>{ ui.tel=ui.tel||{}; ui.tel.kod=r.kod; clearInterval(ui.tel.zaman); const bas=Date.now(); ui.tel.zaman=setInterval(()=>{ if(!ui.tel.kod||Date.now()-bas>600000||ui.ekran!=='profil'){ clearInterval(ui.tel.zaman); if(ui.tel.kod&&Date.now()-bas>600000){ ui.tel.kod=null; render(); } return; } telYukle(true); },4000); render(); }).catch(e=>toast(e.message)); return; }
+      case 'tel-iptal': { if(ui.tel){ ui.tel.kod=null; clearInterval(ui.tel.zaman); } render(); return; }
+      case 'tel-kaldir': { if(!confirm(_t('Bu telefonun bağlantısı kaldırılsın mı? Telefon bir daha bağlanmak için yeni QR okutmalı.'))) return; apiIstek('/cihaz/'+encodeURIComponent(b.dataset.id)+'/kaldir',{method:'POST',govde:{}}).then(()=>{ toast(_t('Telefon kaldırıldı')); telYukle(true); }).catch(e=>toast(e.message)); return; }
       case 'dis-kopya': { const u=b.dataset.url; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast(_t('Bağlantı kopyalandı')),()=>prompt(_t('Bağlantı'),u)); return; }
       case 'dis-iptal': {
         if(!confirm(_t('QR bağlantısı iptal edilsin mi? Müşteri artık belgeyi açamaz.'))) return;

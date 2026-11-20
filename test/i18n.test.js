@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const kok = new URL('../public/', import.meta.url);
-const html = fs.readFileSync(new URL('index.html', kok), 'utf8');
+const html = fs.readFileSync(new URL('index.html', kok), 'utf8') + fs.readFileSync(new URL('m/m.js', kok), 'utf8');
 const coz = (ham) => JSON.parse('"' + ham.replace(/"/g, '\\"').replace(/\\'/g, "'").replace(/\\`/g, '`').replace(/\\\$/g, '$') + '"');
 const anahtarlar = [...new Set([...html.matchAll(/(?<![\w.$])_t\('((?:[^'\\\n]|\\.)*)'/g)].map((m) => coz(m[1])))];
 const sozluk = (d) => { const s = fs.readFileSync(new URL(`dil/${d}.js`, kok), 'utf8'); return JSON.parse(s.slice(s.indexOf('{'), s.lastIndexOf('}') + 1)); };
