@@ -145,8 +145,16 @@
     ic.innerHTML = pushBilgi() + (D.sekme === 'gelen' ? gelenHTML() : D.sekme === 'kayitlar' ? kayitlarHTML() : notlarHTML());
     baglaIcerik(ic);
   }
+  // Android Chrome: "Uygulamayı yükle" (WebAPK — mağazasız, ana ekranda uygulama olarak)
+  let yukleIstegi = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); yukleIstegi = e; if (D.ozet && !D.kayit && !$('.perde')) ciz(); });
+  window.addEventListener('appinstalled', () => { yukleIstegi = null; toast(_t('Uygulama yüklendi')); });
   function pushBilgi() {
-    if (D.push !== 'sor') return '';
+    const y = yukleIstegi ? `<div class="bilgi"><p>${kac(_t('NetERP\'yi telefonuna uygulama olarak yükle.'))}</p><button class="dugme" data-yukle>${kac(_t('Yükle'))}</button></div>` : '';
+    if (D.push !== 'sor') return y;
+    return y + pushSoru();
+  }
+  function pushSoru() {
     return `<div class="bilgi"><p>${kac(_t('Yeni mesaj ve atamalarda telefonuna bildirim gelsin mi?'))}</p><button class="dugme" data-push="ac">${kac(_t('Bildirimleri aç'))}</button></div>`;
   }
   function gelenHTML() {
@@ -205,6 +213,7 @@
       } catch (e) { toast(e.message, 4000); }
     }, false); });
     ic.querySelectorAll('[data-push]').forEach((b) => { b.onclick = pushAc; });
+    ic.querySelectorAll('[data-yukle]').forEach((b) => { b.onclick = async () => { if (!yukleIstegi) return; yukleIstegi.prompt(); await yukleIstegi.userChoice.catch(() => {}); yukleIstegi = null; ciz(); }; });
   }
 
   // ---------- kayıt (mesaj akışı) ----------

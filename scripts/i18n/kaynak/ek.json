@@ -793,5 +793,20 @@
   "Message is empty",
   "Nachricht ist leer",
   "El mensaje está vacío"
+ ],
+ "Uygulama yüklendi": [
+  "App installed",
+  "App installiert",
+  "App instalada"
+ ],
+ "NetERP'yi telefonuna uygulama olarak yükle.": [
+  "Install NetERP on your phone as an app.",
+  "Installiere NetERP als App auf deinem Telefon.",
+  "Instala NetERP en tu teléfono como app."
+ ],
+ "Yükle": [
+  "Install",
+  "Installieren",
+  "Instalar"
  ]
 }

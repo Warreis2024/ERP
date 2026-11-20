@@ -1292,5 +1292,8 @@ window.SOZLUK={
 "Telefon eşlemesi bilgisayardan yapılır": "Phones are paired from the computer",
 "Not boş": "Note is empty",
 "Not bulunamadı": "Note not found",
-"Ekler çok büyük (toplam 3 MB)": "Attachments too large (3 MB total)"
+"Ekler çok büyük (toplam 3 MB)": "Attachments too large (3 MB total)",
+"Uygulama yüklendi": "App installed",
+"NetERP'yi telefonuna uygulama olarak yükle.": "Install NetERP on your phone as an app.",
+"Yükle": "Install"
 };
