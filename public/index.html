@@ -773,7 +773,7 @@ img.ku-foto{font-size:1em}
 .ck-grup b{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
 .ck-grup>div{display:flex;flex-wrap:wrap;gap:4px 8px}
 .ck-alan{display:inline-flex;align-items:center;gap:3px}
-.ck-alan input{width:14px;height:14px;margin:0}
+.ck-alan input{display:none}
 .ck-cip{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:2px 7px;font-size:12px;cursor:grab;display:inline-flex;gap:5px;align-items:center}
 .ck-cip:hover{border-color:var(--accent);color:var(--accent)}
 .ck-cip em{font-style:normal;color:var(--muted);font-size:10px}
@@ -861,6 +861,10 @@ const YER={"ulke":["Türkiye","KKTC","Almanya","Amerika Birleşik Devletleri","�
 
 /* ---------- ikonlar ---------- */
 const ICONS={
+  hsol:'<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',
+  horta:'<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',
+  hsag:'<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+  hiki:'<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>',
   qr:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 20h2M20 14v2"/>',
   geri:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   ileri:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
@@ -3360,7 +3364,8 @@ function zTemiz(html){
       else el.remove();
       return;
     }
-    const boyut=zBoyut(el);
+    const hiza=/^(left|center|right|justify)$/.exec((el.style.textAlign||el.getAttribute('align')||'').trim().toLowerCase());
+    const boyut=[zBoyut(el), hiza&&/^(P|DIV|H2|H3|LI|TD|TH|BLOCKQUOTE)$/.test(el.tagName)?'text-align:'+hiza[1]:''].filter(Boolean).join(';');
     [...el.attributes].forEach(a=>{ if(a.name!=='href' && !((el.tagName==='TD'||el.tagName==='TH') && (a.name==='colspan'||a.name==='rowspan'))) el.removeAttribute(a.name); });
     if(boyut) el.setAttribute('style', boyut);
     if(el.tagName==='A' && !/^(https?:|mailto:)/i.test(el.getAttribute('href')||'')) el.removeAttribute('href');
@@ -3384,6 +3389,10 @@ function zenginKur(){
       <button type="button" class="zb" data-z="italic" title="İtalik"><em>I</em></button>
       <button type="button" class="zb" data-z="underline" title="Altı çizili"><u>U</u></button>
       <button type="button" class="zb" data-z="strike" title="Üstü çizili"><s>S</s></button>
+      <button type="button" class="zb" data-z="sola" title="Sola dayalı">${ic('hsol')}</button>
+      <button type="button" class="zb" data-z="orta" title="Ortala">${ic('horta')}</button>
+      <button type="button" class="zb" data-z="saga" title="Sağa dayalı">${ic('hsag')}</button>
+      <button type="button" class="zb" data-z="iki" title="İki yana yasla">${ic('hiki')}</button>
       <button type="button" class="zb" data-z="ul" title="Madde listesi">${ic('liste')}</button>
       <button type="button" class="zb" data-z="ol" title="Numaralı liste">1.</button>
       <button type="button" class="zb" data-z="link" title="Bağlantı">${ic('bag')}</button>
@@ -3525,7 +3534,7 @@ function zenginKur(){
     document.addEventListener('mousemove', surukleHareket);
     document.addEventListener('mouseup', surukleBit);
     const hucre=()=>{ let n=getSelection().anchorNode; while(n&&n!==ed){ if(n.nodeName==='TD'||n.nodeName==='TH') return n; n=n.parentNode; } return null; };
-    const komut={bold:'bold',italic:'italic',underline:'underline',strike:'strikeThrough',ul:'insertUnorderedList',ol:'insertOrderedList'};
+    const komut={bold:'bold',italic:'italic',underline:'underline',strike:'strikeThrough',ul:'insertUnorderedList',ol:'insertOrderedList',sola:'justifyLeft',orta:'justifyCenter',saga:'justifyRight',iki:'justifyFull'};
     w.querySelectorAll('button[data-z]').forEach(b=>{
       b.addEventListener('mousedown', e=>{ e.preventDefault(); sakla(); if(b.dataset.z!=='geri'&&b.dataset.z!=='ileri') gecmisKaydet(); });
       b.addEventListener('click', ()=>{
@@ -4550,14 +4559,13 @@ function ckCekmece(c){
     ${F.kapsam==='liste'?`<div class="two">${s('tarihAlan','Dönem süzgeci alanı',kat.filter(a=>a.tip==='tarih').map(a=>a.k),'Dönem süzgeci yok')}${s('donem','Varsayılan dönem',CK_DONEM)}</div>
     <div class="two">${s('kisi','Kişi süzgeci',CK_KISI)}${s('sirala','Sıralama',kat.map(a=>a.k),'Sırasız')}</div>
     <div class="lbl">Koşullar<div class="ck-koslar">${kos||'<span class="zaman">Koşul yok</span>'}</div><button type="button" class="btn sm" style="justify-self:start" data-act="ckq-ekle" data-id="${F.id}">${ic('arti')}Koşul ekle</button></div>`:''}
-    <div class="lbl">Alanlar<p class="zaman"><b>☑ İşaretli alanlar</b> şablondaki hazır tabloya (<span class="mono">||tablo||</span>) sütun olarak girer; tablo kullanmıyorsan işaretlemen gerekmez. <b>Alan adına</b> tıklarsan <span class="mono">{{Alan}}</span> kopyalanır; ya da adı şablona sürükle.</p><div class="ck-alanlar">${alanlar||'<span class="zaman">Modül seç</span>'}</div></div>
+    <div class="lbl">Alanlar<p class="zaman">Alan adına tıklarsan <span class="mono">{{Alan}}</span> kopyalanır; ya da adı şablona sürükle. Tabloda her satır için <span class="mono">{{s.Alan}}</span> kullan; sütun sırası tablodaki sıradır.</p><div class="ck-alanlar">${alanlar||'<span class="zaman">Modül seç</span>'}</div></div>
     <div class="lbl">Ek sorgular<p class="zaman">Ana sorgunun (satirlar) yanına başka modüllerden sorgu ekle. Bağımsız sorgu tek başına listelenir; iç içe sorgu her üst satıra bağlı alt liste olur (örn. her projenin masrafları). Alt sorgunun da alt sorgusu olabilir.</p>${ekler}<button type="button" class="btn sm" style="justify-self:start" data-act="cks-ekle" data-id="${F.id}">${ic('arti')}Sorgu ekle</button></div>
     <label class="anahtar" style="width:auto"><input type="checkbox" data-ckf="${F.id}" data-alan="ustAlt" ${F.ustAlt===false?'':'checked'}><span>Kurumsal üst ve alt bilgi (logo, firma adı, çıktı tarihi; her sayfada tekrar eder)</span></label>
     <label>Şablon<textarea class="zk-src" data-zmod="tam" data-ckf="${F.id}" data-alan="sablon" placeholder="{{Kod}} · {{bugun}}">${esc(F.sablon||'')}</textarea></label>
     <details class="ck-yardim"><summary>Şablon dili</summary><table><tbody>
       <tr><td class="mono">{{Alan}}  ||Alan||</td><td>Alanın değeri. Listede ilk satırdan, tek kayıtta kayıttan alınır.</td></tr>
       <tr><td class="mono">{{s.Alan}}  {{sira}}</td><td>Tablo satırında kullanılırsa o satır her kayıt için tekrar eder.</td></tr>
-      <tr><td class="mono">||tablo||</td><td>Seçili alanlarla hazır tablo, sayısal sütunlarda toplam satırı.</td></tr>
       <tr><td class="mono">{{toplam.Tutar}}  {{adet}}</td><td>Sayısal alan toplamı ve satır sayısı.</td></tr>
       <tr><td class="mono">{{bugun}} {{simdi}} {{kullanici}} {{unvan}} {{departman}} {{firma}} {{donem}}</td><td>Hazır değerler.</td></tr>
       <tr><td class="mono">{{Tutar|para}} |tarih |sayi |buyuk</td><td>Biçim.</td></tr>
@@ -5697,7 +5705,7 @@ function bagla(){
       case 'yaz-ac': { const pop=b.parentElement.querySelector('.yaz-pop'); if(pop) pop.hidden=!pop.hidden; return; }
       case 'sablon-yazdir': { formDomOku(); if(!eksikSoru(sablonEksikler(),'yazdırılacak')) return; const a=b.closest('.yaz-pop')?.querySelector('[data-yaz-antet]'); const antet=a?a.checked:true; try{ localStorage.setItem('yerp-antet', antet?'1':'0'); }catch(e){} b.closest('.yaz-pop').hidden=true; sablonYazdir(b.dataset.uid, antet); return; }
       case 'ck-kayit': { if(ui.form){ formDomOku(); if(!eksikSoru(sablonEksikler(),'çıktıya girecek')) return; } const id=b.dataset.id, fid=b.dataset.form; kapatEkran(); ui.ekran='cikti'; ui.ck={formId:fid, kartId:id}; render(); return; }
-      case 'ck-ekle': { const F={id:nid('ck'), ad:'Yeni çıktı formu', modulId:S.moduller[0]?.id||'ana', kapsam:'liste', satir:'kayit', tarihAlan:'', donem:'tum', kisi:'tum', sirala:'', kagit:'dikey', kosullar:[], alanlar:[], sablon:'<h2>{{form}}</h2><p>{{firma}} · {{bugun}}</p><p>||tablo||</p>'}; S.ciktilar.push(F); ui.cekmece={tur:'cikti', id:F.id}; persist(); render(); return; }
+      case 'ck-ekle': { const F={id:nid('ck'), ad:'Yeni çıktı formu', modulId:S.moduller[0]?.id||'ana', kapsam:'liste', satir:'kayit', tarihAlan:'', donem:'tum', kisi:'tum', sirala:'', kagit:'dikey', kosullar:[], alanlar:[], sablon:'<h2>{{form}}</h2><p>{{firma}} · {{bugun}}</p><table><tbody><tr><th>#</th><th>Kod</th><th>Durum</th></tr><tr><td>{{sira}}</td><td>{{s.Kod}}</td><td>{{s.Durum}}</td></tr></tbody></table>'}; S.ciktilar.push(F); ui.cekmece={tur:'cikti', id:F.id}; persist(); render(); return; }
       case 'ck-sil': { if(!confirm('Çıktı formu silinsin mi?')) return; S.ciktilar=S.ciktilar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; persist(); render(); return; }
       case 'ckq-ekle': { const F=S.ciktilar.find(x=>x.id===b.dataset.id); if(!F) return; F.kosullar.push({alan:'',op:'=',deger:''}); persist(); render(); return; }
       case 'ckq-sil': { const [fid,i]=b.dataset.id.split(':'); const F=S.ciktilar.find(x=>x.id===fid); if(!F) return; F.kosullar.splice(+i,1); persist(); render(); return; }
