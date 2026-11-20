@@ -30,11 +30,11 @@ export async function tanimlar(req) {
   ]);
   const fnler = fonksiyonlar.map((f) => ({
     uid: f.uid, modulId: f.modul_id, tip: f.tip, ad: f.ad, zorunlu: !!f.zorunlu, grup: f.grup, tarihVarsayilan: f.tarih_vars || '',
-    sekme: f.sekme || '', kanban: !!f.kanban, liste: !!f.liste, sira: f.sira, yetki: json.oku(f.yetki, {}),
+    sekme: f.sekme || '', kanban: !!f.kanban, liste: !!f.liste, sira: f.sira, yetki: json.oku(f.yetki, {}), ayar: json.oku(f.ayar, {}),
   }));
-  const dur = durumlar.map((d) => ({ id: d.id, modulId: d.modul_id, ad: d.ad, renk: d.renk, sira: d.sira, kapat: !!d.kapat }));
+  const dur = durumlar.map((d) => ({ id: d.id, modulId: d.modul_id, ad: d.ad, renk: d.renk, sira: d.sira, kapat: !!d.kapat, gecis: d.gecis || '' }));
   const mod = moduller.map((m) => ({
-    id: m.id, ad: m.ad, renk: m.renk, ikon: m.ikon, onek: m.onek, tur: m.tur, acik: !!m.acik, sira: m.sira, sistem: json.oku(m.sistem, {}),
+    id: m.id, ad: m.ad, renk: m.renk, ikon: m.ikon, onek: m.onek, tur: m.tur, acik: !!m.acik, sira: m.sira, sistem: json.oku(m.sistem, {}), aktarimlar: json.oku(m.aktarimlar, []),
     durumlar: dur.filter((d) => d.modulId === m.id), fn: fnler.filter((f) => f.modulId === m.id),
   }));
   req._tanim = { moduller: mod, modul: (id) => mod.find((m) => m.id === id), durum: (id) => dur.find((d) => d.id === id) };

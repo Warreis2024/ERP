@@ -86,3 +86,7 @@ textarea.yaz{width:100%;min-height:110px;resize:vertical;border:1px solid var(--
 .bulut-ek b{font-size:20px;font-weight:400}.bulut-ek span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}.bulut-ek small{color:var(--soluk);font-size:11px}
 .bulut-rozet{position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.65);color:#fff;border-radius:6px;font-size:10px;padding:1px 5px}
 .bulut-ad{display:block;max-width:160px;padding:6px;overflow-wrap:anywhere}
+.efor-kutu{background:var(--kart);border:1px solid var(--cizgi);border-radius:12px;padding:10px 12px;margin-bottom:10px;display:grid;gap:8px}.efor-kutu>div:first-child{display:flex;flex-direction:column}.efor-kutu.calisiyor{border-left:4px solid var(--iyi)}.efor-kutu.molada{border-left:4px solid #c47f00}
+.aktif-is{border-left:4px solid var(--iyi);margin-bottom:10px}.aktif-is.mola{border-left-color:#c47f00}.aktif-is.eski{border-left-color:#c0392b;background:#fdecea}
+@media (prefers-color-scheme:dark){.aktif-is.eski{background:#3a1e1b}}
+.onay-oge .alt-dugmeler{margin-top:8px}

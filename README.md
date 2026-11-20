@@ -68,17 +68,54 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
 - [x] Mobil uygulama (PWA, `/m/`): QR ile şifresiz eşleme, bildirim, mesaj, hızlı not, sesli not, dikte, fotoğraf/video
 - [ ] Mobil: ayrı Android APK dosyası (şimdilik Chrome "Yükle" ile WebAPK); AI özellikleri
 
-## Yapılacaklar — düşünceler (analiz edilecek)
+## Kural katmanı, aktarım, efor, misafir, açık form, ticket (21.11.2026)
 
-Henüz karar verilmedi; üzerinde konuşulup kapsamı netleştirilecek.
+Kararlar ve tasarım: ERP projesi → `yapilacaklar.md`.
 
-- [ ] **Misafir / müşteri kullanıcı:** dışarıdan gelen, sınırlı erişimli kullanıcı. Giriş Gmail ya da Microsoft hesabıyla veya geçici şifreyle.
-- [ ] **Dış müşteri formları:** antet formu gibi, dışarıdaki müşterinin dolduracağı formlar oluşturma.
-- [ ] **Alan / fonksiyon kilidi:** bazı alan ve fonksiyonları kaydı açan ve yönetici dışında kimse değiştiremesin (yetki ayarı).
-- [ ] **Ticket:** gelen e-postadan AI ile ticket açılması ve takibi (ticket fonksiyonu).
-- [ ] **Üretim süreçleri:** basit iş emri ve efor (başladım, bitti, mola, izin); malzeme kullanımı, sarf, fire, saat takibi.
-- [ ] **İş emri aktarımı:** iş tamamlandıkça bir iş emrinden diğerine, kişiden kişiye transfer.
-- [ ] **Yetkiye bağlı durum değişimi:** örneğin kaydı müşteri açtıysa onu müşteri kapatır.
-- [ ] **Formdan forma iş akışı:** örneğin servis formu → teknik hizmet → fatura.
-- [ ] **Onay sistemi:** tutar, form, durum ya da yetki baremine göre kaydın ilgili yetkiliye onaya gitmesi.
-- [ ] **Performans ölçeği:** adam/saate göre performans.
+- [x] **Alan / fonksiyon kilidi.**
+  - Fonksiyon ayarında "Değiştirebilir" seçeneği var: yetki grubuna göre / kaydı açan + yönetim / yalnız yönetim / kaydedildikten sonra kilitli.
+  - Kural sunucuda uygulanır. Kilitli alan formda salt okunur görünür.
+- [x] **Yetkiye bağlı durum değişimi.**
+  - Durum ayarında "Bu duruma kim geçirebilir" seçeneği var: herkes / yalnız kaydı açan / açan + yönetim.
+  - Kural form kaydında ve kanbanda sürüklemede geçerlidir.
+- [x] **Fiyat onayı.**
+  - Kullanıcı kartında "Yöneticisi" ve TL / USD / EUR onay limitleri tanımlanır.
+  - "Fiyat Onayı" fonksiyonu tutar ve para birimi taşır. Limit aşılırsa onay, yönetici zincirinde limiti yeten ilk kişiye gider.
+  - Bu üç para birimi dışındakiler TCMB kuruyla TL'ye çevrilir. Yönetim limitsizdir.
+  - Onaylayan masaüstünde ya da telefonda onaylar veya reddeder; bildirim gider.
+  - Onay beklerken seçilen durumlara geçilemez. Hiçbiri seçilmezse "akışı kapatır" durumlarına geçilemez.
+  - Tutar değişirse onay yeniden hesaplanır.
+- [x] **Kayıttan kayda aktarım.**
+  - Modül ayarında "Aktarımlar" tanımlanır: hedef modül, tetikleyen durum, hedef durum, alan eşleme, atama.
+  - Kayıt tetikleyen duruma geçince hedef form, kaynaktaki bilgilerle dolu açılır. Eksik zorunlu alanlar kırmızı çerçeveyle işaretlenir.
+  - Kayıt yalnız kaydedilince açılır. Kayıttaki "… aktar" düğmesi de aynı işi yapar.
+  - Bir kayıttan her aktarımla tek kayıt açılır; kaynak kayıt açık kalır.
+  - Bağlı kayıtlar iki tarafta da görünür (`kayit_baglari` tablosu).
+- [x] **Efor (Zaman Takibi).**
+  - Fonksiyondur; kayıtta Başla / Mola / Devam / Bitir düğmeleri vardır. Satırlar anında yazılır.
+  - Kişi başına net çalışma ve mola toplamı görünür.
+  - Başka bir işte "Başla" denince önceki iş durdurulur.
+  - Üst çubukta açık sayaç görünür. Dünden kalan ya da 10 saati geçen sayaç kırmızı uyarı verir.
+  - Telefonda da düğmeler ve "şu an çalıştığın iş" bandı vardır.
+- [x] **Misafir kullanıcı.**
+  - Kullanıcı türü "Misafir" olabilir. Normal kullanıcı gibi şifreyle girer; yetkileri yetki grubundan gelir.
+  - Tarih, gün ve saat (İstanbul saati) dışında yeni giriş yapamaz; açık oturumu kapanmaz.
+  - Kartında Firma ve görünürlük seçimi vardır:
+    - yalnız kendi kayıtları (açtığı ya da kişi alanında adı geçen),
+    - ya da firmasının kayıtları da.
+  - Kapsam dışındaki kayıtlar sunucuda süzülür.
+- [x] **Açık form bağlantısı.**
+  - Modül ayarında şablon ([[Alan]]), proje ve durum seçilir; kalıcı bir bağlantı ve QR üretilir (`/onay.html#f=…`).
+  - Formu doldurmak modülde yeni kayıt açar. Cevaplar aynı adlı fonksiyonlara yazılır. Doldurulmuş belge, modülde Şablon fonksiyonu varsa saklanır.
+  - Dolduran kişiye takip bağlantısı verilir (`#t=…`); e-posta yazdıysa bağlantı ona e-postayla da gider.
+  - Kötüye kullanıma karşı:
+    - hız sınırı,
+    - tuzak alanı,
+    - en az 3 saniyelik doldurma süresi.
+- [x] **Ticket fonksiyonu.**
+  - Modüle bağlı IMAP kutusu kontrol edilir; okunmamış her e-posta yeni kayıt açar.
+  - Konuda kayıt kodu olan yanıtlar o kayda mesaj olarak eklenir.
+  - Gönderen, rehberdeki e-postasıyla firmaya bağlanır.
+  - Kutu, modül açılınca en çok 2 dakikada bir kontrol edilir; "E-posta" düğmesiyle hemen de kontrol edilebilir. AI ile sınıflandırma sonra eklenecek.
+- [ ] **Performans ölçeği (adam/saat).** Efor verisi birikince panolara eklenecek; ölçüt henüz seçilmedi.
+- [ ] Muhasebe programına fatura aktarımı; yönetici izindeyken onay vekili.

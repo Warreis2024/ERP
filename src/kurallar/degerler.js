@@ -1,7 +1,7 @@
 // Fonksiyon değerleri: boşluk kontrolü, özet metni, API ↔ veritabanı dönüşümü.
 // Şablondaki (sablon.html) degerBos / ozet / sayiOku kurallarının sunucu karşılığı. Bağımlılığı yoktur.
 
-export const COKLU = new Set(['ekip', 'karar', 'dokuman', 'mali', 'mesaj', 'baglanti', 'etiket', 'sure', 'stok', 'kontrol']);
+export const COKLU = new Set(['ekip', 'karar', 'dokuman', 'mali', 'mesaj', 'baglanti', 'etiket', 'sure', 'stok', 'kontrol', 'efor', 'ticket']);
 
 // HTML'den düz metin (sunucuda DOM yok; etiketleri ve varlıkları basitçe ayıklar).
 export function duz(s) {
@@ -43,7 +43,7 @@ export function degerBos(tip, r) {
     case 'firma': return !d(r.firma);
     case 'yer': { const u = d(r.ulke); return ![r.yer, r.il, r.ilce].some((x) => d(x)) && (!u || u === 'Türkiye'); }
     case 'sayi': case 'yuzde': return !sayiMi(r.adet);
-    case 'fiyat': return !sayiMi(r.tutar);
+    case 'fiyat': case 'fiyatonay': return !sayiMi(r.tutar);
     case 'tur': return !r.tur;
     case 'evet': return r.metin !== 'Evet';
     case 'sure': return !sayiMi(r.adet) && !d(r.metin);
@@ -57,6 +57,8 @@ export function degerBos(tip, r) {
     case 'ekip': return !r.kisi && !d(r.metin);
     case 'karar': case 'mesaj': case 'etiket': return !d(r.metin);
     case 'gecmis': return true;
+    case 'efor': return !r.zaman || !r.tur;
+    case 'ticket': return !d(r.metin);
     case 'rich': case 'zengin': return !duz(r.metin);
     default: return !d(r.metin);
   }
@@ -81,6 +83,7 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
     case 'sayi': return String(r.adet ?? '');
     case 'yuzde': return sayiMi(r.adet) ? '%' + r.adet : '';
     case 'fiyat': return [r.tutar, r.para].filter((x) => String(x ?? '').trim()).join(' ');
+    case 'fiyatonay': return f([r.tutar, r.para].filter((x) => String(x ?? '').trim()).join(' '), { bekliyor: 'Onay bekliyor', onaylandi: 'Onaylandı', reddedildi: 'Reddedildi' }[r.onay] || '');
     case 'evet': return r.metin === 'Evet' ? 'Evet' : 'Hayır';
     case 'sure': return f(sayiMi(r.adet) ? r.adet + ' sa' : '', ad.kisi(r.kisi), m);
     case 'imza': return r.url ? 'İmzalı' + (r.kisi ? ' · ' + r.kisi : '') : '';
@@ -92,6 +95,8 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
     case 'karar': return (r.tur === 'tamam' ? '✓ ' : '') + m;
     case 'kontrol': return ({ uygun: '✓ ', sorun: '✗ ', yok: '– ' }[r.tur] || '○ ') + m + (r.not ? ' (' + r.not + ')' : '');
     case 'mesaj': return m + ((r.ekler || []).length ? ' 📷' : '');
+    case 'ticket': return f(r.tur === 'yanit' ? 'Yanıt' : 'E-posta', r.kisi);
+    case 'efor': return f(ad.kisi(r.kisi), { calisma: 'Çalışma', mola: 'Mola', durdu: 'Durdu', bitti: 'Bitti' }[r.tur] || r.tur, sayiMi(r.adet) && Number(sayiOku(r.adet)) > 0 ? Math.round(sayiOku(r.adet)) + ' dk' : '');
   }
   return m || r.tur || trh(r.tarih) || r.firma || '';
 }
@@ -99,7 +104,7 @@ export function ozet(r, ad = { kisi: (x) => x || '', depo: (x) => x || '' }) {
 // ---- API (şablonla aynı alan adları) ↔ veritabanı sütunları ----
 const DUZ = ['metin', 'kisi', 'tur', 'firma', 'hareket', 'odeme', 'para', 'url', 'dosya', 'depo', 'hedef', 'malzeme', 'birim',
   'rev', 'onem', 'onay', 'yukleyen', 'renk', 'yer', 'il', 'ilce', 'ulke'];
-const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici', 'belge', 'dosyaId', 'klasor']; // bas/bit: Saat Aralığı (SS:DD), belge: Mali Hareket belge no, dosyaId/klasor: bulut depodaki dosya
+const EK = ['okuyan', 'ekler', 'slot', 'tip', 'kisiId', 'bas', 'bit', 'alici', 'belge', 'dosyaId', 'klasor', 'talep', 'onaylayan', 'onayZaman', 'olay']; // bas/bit: Saat Aralığı (SS:DD), belge: Mali Hareket belge no, dosyaId/klasor: bulut depodaki dosya
 const TARIH = (v) => (v && /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0, 10) : null);
 const ZAMAN = (v) => { if (!v) return null; const d = new Date(String(v).replace(' ', 'T')); return Number.isNaN(d.getTime()) ? null : d; };
 const KES = (v, n) => (v === undefined || v === null ? null : String(v).slice(0, n));

@@ -5,6 +5,7 @@ import { sifreOzetle, sifreDogrula, sifreKuraliHatasi } from '../auth/sifre.js';
 import { belirtecUret, csrfUret, oturumCerezleriYaz, oturumCerezleriSil, oturumSuresiSn } from '../auth/oturum.js';
 import { girisGerekli } from '../auth/middleware.js';
 import { kullaniciDis } from '../veri.js';
+import { misafirGirisEngeli } from '../kurallar/misafir.js';
 import { json } from '../db.js';
 
 const r = Router();
@@ -41,6 +42,11 @@ r.post('/giris', async (req, res) => {
     }
     await db('giris_kayitlari').insert({ kullanici_id: u?.id || null, eposta, basarili: false, ip, tarayici, zaman: new Date() });
     throw new HttpHata(401, u && dogru && !u.aktif ? 'Bu kullanıcı pasif. Yöneticine başvur.' : 'E-posta ya da şifre hatalı.');
+  }
+  const misafirEngel = misafirGirisEngeli(u);
+  if (misafirEngel) {
+    await db('giris_kayitlari').insert({ kullanici_id: u.id, eposta, basarili: false, ip, tarayici, zaman: new Date() });
+    throw new HttpHata(403, misafirEngel);
   }
   await db('kullanicilar').where({ id: u.id }).update({ hatali: 0, kilit: null, son_giris: new Date() });
   await db('giris_kayitlari').insert({ kullanici_id: u.id, eposta, basarili: true, ip, tarayici, zaman: new Date() });

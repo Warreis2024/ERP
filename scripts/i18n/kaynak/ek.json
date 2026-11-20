@@ -838,5 +838,810 @@
   "Upload not completed",
   "Upload nicht abgeschlossen",
   "La subida no se completó"
+ ],
+ "Fiyat Onayı": [
+  "Price Approval",
+  "Preisfreigabe",
+  "Aprobación de precio"
+ ],
+ "Zaman Takibi (Efor)": [
+  "Time Tracking (Effort)",
+  "Zeiterfassung (Aufwand)",
+  "Control de tiempo (esfuerzo)"
+ ],
+ "Ticket (e-posta)": [
+  "Ticket (e-mail)",
+  "Ticket (E-Mail)",
+  "Ticket (correo)"
+ ],
+ "Bu alanı yalnız yönetim değiştirebilir": [
+  "Only management can change this field",
+  "Nur die Leitung kann dieses Feld ändern",
+  "Solo la dirección puede cambiar este campo"
+ ],
+ "Bu alanı yalnız kaydı açan ve yönetim değiştirebilir": [
+  "Only the record creator and management can change this field",
+  "Nur der Ersteller und die Leitung können dieses Feld ändern",
+  "Solo quien creó el registro y la dirección pueden cambiar este campo"
+ ],
+ "Bu alan kaydedildikten sonra kilitlenir": [
+  "This field is locked after saving",
+  "Dieses Feld wird nach dem Speichern gesperrt",
+  "Este campo se bloquea después de guardar"
+ ],
+ "Yanıt": [
+  "Reply",
+  "Antwort",
+  "Respuesta"
+ ],
+ "Yanıt geldi": [
+  "Reply received",
+  "Antwort eingegangen",
+  "Respuesta recibida"
+ ],
+ "E-postadan açıldı": [
+  "Opened from e-mail",
+  "Aus E-Mail erstellt",
+  "Abierto desde correo"
+ ],
+ "Bu kayıt e-postadan açılmadı.": [
+  "This record was not opened from an e-mail.",
+  "Dieser Datensatz wurde nicht aus einer E-Mail erstellt.",
+  "Este registro no se abrió desde un correo."
+ ],
+ "Ticket ayarı": [
+  "Ticket settings",
+  "Ticket-Einstellungen",
+  "Ajustes de ticket"
+ ],
+ "Kayıtların açılacağı proje": [
+  "Project for new records",
+  "Projekt für neue Datensätze",
+  "Proyecto para los nuevos registros"
+ ],
+ "Konu yazılacak alan": [
+  "Field for the subject",
+  "Feld für den Betreff",
+  "Campo para el asunto"
+ ],
+ "İlk kısa metin": [
+  "First short text",
+  "Erster Kurztext",
+  "Primer texto corto"
+ ],
+ "E-posta metni yazılacak alan": [
+  "Field for the e-mail text",
+  "Feld für den E-Mail-Text",
+  "Campo para el texto del correo"
+ ],
+ "İlk açıklama": [
+  "First description",
+  "Erste Beschreibung",
+  "Primera descripción"
+ ],
+ "Okunmamış her e-posta bu modülde yeni kayıt açar. Konuda kayıt kodu varsa ([{0}-1001] gibi) e-posta o kayda mesaj olarak eklenir. Gönderen rehberdeki e-postasıyla firmaya bağlanır. Kutu, modül açıldığında en çok 2 dakikada bir kontrol edilir.": [
+  "Every unread e-mail opens a new record in this module. If the subject contains a record code (like [{0}-1001]), the e-mail is added to that record as a message. The sender is linked to a company by their e-mail in the directory. The mailbox is checked when the module is opened, at most every 2 minutes.",
+  "Jede ungelesene E-Mail erstellt in diesem Modul einen neuen Datensatz. Enthält der Betreff einen Datensatzcode (z. B. [{0}-1001]), wird die E-Mail diesem Datensatz als Nachricht hinzugefügt. Der Absender wird über seine E-Mail im Adressbuch einer Firma zugeordnet. Das Postfach wird beim Öffnen des Moduls geprüft, höchstens alle 2 Minuten.",
+  "Cada correo no leído abre un nuevo registro en este módulo. Si el asunto contiene un código de registro (como [{0}-1001]), el correo se añade a ese registro como mensaje. El remitente se vincula a una empresa por su correo en la agenda. El buzón se revisa al abrir el módulo, como mucho cada 2 minutos."
+ ],
+ "E-posta kutusu sunucu modunda bağlanır.": [
+  "The mailbox is connected in server mode.",
+  "Das Postfach wird im Servermodus verbunden.",
+  "El buzón se conecta en modo servidor."
+ ],
+ "Son kontrol: {0}": [
+  "Last check: {0}",
+  "Letzte Prüfung: {0}",
+  "Última revisión: {0}"
+ ],
+ "{0} yeni, {1} yanıt": [
+  "{0} new, {1} replies",
+  "{0} neu, {1} Antworten",
+  "{0} nuevos, {1} respuestas"
+ ],
+ "E-posta kutusu (IMAP)": [
+  "Mailbox (IMAP)",
+  "Postfach (IMAP)",
+  "Buzón (IMAP)"
+ ],
+ "IMAP sunucusu": [
+  "IMAP server",
+  "IMAP-Server",
+  "Servidor IMAP"
+ ],
+ "Kullanıcı (e-posta)": [
+  "User (e-mail)",
+  "Benutzer (E-Mail)",
+  "Usuario (correo)"
+ ],
+ "Şifre / uygulama şifresi": [
+  "Password / app password",
+  "Passwort / App-Passwort",
+  "Contraseña / contraseña de aplicación"
+ ],
+ "Kayıtlı · değiştirmek için yaz": [
+  "Saved · type to change",
+  "Gespeichert · zum Ändern eingeben",
+  "Guardada · escribe para cambiarla"
+ ],
+ "Klasör": [
+  "Folder",
+  "Ordner",
+  "Carpeta"
+ ],
+ "Şimdi kontrol et": [
+  "Check now",
+  "Jetzt prüfen",
+  "Revisar ahora"
+ ],
+ "Gmail ve Outlook için hesabın IMAP erişimi açık olmalı ve normal şifre yerine \"uygulama şifresi\" kullanılmalı. Şifre şifreli kasada tutulur, ekrana geri gelmez.": [
+  "For Gmail and Outlook, IMAP access must be enabled on the account and an \"app password\" must be used instead of the normal password. The password is kept in the encrypted vault and is never shown again.",
+  "Für Gmail und Outlook muss der IMAP-Zugriff im Konto aktiviert sein und statt des normalen Passworts ein „App-Passwort“ verwendet werden. Das Passwort wird im verschlüsselten Tresor gespeichert und nie wieder angezeigt.",
+  "En Gmail y Outlook el acceso IMAP debe estar activado en la cuenta y hay que usar una \"contraseña de aplicación\" en lugar de la normal. La contraseña se guarda cifrada y no vuelve a mostrarse."
+ ],
+ "Kutu az önce kontrol edildi": [
+  "The mailbox was checked just now",
+  "Das Postfach wurde gerade geprüft",
+  "El buzón se acaba de revisar"
+ ],
+ "{0} yeni ticket, {1} e-posta yanıtı: {2}": [
+  "{0} new tickets, {1} e-mail replies: {2}",
+  "{0} neue Tickets, {1} E-Mail-Antworten: {2}",
+  "{0} tickets nuevos, {1} respuestas por correo: {2}"
+ ],
+ "Yeni e-posta yok": [
+  "No new e-mail",
+  "Keine neuen E-Mails",
+  "No hay correos nuevos"
+ ],
+ "Misafir (dışarıdan, süreli)": [
+  "Guest (external, time-limited)",
+  "Gast (extern, befristet)",
+  "Invitado (externo, temporal)"
+ ],
+ "Pzt": [
+  "Mon",
+  "Mo",
+  "Lun"
+ ],
+ "Sal": [
+  "Tue",
+  "Di",
+  "Mar"
+ ],
+ "Çar": [
+  "Wed",
+  "Mi",
+  "Mié"
+ ],
+ "Per": [
+  "Thu",
+  "Do",
+  "Jue"
+ ],
+ "Cum": [
+  "Fri",
+  "Fr",
+  "Vie"
+ ],
+ "Cmt": [
+  "Sat",
+  "Sa",
+  "Sáb"
+ ],
+ "Paz": [
+  "Sun",
+  "So",
+  "Dom"
+ ],
+ "Misafir erişimi": [
+  "Guest access",
+  "Gastzugang",
+  "Acceso de invitado"
+ ],
+ "Rehberdeki firma": [
+  "Company in the directory",
+  "Firma im Adressbuch",
+  "Empresa de la agenda"
+ ],
+ "Görebileceği kayıtlar": [
+  "Records they can see",
+  "Sichtbare Datensätze",
+  "Registros que puede ver"
+ ],
+ "Yalnız kendi kayıtları (açtığı ya da kişi alanında adı geçen)": [
+  "Only their own records (created by them or naming them in a person field)",
+  "Nur eigene Datensätze (selbst erstellt oder in einem Personenfeld genannt)",
+  "Solo sus propios registros (creados por él o donde figura en un campo de persona)"
+ ],
+ "Firmasının kayıtları da (Firma alanı eşleşen kayıt ve projeler)": [
+  "Their company's records too (records and projects whose Company field matches)",
+  "Auch Datensätze der eigenen Firma (Datensätze und Projekte mit passendem Firmenfeld)",
+  "También los de su empresa (registros y proyectos cuyo campo Empresa coincide)"
+ ],
+ "Başlangıç tarihi": [
+  "Start date",
+  "Startdatum",
+  "Fecha de inicio"
+ ],
+ "Bitiş tarihi": [
+  "End date",
+  "Enddatum",
+  "Fecha de fin"
+ ],
+ "Giriş saati: başlangıç": [
+  "Login hours: from",
+  "Anmeldezeit: von",
+  "Horario de acceso: desde"
+ ],
+ "Giriş saati: bitiş": [
+  "Login hours: to",
+  "Anmeldezeit: bis",
+  "Horario de acceso: hasta"
+ ],
+ "Misafir normal kullanıcı gibi e-posta ve şifreyle girer; yetkileri yetki grubundan gelir. Tarih, gün ve saat dışında yeni giriş yapamaz (açık oturumu kapanmaz). Saatler İstanbul saatidir. Boş bırakılan sınır uygulanmaz. Misafir kullanıcı sayısına girer.": [
+  "A guest logs in with e-mail and password like a normal user; permissions come from the permission group. Outside the dates, days and hours they cannot log in again (an open session is not closed). Times are Istanbul time. Limits left empty are not applied. Guests count towards the number of users.",
+  "Ein Gast meldet sich wie ein normaler Benutzer mit E-Mail und Passwort an; die Rechte kommen aus der Berechtigungsgruppe. Außerhalb von Datum, Tagen und Uhrzeiten ist keine neue Anmeldung möglich (eine offene Sitzung wird nicht beendet). Zeiten in Istanbuler Zeit. Leere Grenzen gelten nicht. Gäste zählen zur Benutzeranzahl.",
+  "El invitado entra con correo y contraseña como un usuario normal; los permisos vienen del grupo. Fuera de las fechas, días y horas no puede volver a entrar (la sesión abierta no se cierra). Horas de Estambul. Los límites vacíos no se aplican. Los invitados cuentan como usuarios."
+ ],
+ "Açık form bağlantısı": [
+  "Open form link",
+  "Offener Formularlink",
+  "Enlace de formulario abierto"
+ ],
+ "Kayıt açmadan, kalıcı bir bağlantı ya da QR ile dışarıdan doldurulan form. Gönderilen her form bu modülde yeni kayıt açar. Formun alanları şablondaki [[Alan]] işaretleridir; aynı adlı fonksiyona kendiliğinden yazılır. Dolduran kişiye takip bağlantısı verilir.": [
+  "A form filled in from outside through a permanent link or QR code, without opening a record first. Each submitted form opens a new record in this module. The form fields are the [[Field]] marks in the template; they are written to the function with the same name. The person who fills it in gets a tracking link.",
+  "Ein von außen über einen dauerhaften Link oder QR-Code ausgefülltes Formular, ohne vorher einen Datensatz anzulegen. Jedes gesendete Formular erstellt in diesem Modul einen neuen Datensatz. Die Formularfelder sind die [[Feld]]-Markierungen der Vorlage; sie werden in die gleichnamige Funktion geschrieben. Die ausfüllende Person erhält einen Verfolgungslink.",
+  "Formulario que se rellena desde fuera con un enlace o QR permanente, sin abrir antes un registro. Cada formulario enviado abre un nuevo registro en este módulo. Los campos son las marcas [[Campo]] de la plantilla; se escriben en la función del mismo nombre. Quien lo rellena recibe un enlace de seguimiento."
+ ],
+ "Sunucu modunda çalışır.": [
+  "Works in server mode.",
+  "Funktioniert im Servermodus.",
+  "Funciona en modo servidor."
+ ],
+ "Otomatik: {0}": [
+  "Automatic: {0}",
+  "Automatisch: {0}",
+  "Automático: {0}"
+ ],
+ "Yazılmaz (yalnız belgede kalır)": [
+  "Not written (stays only in the document)",
+  "Wird nicht geschrieben (bleibt nur im Dokument)",
+  "No se escribe (queda solo en el documento)"
+ ],
+ "Yazılmaz": [
+  "Not written",
+  "Wird nicht geschrieben",
+  "No se escribe"
+ ],
+ "{0} form geldi": [
+  "{0} forms received",
+  "{0} Formulare eingegangen",
+  "{0} formularios recibidos"
+ ],
+ "Açılacak kaydın durumu": [
+  "Status of the new record",
+  "Status des neuen Datensatzes",
+  "Estado del nuevo registro"
+ ],
+ "Alan eşleme": [
+  "Field mapping",
+  "Feldzuordnung",
+  "Correspondencia de campos"
+ ],
+ "Yeni bağlantı (eskisi geçersiz)": [
+  "New link (old one stops working)",
+  "Neuer Link (alter ungültig)",
+  "Nuevo enlace (el anterior deja de funcionar)"
+ ],
+ "Yeni açık form": [
+  "New open form",
+  "Neues offenes Formular",
+  "Nuevo formulario abierto"
+ ],
+ "Servis talebi": [
+  "Service request",
+  "Serviceanfrage",
+  "Solicitud de servicio"
+ ],
+ "Bağlantı oluştur": [
+  "Create link",
+  "Link erstellen",
+  "Crear enlace"
+ ],
+ "Önce Ayarlar → Şablonlar'da dışarıdan doldurulacak alanları [[Alan]] ile işaretlenmiş bir şablon oluştur.": [
+  "First create a template in Settings → Templates with the fields to be filled from outside marked as [[Field]].",
+  "Erstelle zuerst unter Einstellungen → Vorlagen eine Vorlage, in der die von außen auszufüllenden Felder als [[Feld]] markiert sind.",
+  "Primero crea en Ajustes → Plantillas una plantilla con los campos que se rellenarán desde fuera marcados como [[Campo]]."
+ ],
+ "\"{0}\" durumu bir aktarımı başlatıyor: {1} formu bu kayıttaki bilgilerle açıldı": [
+  "The \"{0}\" status starts a transfer: the {1} form was opened with this record's data",
+  "Der Status „{0}“ startet eine Übertragung: Das Formular {1} wurde mit den Daten dieses Datensatzes geöffnet",
+  "El estado \"{0}\" inicia una transferencia: se abrió el formulario {1} con los datos de este registro"
+ ],
+ "Aktarımın hedef modülü bulunamadı": [
+  "The target module of the transfer was not found",
+  "Das Zielmodul der Übertragung wurde nicht gefunden",
+  "No se encontró el módulo de destino de la transferencia"
+ ],
+ "{0} modülünde yazma yetkin yok": [
+  "You have no write permission in the {0} module",
+  "Du hast keine Schreibrechte im Modul {0}",
+  "No tienes permiso de escritura en el módulo {0}"
+ ],
+ "Bu kayıt bu aktarımla zaten aktarıldı": [
+  "This record was already transferred with this transfer",
+  "Dieser Datensatz wurde mit dieser Übertragung bereits übertragen",
+  "Este registro ya se transfirió con esta transferencia"
+ ],
+ "{0} kaydından aktarılıyor": [
+  "Transferring from record {0}",
+  "Übertragung aus Datensatz {0}",
+  "Transfiriendo desde el registro {0}"
+ ],
+ "Kırmızı çerçeveli {0} zorunlu alan kaynakta yok; doldurup kaydet. Kaydetmeden kayıt açılmaz.": [
+  "{0} required fields framed in red are not in the source; fill them in and save. The record is not created until you save.",
+  "{0} rot umrandete Pflichtfelder fehlen in der Quelle; ausfüllen und speichern. Ohne Speichern wird kein Datensatz angelegt.",
+  "{0} campos obligatorios en rojo no están en el origen; rellénalos y guarda. El registro no se crea hasta guardar."
+ ],
+ "Bilgileri kontrol edip kaydet. Kaydetmeden kayıt açılmaz.": [
+  "Check the data and save. The record is not created until you save.",
+  "Daten prüfen und speichern. Ohne Speichern wird kein Datensatz angelegt.",
+  "Revisa los datos y guarda. El registro no se crea hasta guardar."
+ ],
+ "{0} kaydına aktar": [
+  "Transfer to {0}",
+  "Nach {0} übertragen",
+  "Transferir a {0}"
+ ],
+ "Bağlı kayıtlar": [
+  "Linked records",
+  "Verknüpfte Datensätze",
+  "Registros vinculados"
+ ],
+ "Otomatik (aynı ad)": [
+  "Automatic (same name)",
+  "Automatisch (gleicher Name)",
+  "Automático (mismo nombre)"
+ ],
+ "Taşıma": [
+  "Don't transfer",
+  "Nicht übertragen",
+  "No transferir"
+ ],
+ "Hedef modül": [
+  "Target module",
+  "Zielmodul",
+  "Módulo de destino"
+ ],
+ "Tetikleyen durum": [
+  "Triggering status",
+  "Auslösender Status",
+  "Estado que la inicia"
+ ],
+ "Yok (yalnız düğmeyle)": [
+  "None (button only)",
+  "Keiner (nur per Schaltfläche)",
+  "Ninguno (solo con botón)"
+ ],
+ "Hedef kaydın durumu": [
+  "Status of the target record",
+  "Status des Zieldatensatzes",
+  "Estado del registro de destino"
+ ],
+ "Kime atansın": [
+  "Assign to",
+  "Zuweisen an",
+  "Asignar a"
+ ],
+ "Aktaran kişi": [
+  "The person transferring",
+  "Übertragende Person",
+  "Quien transfiere"
+ ],
+ "Atama yok": [
+  "No assignment",
+  "Keine Zuweisung",
+  "Sin asignación"
+ ],
+ "Atanacak kişi alanı": [
+  "Person field to assign",
+  "Zuzuweisendes Personenfeld",
+  "Campo de persona a asignar"
+ ],
+ "Çok satırlı fonksiyonları da taşı (malzeme, efor, görevler…)": [
+  "Also transfer multi-row functions (materials, effort, tasks…)",
+  "Auch mehrzeilige Funktionen übertragen (Material, Aufwand, Aufgaben…)",
+  "Transferir también funciones de varias filas (materiales, esfuerzo, tareas…)"
+ ],
+ "Aktarımı sil": [
+  "Delete transfer",
+  "Übertragung löschen",
+  "Eliminar transferencia"
+ ],
+ "Aktarımlar": [
+  "Transfers",
+  "Übertragungen",
+  "Transferencias"
+ ],
+ "Kayıt seçilen duruma geçince hedef modülde, bu kayıttaki bilgilerle dolu yeni bir form açılır. Kullanıcı eksik zorunlu alanları doldurup kaydeder; kaydetmezse kayıt açılmaz. Bir kayıttan her aktarımla tek kayıt açılır, kaynak kayıt açık kalır.": [
+  "When the record moves to the selected status, a new form is opened in the target module, filled with this record's data. The user fills in the missing required fields and saves; without saving no record is created. Each transfer opens a single record from a record, and the source record stays open.",
+  "Wechselt der Datensatz in den gewählten Status, öffnet sich im Zielmodul ein neues Formular mit den Daten dieses Datensatzes. Der Benutzer ergänzt fehlende Pflichtfelder und speichert; ohne Speichern entsteht kein Datensatz. Jede Übertragung erstellt aus einem Datensatz genau einen Datensatz; der Quelldatensatz bleibt offen.",
+  "Cuando el registro pasa al estado elegido, se abre en el módulo de destino un formulario nuevo con los datos de este registro. El usuario completa los campos obligatorios y guarda; sin guardar no se crea el registro. Cada transferencia abre un solo registro y el de origen sigue abierto."
+ ],
+ "Aktarım ekle": [
+  "Add transfer",
+  "Übertragung hinzufügen",
+  "Añadir transferencia"
+ ],
+ "Çalışma": [
+  "Work",
+  "Arbeit",
+  "Trabajo"
+ ],
+ "Mola": [
+  "Break",
+  "Pause",
+  "Pausa"
+ ],
+ "Durdu (başka işe geçti)": [
+  "Paused (switched to another job)",
+  "Angehalten (zu anderer Aufgabe gewechselt)",
+  "Detenido (pasó a otro trabajo)"
+ ],
+ "Bitti": [
+  "Finished",
+  "Beendet",
+  "Terminado"
+ ],
+ "{0} sa {1} dk": [
+  "{0} h {1} min",
+  "{0} Std. {1} Min.",
+  "{0} h {1} min"
+ ],
+ "Başlamadın": [
+  "Not started",
+  "Nicht begonnen",
+  "No has empezado"
+ ],
+ "Çalışıyorsun": [
+  "Working",
+  "Du arbeitest",
+  "Trabajando"
+ ],
+ "Moladasın": [
+  "On break",
+  "In Pause",
+  "En pausa"
+ ],
+ "Durduruldu": [
+  "Paused",
+  "Angehalten",
+  "Detenido"
+ ],
+ "Bitirdin": [
+  "Finished",
+  "Beendet",
+  "Terminado"
+ ],
+ "Kaydı kaydettikten sonra sayaç başlatılabilir.": [
+  "The timer can be started after the record is saved.",
+  "Der Zähler kann nach dem Speichern gestartet werden.",
+  "El contador se puede iniciar después de guardar el registro."
+ ],
+ "Bitir": [
+  "Finish",
+  "Beenden",
+  "Terminar"
+ ],
+ "Devam": [
+  "Resume",
+  "Fortsetzen",
+  "Continuar"
+ ],
+ "Başla": [
+  "Start",
+  "Starten",
+  "Empezar"
+ ],
+ "Net çalışma": [
+  "Net work",
+  "Netto-Arbeit",
+  "Trabajo neto"
+ ],
+ "Hareketler ({0})": [
+  "Entries ({0})",
+  "Einträge ({0})",
+  "Movimientos ({0})"
+ ],
+ "sürüyor": [
+  "running",
+  "läuft",
+  "en curso"
+ ],
+ "Mola için önce işe başlanmalı": [
+  "Start the job before taking a break",
+  "Vor einer Pause muss die Arbeit begonnen werden",
+  "Hay que empezar el trabajo antes de una pausa"
+ ],
+ "Bitirilecek açık iş yok": [
+  "There is no open job to finish",
+  "Keine offene Aufgabe zum Beenden",
+  "No hay trabajo abierto que terminar"
+ ],
+ "Sayaç hâlâ açık. Bitirmeyi unuttun mu?": [
+  "The timer is still running. Did you forget to finish?",
+  "Der Zähler läuft noch. Beenden vergessen?",
+  "El contador sigue abierto. ¿Olvidaste terminar?"
+ ],
+ "Onay gerekmez": [
+  "No approval needed",
+  "Keine Freigabe nötig",
+  "No requiere aprobación"
+ ],
+ "Reddedildi": [
+  "Rejected",
+  "Abgelehnt",
+  "Rechazado"
+ ],
+ "Kaydedince limitine göre onay gerekip gerekmediği hesaplanır.": [
+  "On saving, your limit decides whether approval is needed.",
+  "Beim Speichern entscheidet dein Limit, ob eine Freigabe nötig ist.",
+  "Al guardar, tu límite decide si hace falta aprobación."
+ ],
+ "Onaylayacak: {0}": [
+  "Approver: {0}",
+  "Freigabe durch: {0}",
+  "Aprobará: {0}"
+ ],
+ "Tutar değişti; kaydedince onay yeniden hesaplanır.": [
+  "The amount changed; approval is recalculated on saving.",
+  "Der Betrag hat sich geändert; die Freigabe wird beim Speichern neu berechnet.",
+  "El importe cambió; la aprobación se recalcula al guardar."
+ ],
+ "\"{0}\" durumuna yalnız kaydı açan geçirebilir": [
+  "Only the record creator can move it to \"{0}\"",
+  "Nur der Ersteller kann in „{0}“ verschieben",
+  "Solo quien creó el registro puede pasarlo a \"{0}\""
+ ],
+ "\"{0}\" durumuna yalnız kaydı açan ya da yönetim geçirebilir": [
+  "Only the record creator or management can move it to \"{0}\"",
+  "Nur der Ersteller oder die Leitung kann in „{0}“ verschieben",
+  "Solo quien creó el registro o la dirección pueden pasarlo a \"{0}\""
+ ],
+ "Gelen e-postaları kontrol et": [
+  "Check incoming e-mails",
+  "Eingehende E-Mails prüfen",
+  "Revisar correos entrantes"
+ ],
+ "Fiyat onayı": [
+  "Price approval",
+  "Preisfreigabe",
+  "Aprobación de precio"
+ ],
+ "Yöneticisi": [
+  "Manager",
+  "Vorgesetzte(r)",
+  "Responsable"
+ ],
+ "Onay limiti": [
+  "Approval limit",
+  "Freigabelimit",
+  "Límite de aprobación"
+ ],
+ "Yönetim rolündeki kullanıcı limitsizdir.": [
+  "Users with the management role have no limit.",
+  "Benutzer mit Leitungsrolle haben kein Limit.",
+  "Los usuarios con rol de dirección no tienen límite."
+ ],
+ "Kaydettiği fiyat bu limiti aşarsa onay yöneticisine gider. Boş limit 0 sayılır.": [
+  "If a price they save exceeds this limit, approval goes to their manager. An empty limit counts as 0.",
+  "Überschreitet ein gespeicherter Preis dieses Limit, geht die Freigabe an die/den Vorgesetzte(n). Ein leeres Limit gilt als 0.",
+  "Si un precio que guarda supera este límite, la aprobación va a su responsable. Un límite vacío cuenta como 0."
+ ],
+ "Bu duruma kim geçirebilir": [
+  "Who can move to this status",
+  "Wer darf in diesen Status verschieben",
+  "Quién puede pasar a este estado"
+ ],
+ "Yazma yetkisi olan herkes": [
+  "Anyone with write permission",
+  "Alle mit Schreibrecht",
+  "Cualquiera con permiso de escritura"
+ ],
+ "Yalnız kaydı açan": [
+  "Only the record creator",
+  "Nur der Ersteller",
+  "Solo quien creó el registro"
+ ],
+ "Kaydı açan ve yönetim": [
+  "Record creator and management",
+  "Ersteller und Leitung",
+  "Quien creó el registro y la dirección"
+ ],
+ "Onay beklerken geçilemeyen durumlar": [
+  "Statuses blocked while approval is pending",
+  "Status, die während ausstehender Freigabe gesperrt sind",
+  "Estados bloqueados mientras se espera la aprobación"
+ ],
+ "Hiçbiri seçilmezse \"akışı kapatır\" durumları engellenir. Tutar, kaydedenin limitini (kullanıcı kartında TL / USD / EUR) aşarsa onay yöneticisine gider; onun limiti de yetmezse bir üste çıkar. Yönetim limitsizdir.": [
+  "If none is selected, \"closes the flow\" statuses are blocked. If the amount exceeds the saver's limit (TL / USD / EUR on the user card), approval goes to their manager; if that limit is not enough either, it goes one level up. Management has no limit.",
+  "Ist nichts gewählt, werden „schließt den Ablauf“-Status gesperrt. Übersteigt der Betrag das Limit des Speichernden (TL / USD / EUR auf der Benutzerkarte), geht die Freigabe an die/den Vorgesetzte(n); reicht auch deren Limit nicht, eine Ebene höher. Die Leitung hat kein Limit.",
+  "Si no se elige ninguno, se bloquean los estados que \"cierran el flujo\". Si el importe supera el límite de quien guarda (TL / USD / EUR en la ficha de usuario), la aprobación va a su responsable; si tampoco basta, sube un nivel. La dirección no tiene límite."
+ ],
+ "Değiştirebilir": [
+  "Can be changed by",
+  "Änderbar durch",
+  "Pueden cambiarlo"
+ ],
+ "Yetki grubuna göre": [
+  "By permission group",
+  "Nach Berechtigungsgruppe",
+  "Según el grupo de permisos"
+ ],
+ "Yalnız yönetim": [
+  "Management only",
+  "Nur Leitung",
+  "Solo la dirección"
+ ],
+ "Kaydedildikten sonra kilitli": [
+  "Locked after saving",
+  "Nach dem Speichern gesperrt",
+  "Bloqueado después de guardar"
+ ],
+ "Grup yetkisinin üstüne ikinci kuraldır. Yönetim her zaman değiştirir. \"Kilitli\" seçilirse alan bir kez doldurulur, sonra değiştirilemez.": [
+  "A second rule on top of the group permission. Management can always change it. With \"Locked\", the field can be filled once and not changed afterwards.",
+  "Eine zweite Regel zusätzlich zur Gruppenberechtigung. Die Leitung kann immer ändern. Bei „Gesperrt“ kann das Feld einmal ausgefüllt und danach nicht mehr geändert werden.",
+  "Es una segunda regla sobre el permiso del grupo. La dirección siempre puede cambiarlo. Con \"Bloqueado\", el campo se rellena una vez y luego no se puede cambiar."
+ ],
+ "Fiyat onayın bekleniyor": [
+  "Your price approval is needed",
+  "Deine Preisfreigabe wird benötigt",
+  "Se espera tu aprobación de precio"
+ ],
+ "Fiyat onaylandı": [
+  "Price approved",
+  "Preis freigegeben",
+  "Precio aprobado"
+ ],
+ "Fiyat reddedildi": [
+  "Price rejected",
+  "Preis abgelehnt",
+  "Precio rechazado"
+ ],
+ "Yönetici misafire çevrilemez; önce rolünü personel yap": [
+  "A manager cannot be turned into a guest; change the role to staff first",
+  "Eine Leitung kann nicht zum Gast werden; ändere zuerst die Rolle auf Mitarbeiter",
+  "Un gerente no puede convertirse en invitado; primero cambia su rol a personal"
+ ],
+ "Yönetici zinciri döngüye giriyor (kişi kendi altındaki birine bağlanamaz)": [
+  "The manager chain would loop (a person cannot report to someone below them)",
+  "Die Vorgesetztenkette würde einen Kreis bilden (niemand kann jemandem unter sich unterstellt werden)",
+  "La cadena de responsables formaría un bucle (nadie puede depender de alguien a su cargo)"
+ ],
+ "Bağlanıyor…": [
+  "Connecting…",
+  "Verbinde…",
+  "Conectando…"
+ ],
+ "E-posta kutusuna bağlanıldı ve kaydedildi": [
+  "Connected to the mailbox and saved",
+  "Mit dem Postfach verbunden und gespeichert",
+  "Conectado al buzón y guardado"
+ ],
+ "Açık form": [
+  "Open form",
+  "Offenes Formular",
+  "Formulario abierto"
+ ],
+ "Şablon ve proje seç": [
+  "Choose a template and a project",
+  "Vorlage und Projekt wählen",
+  "Elige una plantilla y un proyecto"
+ ],
+ "Açık form bağlantısı oluşturuldu": [
+  "Open form link created",
+  "Offener Formularlink erstellt",
+  "Enlace de formulario abierto creado"
+ ],
+ "Açık form silinsin mi? Bağlantı ve QR çalışmaz; gelmiş kayıtlar kalır.": [
+  "Delete the open form? The link and QR code will stop working; records already received stay.",
+  "Offenes Formular löschen? Link und QR-Code funktionieren dann nicht mehr; eingegangene Datensätze bleiben.",
+  "¿Eliminar el formulario abierto? El enlace y el QR dejarán de funcionar; los registros recibidos se conservan."
+ ],
+ "Yeni bağlantı oluşturulsun mu? Eski bağlantı ve basılı QR artık çalışmaz.": [
+  "Create a new link? The old link and printed QR codes will stop working.",
+  "Neuen Link erstellen? Der alte Link und gedruckte QR-Codes funktionieren dann nicht mehr.",
+  "¿Crear un enlace nuevo? El enlace anterior y los QR impresos dejarán de funcionar."
+ ],
+ "Aktarım silinsin mi? Daha önce açılmış bağlı kayıtlar kalır.": [
+  "Delete the transfer? Linked records opened before stay.",
+  "Übertragung löschen? Bereits erstellte verknüpfte Datensätze bleiben.",
+  "¿Eliminar la transferencia? Los registros vinculados ya creados se conservan."
+ ],
+ "Reddetme sebebi (isteğe bağlı)": [
+  "Reason for rejection (optional)",
+  "Ablehnungsgrund (optional)",
+  "Motivo del rechazo (opcional)"
+ ],
+ "Fiyat onaylansın mı?": [
+  "Approve the price?",
+  "Preis freigeben?",
+  "¿Aprobar el precio?"
+ ],
+ "Limitin yetmediği için onay üst yöneticiye gönderildi: {0}": [
+  "Your limit was not enough, so approval was sent to the next manager: {0}",
+  "Dein Limit reichte nicht; die Freigabe ging an die nächste Ebene: {0}",
+  "Tu límite no alcanzaba; la aprobación se envió al siguiente responsable: {0}"
+ ],
+ "Onayını bekleyenler": [
+  "Waiting for your approval",
+  "Warten auf deine Freigabe",
+  "Esperan tu aprobación"
+ ],
+ "Misafir erişimin henüz başlamadı": [
+  "Your guest access has not started yet",
+  "Dein Gastzugang hat noch nicht begonnen",
+  "Tu acceso de invitado aún no ha empezado"
+ ],
+ "Misafir erişim süren doldu": [
+  "Your guest access has expired",
+  "Dein Gastzugang ist abgelaufen",
+  "Tu acceso de invitado ha caducado"
+ ],
+ "Misafir erişimin bu gün kapalı": [
+  "Your guest access is closed today",
+  "Dein Gastzugang ist heute gesperrt",
+  "Tu acceso de invitado está cerrado hoy"
+ ],
+ "Misafir kullanıcı proje açamaz": [
+  "A guest user cannot create projects",
+  "Gäste können keine Projekte anlegen",
+  "Un invitado no puede crear proyectos"
+ ],
+ "Bu projeye kayıt açma yetkin yok": [
+  "You cannot create records in this project",
+  "Du darfst in diesem Projekt keine Datensätze anlegen",
+  "No puedes crear registros en este proyecto"
+ ],
+ "Bu fiyat onay beklemiyor": [
+  "This price is not waiting for approval",
+  "Dieser Preis wartet nicht auf Freigabe",
+  "Este precio no espera aprobación"
+ ],
+ "Bu onay sana atanmamış": [
+  "This approval is not assigned to you",
+  "Diese Freigabe ist dir nicht zugewiesen",
+  "Esta aprobación no te está asignada"
+ ],
+ "Bu kayıtta efor girme yetkin yok": [
+  "You cannot log effort on this record",
+  "Du darfst für diesen Datensatz keinen Aufwand erfassen",
+  "No puedes registrar esfuerzo en este registro"
+ ],
+ "Aktarım tanımı bulunamadı": [
+  "Transfer definition not found",
+  "Übertragungsdefinition nicht gefunden",
+  "No se encontró la definición de la transferencia"
+ ],
+ "Açık formları yalnız yönetim düzenler": [
+  "Only management edits open forms",
+  "Nur die Leitung bearbeitet offene Formulare",
+  "Solo la dirección edita los formularios abiertos"
+ ],
+ "Şablonda [[Alan]] yok; dışarıdan doldurulacak alanları [[ ]] ile işaretle": [
+  "The template has no [[Field]]; mark the fields to be filled from outside with [[ ]]",
+  "Die Vorlage hat kein [[Feld]]; markiere von außen auszufüllende Felder mit [[ ]]",
+  "La plantilla no tiene [[Campo]]; marca con [[ ]] los campos que se rellenarán desde fuera"
+ ],
+ "Ticket e-posta kutusu ayarlanmamış (Ayarlar → Modüller → fonksiyon)": [
+  "The ticket mailbox is not set up (Settings → Modules → function)",
+  "Das Ticket-Postfach ist nicht eingerichtet (Einstellungen → Module → Funktion)",
+  "El buzón de tickets no está configurado (Ajustes → Módulos → función)"
+ ],
+ "Şifre gerekli": [
+  "Password required",
+  "Passwort erforderlich",
+  "Contraseña obligatoria"
  ]
 }

@@ -58,3 +58,24 @@ export async function kayitBildir(req, { eski, yeni, projeId, kartId, kod, basli
     for (const [d, idler] of grup) await bildirBekle(req.db, idler, { baslik: `${kod || ''} · ${baslik || ''}`.trim(), govde: ATAMA[d].replace('{0}', u.ad), url: `/m/#${kartId ? 'k' : 'p'}=${kartId || projeId}`, etiket: 'a:' + (kartId || projeId) });
   } catch (e) { console.error('kayıt bildirimi:', e.message); }
 }
+
+// Alıcının dilinde tek tip bildirim. metinler: { tr, en, de, es } — {0}, {1} … yer tutucuları args'tan dolar.
+export async function dilliBildir(req, idler, { baslik, metinler, args = [], url, etiket }) {
+  idler = [...new Set(idler.filter(Boolean))];
+  if (!idler.length) return;
+  try {
+    const dil = new Map((await req.db('kullanicilar').whereIn('id', idler).select('id', 'tercih')).map((x) => [x.id, json.oku(x.tercih, {}).dil || 'tr']));
+    const grup = new Map();
+    for (const id of idler) { const d = metinler[dil.get(id)] ? dil.get(id) : 'tr'; grup.set(d, [...(grup.get(d) || []), id]); }
+    for (const [d, L] of grup) {
+      const govde = metinler[d].replace(/\{(\d+)\}/g, (_, i) => String(args[+i] ?? ''));
+      await bildirBekle(req.db, L, { baslik, govde, url, etiket });
+    }
+  } catch (e) { console.error('bildirim:', e.message); }
+}
+
+export const FIYAT_METIN = {
+  bekliyor: { tr: '{0}: {1} fiyat onayını bekliyor', en: '{0}: {1} is waiting for your price approval', de: '{0}: {1} wartet auf deine Preisfreigabe', es: '{0}: {1} espera tu aprobación de precio' },
+  onaylandi: { tr: '{0} fiyatı onayladı ({1})', en: '{0} approved the price ({1})', de: '{0} hat den Preis freigegeben ({1})', es: '{0} aprobó el precio ({1})' },
+  reddedildi: { tr: '{0} fiyatı reddetti ({1})', en: '{0} rejected the price ({1})', de: '{0} hat den Preis abgelehnt ({1})', es: '{0} rechazó el precio ({1})' },
+};

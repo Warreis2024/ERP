@@ -1,6 +1,6 @@
 // Kayıt kuralları (saf): silme kuralı, alan değişikliği logu, değer birleştirme.
 import { COKLU, degerBos, ozet, sayiOku } from './degerler.js';
-import { fnErisim } from './yetki.js';
+import { fnErisim, fnDegistirebilir } from './yetki.js';
 
 // README genel kuralı: yalnız ilk durumda olan VE işlem görmemiş kayıt veritabanından silinir.
 // İşlem görmüş: durum/alan değişikliği logu var ya da (proje için) bağlı kaydı var.
@@ -36,7 +36,7 @@ export function alanLoglari(fonksiyonlar, once, sonra) {
 //  • 'gor' ve 'gizli' fonksiyonlar istemciye güvenilmeden veritabanındaki haliyle korunur.
 //  • Modülde olmayan fn_uid'ler reddedilir.
 // Dönüş: { yeni: [...], zorunluEksik: [ad], hatalar: [mesaj] }
-export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId) {
+export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId, baglam = { yeni: true }) {
   const fnMap = new Map(fonksiyonlar.map((f) => [f.uid, f]));
   const yeni = []; const hatalar = []; const zorunluEksik = [];
   const idHarita = new Map();
@@ -47,8 +47,10 @@ export function degerleriBirlestir(u, fonksiyonlar, gelen, eski, yeniId) {
   }
   for (const f of fonksiyonlar) {
     if (f.tip === 'gecmis') continue;
+    if (f.tip === 'efor' || f.tip === 'ticket') { yeni.push(...eski.filter((d) => d.fnUid === f.uid)); continue; } // efor satırlarını yalnız Başla / Mola / Bitir uçları yazar
     const erisim = fnErisim(u, f);
-    if (erisim !== 'duzenle') { yeni.push(...eski.filter((d) => d.fnUid === f.uid)); continue; }
+    const dolu = eski.some((d) => d.fnUid === f.uid);
+    if (erisim !== 'duzenle' || !fnDegistirebilir(u, f, { ...baglam, dolu })) { yeni.push(...eski.filter((d) => d.fnUid === f.uid)); continue; }
     let liste = (gelen || []).filter((r) => r.fnUid === f.uid && !degerBos(f.tip, r));
     if (!COKLU.has(f.tip)) liste = liste.slice(0, 1);
     liste = liste.map((r, i) => ({ ...r, fnTip: f.tip, sira: Number.isInteger(r.sira) ? r.sira : i, ustId: r.ustId && idHarita.has(r.ustId) ? idHarita.get(r.ustId) : (r.ustId || null) }));

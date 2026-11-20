@@ -1,3 +1,4 @@
+import { misafirKapsam } from '../kurallar/misafir.js';
 import { belirtecCoz, cerezleriOku, CEREZ, oturumYolu } from './oturum.js';
 import { kullaniciYukle } from '../veri.js';
 import { HttpHata } from '../hata.js';
@@ -21,6 +22,7 @@ export async function kimlik(req, _res, next) {
             if (!c.son_kullanim || Date.now() - new Date(c.son_kullanim) > 3600_000) await req.db('cihazlar').where({ id: c.id }).update({ son_kullanim: new Date() });
           }
         } else req.kullanici = u;
+        if (req.kullanici && u.tur === 'misafir') u._kapsam = await misafirKapsam(req.db, u);
       }
     }
     next();

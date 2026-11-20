@@ -4,6 +4,7 @@ import { Router } from 'express';
 import express from 'express';
 import { z } from 'zod';
 import { HttpHata } from '../hata.js';
+import { kayitGorur } from '../kurallar/misafir.js';
 import { json } from '../db.js';
 import { yoneticiGerekli } from '../auth/middleware.js';
 import { belirtecUret, belirtecCoz } from '../auth/oturum.js';
@@ -134,7 +135,7 @@ r.post('/dosya/yukle/basla', async (req, res) => {
   let kod = '', projeAd = '';
   if (v.projeId) {
     const p = await req.db('projeler').where({ id: v.projeId, silindi: false }).first();
-    if (!p) throw new HttpHata(404, 'Proje bulunamadı');
+    if (!p || !kayitGorur(req.kullanici, 'proje', p.id)) throw new HttpHata(404, 'Proje bulunamadı');
     kod = p.kod; projeAd = p.ad;
   }
   if (v.depo === 'onedrive') {

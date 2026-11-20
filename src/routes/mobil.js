@@ -17,6 +17,9 @@ import { okuyabilir, fnErisim } from '../kurallar/yetki.js';
 import { projeKisileri, gorunurDegerler } from '../kayitServis.js';
 import { mesajYaz, MesajSema } from './kayitlar.js';
 import { EkSema } from '../kurallar/ekler.js';
+import { misafirGirisEngeli, kayitGorur } from '../kurallar/misafir.js';
+import { eforDurum, eforOzet } from '../kurallar/efor.js';
+import { degerApi } from '../kurallar/degerler.js';
 import * as google from '../baglanti/google.js';
 import * as drive from '../baglanti/driveHesap.js';
 import * as ms from '../baglanti/microsoft.js';
@@ -44,6 +47,8 @@ cihazGenel.post('/bagla', async (req, res) => {
   if (!c || !c.kod_son || new Date(c.kod_son) < simdi) throw new HttpHata(410, 'Eşleme kodunun süresi doldu; bilgisayarda yeni QR oluştur');
   const u = await db('kullanicilar').where({ id: c.kullanici_id }).first();
   if (!u || !u.aktif) throw new HttpHata(403, 'Bu kullanıcı pasif. Yöneticine başvur.');
+  const misafirEngel = misafirGirisEngeli(u);
+  if (misafirEngel) throw new HttpHata(403, misafirEngel);
   // tek kullanım: kod silinir, cihaz etkinleşir
   const n = await db('cihazlar').where({ id: c.id, durum: 'bekliyor' }).update({ durum: 'aktif', kod_ozet: null, kod_son: null, ad: v.ad || c.ad || 'Telefon', tarayici: String(req.get('user-agent') || '').slice(0, 250), son_kullanim: simdi });
   if (!n) throw new HttpHata(409, 'Bu kod kullanıldı');
@@ -148,7 +153,8 @@ mobil.get('/mobil/ozet', async (req, res) => {
     db('kartlar').where({ silindi: false }).select('id', 'kod', 'modul_id', 'proje_id', 'durum_id', 'guncelleme'),
     db('kullanicilar').where({ aktif: true }).select('id', 'ad', 'foto').orderBy('ad'),
   ]);
-  const kartlar = kartSat.filter((k) => gorulen.has(k.modul_id));
+  const kartlar = kartSat.filter((k) => gorulen.has(k.modul_id) && kayitGorur(u, 'kart', k.id));
+  if (u._kapsam) { const L = projeSat.filter((p) => kayitGorur(u, 'proje', p.id)); projeSat.length = 0; projeSat.push(...L); }
   const kartIds = new Set(kartlar.map((k) => k.id));
   const kisiler = await projeKisileri(db, projeSat.map((p) => p.id));
   const sinirTarih = new Date(Date.now() - 21 * 86400_000);
@@ -169,11 +175,17 @@ mobil.get('/mobil/ozet', async (req, res) => {
     .filter((d) => { const a = Array.isArray(d.alici) ? d.alici : []; return !a.length || a.includes(u.id) || d.kisi === u.id || d.kisi === u.ad; })
     .slice(0, 80)
     .map((d) => ({ id: d.id, projeId: d.projeId, kartId: d.kartId || null, kimden: d.kisi, metin: String(d.metin || '').replace(/\s+/g, ' ').trim().slice(0, 240), ekler: ekOzet(d.ekler), zaman: d.zaman, okundu: Array.isArray(d.okuyan) && d.okuyan.includes(u.id) }));
+  // bana atanmış fiyat onayları
+  const foSat = await db('degerler').where({ fn_tip: 'fiyatonay', onay: 'bekliyor', kisi: u.id }).limit(50);
+  const onaylar = gorunurDegerler(u, t, foSat.filter((d) => !d.kart_id || kartIds.has(d.kart_id)), kisiler)
+    .map((d) => ({ projeId: d.projeId, kartId: d.kartId || null, fnUid: d.fnUid, ad: (t.modul(d.modulId)?.fn.find((f) => f.uid === d.fnUid) || {}).ad || '', tutar: d.tutar, para: d.para || 'TRY', talep: d.talep || '' }));
   res.json({
     depo: await bulutDepo(db),
+    onaylar,
     ben: { id: u.id, ad: u.ad, foto: u.foto || '' },
     kullanicilar: kullanicilar.map((k) => ({ id: k.id, ad: k.ad, foto: typeof k.foto === 'string' && k.foto.length < 60000 ? k.foto : '' })),
-    moduller: moduller.map((m) => ({ id: m.id, ad: m.ad, renk: m.renk, tur: m.tur, yaz: m.fn.some((f) => f.tip === 'mesaj' && fnErisim(u, f) === 'duzenle') })),
+    moduller: moduller.map((m) => ({ id: m.id, ad: m.ad, renk: m.renk, tur: m.tur, yaz: m.fn.some((f) => f.tip === 'mesaj' && fnErisim(u, f) === 'duzenle'), efor: m.fn.some((f) => f.tip === 'efor' && fnErisim(u, f) === 'duzenle') })),
+    aktifEfor: (await db('degerler').where({ fn_tip: 'efor', kisi: u.id }).whereNull('adet').whereIn('tur', ['calisma', 'mola'])).map(degerApi).map((x) => ({ projeId: x.projeId, kartId: x.kartId || null, tur: x.tur, zaman: x.zaman })),
     kayitlar, gelen,
   });
 });
@@ -182,6 +194,7 @@ mobil.get('/mobil/ozet', async (req, res) => {
 mobil.get('/mobil/mesajlar', async (req, res) => {
   const u = req.kullanici, db = req.db, t = await tanimlar(req);
   const v = z.object({ projeId: Kimlik, kartId: Kimlik.optional() }).parse(req.query);
+  if (!kayitGorur(u, v.kartId ? 'kart' : 'proje', v.kartId || v.projeId, !v.kartId)) throw new HttpHata(404, 'Kayıt bulunamadı');
   let q = db('degerler').where({ fn_tip: 'mesaj', proje_id: v.projeId });
   q = v.kartId ? q.andWhere({ kart_id: v.kartId }) : q.whereNull('kart_id');
   const sat = await q.orderBy('zaman', 'desc').limit(60);
@@ -194,4 +207,18 @@ mobil.get('/mobil/mesajlar', async (req, res) => {
     await db('degerler').where({ id: d.id }).update({ ek: JSON.stringify(ek) });
   }
   res.json(L.map((d) => ({ id: d.id, kimden: d.kisi, metin: d.metin || '', ekler: Array.isArray(d.ekler) ? d.ekler : [], zaman: d.zaman, ustId: d.ustId || null })));
+});
+
+// Kayıttaki efor fonksiyonları ve benim durumum (telefonda Başla / Mola / Bitir düğmeleri için)
+mobil.get('/mobil/efor', async (req, res) => {
+  const u = req.kullanici, db = req.db, t = await tanimlar(req);
+  const v = z.object({ projeId: Kimlik, kartId: Kimlik.optional() }).parse(req.query);
+  const k = v.kartId ? await db('kartlar').where({ id: v.kartId, silindi: false }).first() : await db('projeler').where({ id: v.projeId, silindi: false }).first();
+  if (!k || !kayitGorur(u, v.kartId ? 'kart' : 'proje', k.id, !v.kartId)) throw new HttpHata(404, 'Kayıt bulunamadı');
+  const m = v.kartId ? t.modul(k.modul_id) : t.moduller.find((x) => x.tur === 'proje');
+  if (!m || !okuyabilir(u, m.id)) throw new HttpHata(404, 'Kayıt bulunamadı');
+  const fnler = m.fn.filter((f) => f.tip === 'efor' && fnErisim(u, f) === 'duzenle');
+  if (!fnler.length) return res.json([]);
+  const sat = (await db('degerler').where(v.kartId ? { kart_id: v.kartId, fn_tip: 'efor' } : { proje_id: v.projeId, kart_id: null, fn_tip: 'efor' })).map(degerApi);
+  res.json(fnler.map((f) => { const L = sat.filter((r) => r.fnUid === f.uid), o = eforOzet(L)[u.id] || { calisma: 0, mola: 0 }; return { fnUid: f.uid, ad: f.ad, durum: eforDurum(L, u.id), calisma: Math.round(o.calisma), mola: Math.round(o.mola) }; }));
 });

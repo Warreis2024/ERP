@@ -38,6 +38,7 @@ r.get('/bildirimler', async (req, res) => {
   for (const l of ls) {
     if (olaylar.length >= EN_COK) break;
     const m = tanim.modul(l.modul_id); if (!m || !okuyabilir(u, m.id)) continue;
+    if (u._kapsam && !(l.kart_id ? u._kapsam.kart.has(l.kart_id) : u._kapsam.projeTam.has(l.proje_id))) continue;
     const f = m.fn.find((x) => x.ad === l.alan && (x.tip === 'kisi' || x.tip === 'ekip'));
     if (!f || !fnGorunur(u, f)) continue;
     if (!benMi(l.yeni) || benMi(l.eski)) continue;
@@ -50,6 +51,18 @@ r.get('/bildirimler', async (req, res) => {
     if (!okuyabilir(u, d.modul_id)) continue;
     const y = json.oku(d.yanit, {});
     olaylar.push({ tur: 'onay', projeId: d.proje_id, kartId: d.kart_id, modulId: d.modul_id, karar: y.karar || '', baslik: d.baslik, zaman: new Date(d.yanit_zaman).toISOString() });
+  }
+
+  // 4) fiyat onayı: bana gelen onay istekleri ve benim isteklerimin sonucu
+  const fs = await db('degerler').where({ fn_tip: 'fiyatonay' }).andWhere('guncelleme', '>', son).andWhere((q) => q.whereNot('guncelleyen', u.id).orWhereNull('guncelleyen')).limit(EN_COK);
+  if (fs.length) {
+    const kisiler = await projeKisileri(db, [...new Set(fs.map((x) => x.proje_id))]);
+    for (const d of gorunurDegerler(u, tanim, fs, kisiler)) {
+      const bana = d.onay === 'bekliyor' && d.kisi === u.id;
+      const sonuc = (d.onay === 'onaylandi' || d.onay === 'reddedildi') && d.talep === u.id;
+      if (!bana && !sonuc) continue;
+      olaylar.push({ tur: bana ? 'fiyat' : 'fiyatSonuc', projeId: d.projeId, kartId: d.kartId || null, modulId: d.modulId, karar: d.onay, tutar: `${d.tutar} ${d.para || 'TRY'}`, kimden: bana ? d.talep : d.onaylayan, zaman: new Date().toISOString() });
+    }
   }
 
   res.json({ simdi: simdi.toISOString(), olaylar: olaylar.slice(0, EN_COK) });

@@ -16,6 +16,8 @@ import baglanti, { donusRouter } from './routes/baglanti.js';
 import { disYonetim, disGenel } from './routes/disOnay.js';
 import bildirim from './routes/bildirim.js';
 import { mobil, cihazGenel } from './routes/mobil.js';
+import { acikYonetim, acikGenel } from './routes/acikForm.js';
+import ticket from './routes/ticket.js';
 
 const kok = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const app = express();
@@ -58,6 +60,8 @@ api.get('/firma-genel', firmaCoz, async (req, res) => {
 api.use('/dis', firmaCoz, disGenel);
 // Mobil: telefonun tek kullanımlık eşleme koduyla oturum alması (şifresiz)
 api.use('/cihaz', firmaCoz, cihazGenel);
+// Açık form bağlantısı (kayıt açmadan dışarıdan yeni kayıt) ve takip — şifresiz
+api.use('/form', firmaCoz, acikGenel);
 api.use(firmaCoz, kimlik, csrfDenetle);
 api.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 api.use('/oturum', oturum);
@@ -70,6 +74,8 @@ api.use(baglanti);
 api.use(disYonetim);
 api.use(bildirim);
 api.use(mobil);
+api.use(acikYonetim);
+api.use(ticket);
 api.use('/ayar/firma', firmaRouter);
 api.use('/ayar/kullanicilar', kullaniciRouter);
 api.use('/ayar', ayar);

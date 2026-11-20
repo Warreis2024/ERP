@@ -138,7 +138,7 @@
   // ---------- ana ekran ----------
   function ciz() {
     const o = D.ozet; if (!o) return;
-    const okunmamis = o.gelen.filter((g) => !g.okundu && !benMi(g.kimden)).length;
+    const okunmamis = o.gelen.filter((g) => !g.okundu && !benMi(g.kimden)).length + (o.onaylar || []).length;
     const sekmeler = [['gelen', '✉', _t('Gelen'), okunmamis], ['kayitlar', '☰', _t('Kayıtlar'), 0], ['notlar', '✎', _t('Notlarım'), D.notlar.length]];
     KOK.innerHTML = `<header class="ust">${avatar(o.ben)}<h1>${kac(o.ben.ad)}</h1><button id="yenile" aria-label="${kac(_t('Yenile'))}">⟳</button></header>
       <main id="icerik"></main>
@@ -148,13 +148,21 @@
     $('#yeni').onclick = () => olusturucu(D.sekme === 'notlar' ? null : undefined);
     KOK.querySelectorAll('[data-sekme]').forEach((b) => { b.onclick = () => { D.sekme = b.dataset.sekme; D.ara = ''; ciz(); }; });
     const ic = $('#icerik');
-    ic.innerHTML = pushBilgi() + (D.sekme === 'gelen' ? gelenHTML() : D.sekme === 'kayitlar' ? kayitlarHTML() : notlarHTML());
+    ic.innerHTML = aktifIsHTML() + pushBilgi() + (D.sekme === 'gelen' ? onaylarHTML() + gelenHTML() : D.sekme === 'kayitlar' ? kayitlarHTML() : notlarHTML());
     baglaIcerik(ic);
   }
   // Android Chrome: "Uygulamayı yükle" (WebAPK — mağazasız, ana ekranda uygulama olarak)
   let yukleIstegi = null;
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); yukleIstegi = e; if (D.ozet && !D.kayit && !$('.perde')) ciz(); });
   window.addEventListener('appinstalled', () => { yukleIstegi = null; toast(_t('Uygulama yüklendi')); });
+  function aktifIsHTML() {
+    const L = (D.ozet && D.ozet.aktifEfor) || [];
+    if (!L.length) return '';
+    const r = L.slice().sort((a, b) => new Date(b.zaman) - new Date(a.zaman))[0];
+    const k = r.kartId ? kayitBul('kart', r.kartId) : kayitBul('proje', r.projeId);
+    const dk = Math.round((Date.now() - new Date(r.zaman)) / 60000), eski = dk > 600 || new Date(r.zaman).toDateString() !== new Date().toDateString();
+    return `<button class="oge aktif-is ${eski ? 'eski' : ''} ${r.tur}" data-ac="${r.kartId ? 'kart' : 'proje'}:${kac(r.kartId || r.projeId)}"><div class="ic"><div class="ust-satir"><b>⏱ ${kac(r.tur === 'mola' ? _t('Moladasın') : _t('Çalışıyorsun'))}</b><span class="zaman">${kac(dk >= 60 ? _t('{0} sa {1} dk', Math.floor(dk / 60), dk % 60) : _t('{0} dk', dk))}</span></div><div class="baslik">${kac(kayitAd(k) || '')}</div>${eski ? `<div class="metin">${kac(_t('Sayaç hâlâ açık. Bitirmeyi unuttun mu?'))}</div>` : ''}</div></button>`;
+  }
   function pushBilgi() {
     const y = yukleIstegi ? `<div class="bilgi"><p>${kac(_t('NetERP\'yi telefonuna uygulama olarak yükle.'))}</p><button class="dugme" data-yukle>${kac(_t('Yükle'))}</button></div>` : '';
     if (D.push !== 'sor') return y;
@@ -162,6 +170,16 @@
   }
   function pushSoru() {
     return `<div class="bilgi"><p>${kac(_t('Yeni mesaj ve atamalarda telefonuna bildirim gelsin mi?'))}</p><button class="dugme" data-push="ac">${kac(_t('Bildirimleri aç'))}</button></div>`;
+  }
+  function onaylarHTML() {
+    const L = D.ozet.onaylar || [];
+    if (!L.length) return '';
+    return `<div class="kucuk" style="margin:2px 0 6px">${kac(_t('Onayını bekleyenler'))}</div><div class="liste" style="margin-bottom:14px">${L.map((o, i) => {
+      const k = o.kartId ? kayitBul('kart', o.kartId) : kayitBul('proje', o.projeId);
+      return `<div class="oge onay-oge"><div class="ic"><div class="ust-satir"><b>${kac(o.ad)}</b><span class="zaman">${kac(kisi(o.talep).ad)}</span></div>
+        <div class="baslik">${kac(o.tutar)} ${kac(o.para)}</div><div class="metin">${kac(kayitAd(k) || '')}</div>
+        <div class="alt-dugmeler"><button class="dugme" data-fo="${i}" data-karar="onay">${kac(_t('Onayla'))}</button><button class="dugme tehlike" data-fo="${i}" data-karar="red">${kac(_t('Reddet'))}</button></div></div></div>`;
+    }).join('')}</div>`;
   }
   function gelenHTML() {
     const L = D.ozet.gelen;
@@ -223,6 +241,19 @@
       } catch (e) { toast(e.message, 4000); }
     }, false); });
     ic.querySelectorAll('[data-push]').forEach((b) => { b.onclick = pushAc; });
+    ic.querySelectorAll('[data-fo]').forEach((b) => { b.onclick = async () => {
+      const o = D.ozet.onaylar[+b.dataset.fo]; if (!o) return;
+      const red = b.dataset.karar === 'red';
+      const not = red ? prompt(_t('Reddetme sebebi (isteğe bağlı)'), '') : '';
+      if (red && not === null) return;
+      if (!red && !confirm(_t('Fiyat onaylansın mı?'))) return;
+      b.disabled = true;
+      try {
+        const r = await api('/fiyat-onay', { method: 'POST', govde: { tur: o.kartId ? 'kart' : 'proje', id: o.kartId || o.projeId, fnUid: o.fnUid, karar: red ? 'red' : 'onay', not: not || '' } });
+        toast(r.onay === 'onaylandi' ? _t('Fiyat onaylandı') : r.onay === 'reddedildi' ? _t('Fiyat reddedildi') : _t('Limitin yetmediği için onay üst yöneticiye gönderildi: {0}', kisi(r.kisi).ad), 4000);
+        await yenile(true); ciz();
+      } catch (e) { toast(e.message, 4000); b.disabled = false; }
+    }; });
     ic.querySelectorAll('[data-yukle]').forEach((b) => { b.onclick = async () => { if (!yukleIstegi) return; yukleIstegi.prompt(); await yukleIstegi.userChoice.catch(() => {}); yukleIstegi = null; ciz(); }; });
   }
 
@@ -233,7 +264,7 @@
     D.kayit = k; D.mesajlar = null;
     const m = modul(k.modulId) || {};
     KOK.innerHTML = `<header class="ust"><button id="geri" aria-label="${kac(_t('Geri'))}">‹</button><h1>${kac(kayitAd(k))}</h1></header>
-      <main><div class="kucuk" style="margin-bottom:8px">${kac(m.ad || '')}</div><div class="akis" id="akis"><div class="bekle"><div class="donen"></div></div></div></main>
+      <main><div class="kucuk" style="margin-bottom:8px">${kac(m.ad || '')}</div><div id="eforKutu"></div><div class="akis" id="akis"><div class="bekle"><div class="donen"></div></div></div></main>
       ${m.yaz ? `<div class="yazici"><div class="ekler" id="ekListe"></div><div style="display:flex;gap:6px;align-items:flex-end">
         <button class="arac" id="ekBtn" style="flex:none;min-width:44px" aria-label="${kac(_t('Ekle'))}"><b>＋</b></button>
         <textarea class="yaz" id="yaz" rows="1" placeholder="${kac(_t('Mesaj yaz…'))}"></textarea>
@@ -245,7 +276,28 @@
       $('#gonder').onclick = () => gonder($('#gonder'));
       $('#ekBtn').onclick = () => olusturucu(k);
     }
+    if (m.efor) eforYukle();
     await mesajlariYukle();
+  }
+  // Efor: Başla / Mola / Devam / Bitir (anında yazılır)
+  async function eforYukle() {
+    const k = D.kayit; if (!k) return;
+    try {
+      const q = '?projeId=' + encodeURIComponent(k.projeId) + (k.tur === 'kart' ? '&kartId=' + encodeURIComponent(k.id) : '');
+      const L = await api('/mobil/efor' + q);
+      if (D.kayit !== k) return;
+      const kutu = $('#eforKutu'); if (!kutu) return;
+      const AD = { yok: _t('Başlamadın'), calisiyor: _t('Çalışıyorsun'), molada: _t('Moladasın'), durdu: _t('Durduruldu'), bitti: _t('Bitirdin') };
+      const dk = (d) => (d >= 60 ? _t('{0} sa {1} dk', Math.floor(d / 60), d % 60) : _t('{0} dk', d));
+      const b = (f, e, ad, cls) => `<button class="dugme ${cls || ''}" data-efor="${kac(f.fnUid)}" data-eylem="${e}">${kac(ad)}</button>`;
+      kutu.innerHTML = L.map((f) => `<div class="efor-kutu ${f.durum}"><div><b>${kac(f.ad)}</b><span class="kucuk">${kac(AD[f.durum] || '')} · ${kac(dk(f.calisma))}${f.mola ? ' · ' + kac(_t('Mola')) + ' ' + kac(dk(f.mola)) : ''}</span></div>
+        <div class="alt-dugmeler">${f.durum === 'calisiyor' ? b(f, 'mola', _t('Mola'), 'ikincil') + b(f, 'bitir', _t('Bitir'), 'tehlike') : f.durum === 'molada' ? b(f, 'devam', _t('Devam')) + b(f, 'bitir', _t('Bitir'), 'tehlike') : b(f, 'basla', f.durum === 'durdu' ? _t('Devam') : _t('Başla'))}</div></div>`).join('');
+      kutu.querySelectorAll('[data-efor]').forEach((x) => { x.onclick = async () => {
+        x.disabled = true;
+        try { await api('/efor', { method: 'POST', govde: { tur: k.tur, id: k.id, fnUid: x.dataset.efor, eylem: x.dataset.eylem } }); if (navigator.vibrate) navigator.vibrate(30); await eforYukle(); yenile(true); }
+        catch (e) { toast(e.message, 4000); x.disabled = false; }
+      }; });
+    } catch (e) { /* efor yoksa sessiz */ }
   }
   async function mesajlariYukle(sessiz) {
     const k = D.kayit; if (!k) return;

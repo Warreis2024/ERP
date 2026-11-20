@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { json } from '../db.js';
 import { okuyabilir, fnErisim, yonetici } from '../kurallar/yetki.js';
 import { tanimlar, logApi } from '../veri.js';
-import { projeKisileri, gorunurDegerler, projeApi, kartApi } from '../kayitServis.js';
+import { projeKisileri, gorunurDegerler, projeApi, kartApi, kayitBaglari } from '../kayitServis.js';
 
 const r = Router();
 const tanimSat = (x) => ({ ...json.oku(x.tanim, {}), id: x.id, ad: x.ad, sira: x.sira });
@@ -16,11 +16,12 @@ const parcala = async (db, tablo, kolon, ids) => {
 };
 
 // Kullanıcı satırı → şablondaki kullanıcı nesnesi
+const tarihS = (v) => (v ? (v instanceof Date ? v.toISOString().slice(0, 10) : String(v).slice(0, 10)) : '');
 export function kullaniciS(k, yetkiSat, tam) {
   const tercih = json.oku(k.tercih, {});
   const o = {
     id: k.id, ad: k.ad, unvan: k.unvan || '', departman: k.departman || '', rol: k.rol, grup: k.grup_id || '',
-    aktif: !!k.aktif, foto: k.foto || '', eposta: k.eposta, sistem: !!k.sistem,
+    aktif: !!k.aktif, foto: k.foto || '', eposta: k.eposta, sistem: !!k.sistem, ust: k.ust_id || '', tur: k.tur || 'kullanici',
   };
   if (!tam) return o;
   const y = yetkiSat.filter((x) => x.kullanici_id === k.id);
@@ -32,6 +33,8 @@ export function kullaniciS(k, yetkiSat, tam) {
     epostaHesap: json.oku(k.eposta_hesap, { tur: 'yok' }),
     sifre: k.sifre_degismeli ? null : 'sunucuda', sifreTarih: k.sifre_tarih ? new Date(k.sifre_tarih).toISOString() : '',
     kilit: k.kilit ? new Date(k.kilit).toISOString() : '', sonGiris: k.son_giris ? new Date(k.son_giris).toISOString() : '',
+    onayLimit: json.oku(k.onay_limit, {}),
+    firma: k.firma || '', gecerliBas: tarihS(k.gecerli_bas), gecerliBit: tarihS(k.gecerli_bit), saatBas: k.saat_bas || '', saatBit: k.saat_bit || '', gunler: k.gunler || '', gorunum: k.gorunum || '',
   };
 }
 
@@ -60,22 +63,25 @@ r.get('/durum', async (req, res) => {
   if (firma.eposta) { firma.eposta.sifreKayitli = !!(firma.eposta.sifre || firma.eposta.sifreKayitli); delete firma.eposta.sifre; delete firma.eposta.token; }
 
   const moduller = t.moduller.filter((m) => okuyabilir(u, m.id)).map((m) => ({
-    id: m.id, ad: m.ad, renk: m.renk, ikon: m.ikon, onek: m.onek, tur: m.tur, acik: m.acik, sira: m.sira, sistem: m.sistem,
-    durumlar: m.durumlar.map((d) => ({ id: d.id, ad: d.ad, renk: d.renk, sira: d.sira, kapat: d.kapat })),
+    id: m.id, ad: m.ad, renk: m.renk, ikon: m.ikon, onek: m.onek, tur: m.tur, acik: m.acik, sira: m.sira, sistem: m.sistem, aktarimlar: m.aktarimlar,
+    durumlar: m.durumlar.map((d) => ({ id: d.id, ad: d.ad, renk: d.renk, sira: d.sira, kapat: d.kapat, gecis: d.gecis || undefined })),
     fn: m.fn.filter((f) => fnErisim(u, f) !== 'gizli').map((f) => ({
       uid: f.uid, tip: f.tip, ad: f.ad, zorunlu: f.zorunlu, grup: f.grup || undefined, tarihVarsayilan: f.tarihVarsayilan || undefined,
-      sekme: f.sekme || undefined, kanban: f.kanban, liste: f.liste, ...(yon ? { yetki: f.yetki } : {}),
+      sekme: f.sekme || undefined, kanban: f.kanban, liste: f.liste, ayar: f.ayar, ...(yon ? { yetki: f.yetki } : {}),
     })),
   }));
   const gorulen = new Set(moduller.map((m) => m.id));
 
+  const kapsam = u._kapsam; // misafir: yalnız görebildiği projeler ve kayıtlar
+  if (kapsam) { const L = projeSat.filter((p) => kapsam.proje.has(p.id)); projeSat.length = 0; projeSat.push(...L); }
   const projeIds = projeSat.map((p) => p.id);
   const kisiler = await projeKisileri(db, projeIds);
-  const kartlar = kartSat.filter((k) => gorulen.has(k.modul_id));
+  const kartlar = kartSat.filter((k) => gorulen.has(k.modul_id) && (!kapsam || kapsam.kart.has(k.id)));
   const kartIds = new Set(kartlar.map((k) => k.id));
   const degerSat = (await parcala(db, 'degerler', 'proje_id', projeIds)).filter((d) => !d.kart_id || kartIds.has(d.kart_id));
   const degerler = gorunurDegerler(u, t, degerSat, kisiler);
-  const logSat = await db('log').whereIn('modul_id', [...gorulen]).orderBy('id', 'desc').limit(5000);
+  const logSat = (await db('log').whereIn('modul_id', [...gorulen]).orderBy('id', 'desc').limit(5000))
+    .filter((l) => !kapsam || (l.kart_id ? kapsam.kart.has(l.kart_id) : !l.proje_id || kapsam.projeTam.has(l.proje_id)));
 
   res.json({
     sema: 2,
@@ -94,6 +100,7 @@ r.get('/durum', async (req, res) => {
     epostalar: [],
     projeler: projeSat.map((p) => projeApi(p, kisiler.get(p.id))),
     kartlar: kartlar.map(kartApi),
+    baglar: await kayitBaglari(db, [...projeIds, ...kartlar.map((k) => k.id)]),
     degerler,
     log: logSat.reverse().map(logApi),
   });

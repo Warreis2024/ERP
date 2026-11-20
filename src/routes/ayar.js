@@ -48,13 +48,32 @@ const renk = z.string().regex(/^#[0-9a-fA-F]{3,8}$/).optional();
 const kimlik = z.string().regex(/^[a-z0-9_-]{1,40}$/i);
 const JSONV = z.record(z.any());
 
+// Fonksiyona özel ayarlar: kim değiştirebilir; fiyat onayı beklerken geçilemeyen durumlar
+const FnAyar = z.object({
+  degistir: z.enum(['', 'acan', 'yonetim', 'kilit']).optional(),
+  engel: z.array(z.string().max(40)).max(50).optional(),
+  ticket: z.object({ projeId: z.string().max(40).nullable().optional(), durumId: z.string().max(40).nullable().optional(), konuFn: z.string().max(40).nullable().optional(), govdeFn: z.string().max(40).nullable().optional(), oto: z.boolean().optional() }).optional(),
+});
+// Kayıttan kayda aktarım: hedef modül, tetikleyen durum, alan eşlemesi, atama
+const AktarimSema = z.object({
+  id: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/),
+  ad: z.string().trim().max(80).default(''),
+  hedef: z.string().max(40),
+  durum: z.string().max(40).nullable().optional(),        // bu duruma geçince sorulur; boşsa yalnız düğmeyle
+  hedefDurum: z.string().max(40).nullable().optional(),
+  eslesme: z.record(z.string().max(40)).optional(),        // hedef fnUid → kaynak fnUid
+  satir: z.boolean().optional(),                           // çok satırlı fonksiyonlar da taşınır
+  ata: z.string().max(40).nullable().optional(),           // hedef kaydın kişi alanına yazılacak kullanıcı ('' : aktaran)
+  ataFn: z.string().max(40).nullable().optional(),
+});
+
 // tablo → { anahtar, sema (kısmi güncellemede .partial()), json alanları, silmeden önce kontrol }
 const T = {
-  moduller: { anahtar: 'id', id: true, sema: z.object({ ad, renk, ikon: z.string().max(30).optional(), onek: z.string().regex(/^[A-ZÇĞİÖŞÜ0-9]{1,10}$/), tur: z.enum(['proje', 'kart']).optional(), acik: z.boolean().optional(), sira: z.number().int().optional(), sistem: JSONV.optional() }), json: ['sistem'],
+  moduller: { anahtar: 'id', id: true, sema: z.object({ ad, renk, ikon: z.string().max(30).optional(), onek: z.string().regex(/^[A-ZÇĞİÖŞÜ0-9]{1,10}$/), tur: z.enum(['proje', 'kart']).optional(), acik: z.boolean().optional(), sira: z.number().int().optional(), sistem: JSONV.optional(), aktarimlar: z.array(AktarimSema).max(20).optional() }), json: ['sistem', 'aktarimlar'],
     silKontrol: async (db, id) => (await db('kartlar').where({ modul_id: id }).first()) && 'Bu modülde kayıt var; modül kapatılabilir ama silinemez' },
-  durumlar: { anahtar: 'id', sema: z.object({ modul_id: kimlik, ad, renk, sira: z.number().int().optional(), kapat: z.boolean().optional() }),
+  durumlar: { anahtar: 'id', sema: z.object({ modul_id: kimlik, ad, renk, sira: z.number().int().optional(), kapat: z.boolean().optional(), gecis: z.enum(['', 'acan', 'acanYonetim']).optional() }),
     silKontrol: async (db, id) => ((await db('kartlar').where({ durum_id: id }).first()) || (await db('projeler').where({ durum_id: id }).first())) && 'Bu durumda kayıt var' },
-  fonksiyonlar: { anahtar: 'uid', sema: z.object({ modul_id: kimlik, tip: z.string().max(20), ad, zorunlu: z.boolean().optional(), grup: z.string().max(250).nullable().optional(), tarih_vars: z.string().max(20).optional(), sekme: z.string().max(60).optional(), kanban: z.boolean().optional(), liste: z.boolean().optional(), sira: z.number().int().optional(), yetki: z.record(z.enum(['duzenle', 'gor', 'gizli'])).optional() }), json: ['yetki'],
+  fonksiyonlar: { anahtar: 'uid', sema: z.object({ modul_id: kimlik, tip: z.string().max(20), ad, zorunlu: z.boolean().optional(), grup: z.string().max(250).nullable().optional(), tarih_vars: z.string().max(20).optional(), sekme: z.string().max(60).optional(), kanban: z.boolean().optional(), liste: z.boolean().optional(), sira: z.number().int().optional(), yetki: z.record(z.enum(['duzenle', 'gor', 'gizli'])).optional(), ayar: FnAyar.optional() }), json: ['yetki', 'ayar'],
     // Veri olsa da silinir: değeri olan her kaydın geçmişine son değer yazılır, sonra değerler silinir
     silOnce: async (trx, id, u) => fonksiyonVerisiniGecmiseYaz(trx, id, u) },
   opsiyonlar: { anahtar: 'id', sema: z.object({ grup: z.string().trim().min(1).max(60), ad, varsayilan: z.boolean().optional(), tur: z.enum(['select', 'radio', 'check']).optional(), sira: z.number().int().optional() }) },
@@ -131,13 +150,41 @@ firmaRouter.put('/', async (req, res) => {
 // ---------- kullanıcılar ----------
 export const kullaniciRouter = Router();
 kullaniciRouter.use(yoneticiGerekli);
+const LimitV = z.number().nonnegative().max(1e12).nullable().optional();
+const TarihV = z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/);
+const SaatV = z.string().regex(/^(([01]\d|2[0-3]):[0-5]\d)?$/);
 const KSema = z.object({
   ad, unvan: z.string().max(150).optional(), eposta: z.string().trim().toLowerCase().email().max(254),
   tel: z.string().max(40).optional(), rol: z.enum(['yonetici', 'personel']).optional(),
   foto: z.string().max(60000).regex(/^(data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)?$/).optional(), // 96 px küçük resim
   grup_id: z.string().max(40).nullable().optional(), departman: z.string().max(100).nullable().optional(), aktif: z.boolean().optional(),
+  // fiyat onayı: bir üst yönetici ve para birimi başına onay limiti
+  ust_id: z.string().max(40).nullable().optional(),
+  onay_limit: z.object({ TL: LimitV, USD: LimitV, EUR: LimitV }).partial().optional(),
+  // misafir kullanıcı
+  tur: z.enum(['kullanici', 'misafir']).optional(),
+  firma: z.string().trim().max(250).nullable().optional(),
+  gecerli_bas: TarihV.nullable().optional(), gecerli_bit: TarihV.nullable().optional(),
+  saat_bas: SaatV.nullable().optional(), saat_bit: SaatV.nullable().optional(),
+  gunler: z.string().regex(/^[1-7]{0,7}$/).nullable().optional(),
+  gorunum: z.enum(['kendi', 'firma']).nullable().optional(),
 });
+// Kullanıcı satırına yazılacak hale getirir (JSON alanı, boş değerler)
+function kulSatir(v) {
+  const d = { ...v };
+  if (v.onay_limit !== undefined) d.onay_limit = JSON.stringify(Object.fromEntries(Object.entries(v.onay_limit || {}).filter(([, x]) => x !== null && x !== undefined)));
+  for (const k of ['ust_id', 'firma', 'gecerli_bas', 'gecerli_bit', 'saat_bas', 'saat_bit', 'gunler', 'gorunum']) if (d[k] === '') d[k] = null;
+  return d;
+}
 const geciciSifre = () => crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x') + '7';
+
+// ust zincirinde kişinin kendisine dönülüyor mu
+async function ustDongusu(db, id, ust) {
+  const L = await db('kullanicilar').select('id', 'ust_id');
+  const m = new Map(L.map((x) => [x.id, x.ust_id]));
+  for (let x = ust, n = 0; x && n < 50; x = m.get(x), n++) if (x === id) return true;
+  return false;
+}
 
 kullaniciRouter.get('/', async (req, res) => {
   const L = await req.db('kullanicilar').orderBy('ad');
@@ -150,7 +197,9 @@ kullaniciRouter.post('/', async (req, res) => {
   const id = req.body.id ? kimlik.parse(req.body.id) : yeniId();
   if (await req.db('kullanicilar').where({ id }).first()) throw new HttpHata(409, 'Bu kimlikte kullanıcı var');
   const sifre = geciciSifre();
-  await req.db('kullanicilar').insert({ id, ...v, foto: v.foto || null, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
+  if (v.ust_id && v.ust_id === id) throw new HttpHata(400, 'Kullanıcı kendi yöneticisi olamaz');
+  if (v.tur === 'misafir') v.rol = 'personel'; // misafir yönetici olamaz
+  await req.db('kullanicilar').insert({ id, ...kulSatir(v), foto: v.foto || null, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
   const eposta = await sifreEpostasi(req, { ad: v.ad, eposta: v.eposta, tercih: req.kullanici.tercih }, sifre, true); // yeni kullanıcı: yöneticinin dili
   res.status(201).json({ id, geciciSifre: sifre, eposta }); // geçici şifre yalnız bir kez gösterilir
 });
@@ -163,7 +212,9 @@ kullaniciRouter.put('/:id', async (req, res) => {
     const n = Number((await db('kullanicilar').where({ rol: 'yonetici', aktif: true }).count({ n: '*' }).first()).n);
     if (n < 2) throw new HttpHata(400, 'Son aktif yönetici pasife alınamaz ya da personele çevrilemez');
   }
-  const d = { ...v, guncelleyen: req.kullanici.id, guncelleme: new Date() };
+  if (v.ust_id && await ustDongusu(db, u.id, v.ust_id)) throw new HttpHata(400, 'Yönetici zinciri döngüye giriyor (kişi kendi altındaki birine bağlanamaz)');
+  if ((v.tur || u.tur) === 'misafir') { if (u.rol === 'yonetici' && v.tur === 'misafir') throw new HttpHata(400, 'Yönetici misafire çevrilemez; önce rolünü personel yap'); v.rol = 'personel'; }
+  const d = { ...kulSatir(v), guncelleyen: req.kullanici.id, guncelleme: new Date() };
   if (v.foto !== undefined) d.foto = v.foto || null;
   if (v.aktif === false || (v.rol && v.rol !== u.rol)) d.oturum_surumu = u.oturum_surumu + 1; // açık oturumları düşür
   await db('kullanicilar').where({ id: u.id }).update(d);

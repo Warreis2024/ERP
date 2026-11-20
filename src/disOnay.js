@@ -23,7 +23,7 @@ export function musteriAlanlari(html) {
   for (const m of metin.matchAll(MUSTERI_RE)) {
     const ad = (m[1] || m[2]).replace(/\s+/g, ' ').trim().slice(0, SINIR.alanAd);
     if (!ad || L.some((x) => x.ad === ad)) continue;
-    L.push({ ad, tip: /imza|signature|unterschrift|firma\b/.test(kucuk(ad)) ? 'imza' : 'metin' });
+    L.push({ ad, tip: /imza|signature|unterschrift/.test(kucuk(ad)) ? 'imza' : 'metin' }); // 'firma' (İsp. imza) Türkçede şirket demek: imza sayılmaz
     if (L.length >= SINIR.alanSayisi) break;
   }
   return L;

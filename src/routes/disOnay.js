@@ -4,6 +4,7 @@
 // Bütün sorgular Knex ile parametrelidir; anahtar biçimi ve gövde zod/elle doğrulanır.
 import { Router } from 'express';
 import { z } from 'zod';
+import { kayitGorur } from '../kurallar/misafir.js';
 import { HttpHata } from '../hata.js';
 import { json } from '../db.js';
 import { yazabilir, okuyabilir, fnErisim } from '../kurallar/yetki.js';
@@ -36,7 +37,7 @@ const disApi = (r, u) => {
 
 async function kartVeAlan(req, kartId, fnUid) {
   const kart = await req.db('kartlar').where({ id: kartId, silindi: false }).first();
-  if (!kart) throw new HttpHata(404, 'Kayıt bulunamadı');
+  if (!kart || !kayitGorur(req.kullanici, 'kart', kart.id)) throw new HttpHata(404, 'Kayıt bulunamadı');
   const tanim = await tanimlar(req);
   const m = tanim.modul(kart.modul_id);
   const f = m?.fn.find((x) => x.uid === fnUid && x.tip === 'sablon');
@@ -78,7 +79,7 @@ disYonetim.post('/dis-onay', async (req, res) => {
 disYonetim.get('/dis-onay', async (req, res) => {
   const kartId = Kimlik.parse(req.query.kartId);
   const kart = await req.db('kartlar').where({ id: kartId }).first();
-  if (!kart) throw new HttpHata(404, 'Kayıt bulunamadı');
+  if (!kart || !kayitGorur(req.kullanici, 'kart', kart.id)) throw new HttpHata(404, 'Kayıt bulunamadı');
   if (!okuyabilir(req.kullanici, kart.modul_id)) throw new HttpHata(403, 'Yetkin yok');
   const L = await req.db('dis_onaylar').where({ kart_id: kartId }).orderBy('olusturma', 'desc').limit(30);
   const yaz = yazabilir(req.kullanici, kart.modul_id);
@@ -88,7 +89,7 @@ disYonetim.get('/dis-onay', async (req, res) => {
 disYonetim.post('/dis-onay/:id/iptal', async (req, res) => {
   const id = Kimlik.parse(req.params.id);
   const r = await req.db('dis_onaylar').where({ id }).first();
-  if (!r) throw new HttpHata(404, 'Bulunamadı');
+  if (!r || !kayitGorur(req.kullanici, 'kart', r.kart_id)) throw new HttpHata(404, 'Bulunamadı');
   if (!yazabilir(req.kullanici, r.modul_id)) throw new HttpHata(403, 'Bu modülde yazma yetkin yok');
   const n = await req.db('dis_onaylar').where({ id, durum: 'bekliyor' }).update({ durum: 'iptal', guncelleyen: req.kullanici.id, guncelleme: new Date() });
   if (n) await logYaz(req.db, req.kullanici, { projeId: r.proje_id, modulId: r.modul_id, kartId: r.kart_id }, { tip: 'alan', alan: r.baslik, metin: 'Dış onay bağlantısı iptal edildi' });

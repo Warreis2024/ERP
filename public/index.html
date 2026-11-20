@@ -310,6 +310,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .form .etiket-ekle input[type=color]{flex:none}
 .form .etiket-ekle .btn{flex:none;height:36px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.misafir-kutu{border:1px dashed var(--line);border-radius:10px;padding:10px;display:grid;gap:8px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .adres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .adres .tam{grid-column:1 / -1}
@@ -497,6 +498,14 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .bal .alinti{border-left:3px solid var(--accent);padding:2px 8px;margin-bottom:6px;font-size:12px;color:var(--muted);white-space:normal;background:color-mix(in srgb,var(--surface) 60%,transparent);border-radius:0 6px 6px 0}
 .bal .ekler{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .bal .ekler audio{width:260px;max-width:100%}.bal .ekler video{width:220px;max-height:180px;border-radius:8px;background:#000}
+.efor{display:grid;gap:8px}.efor-ust{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.efor-durum{font-weight:600;display:inline-flex;gap:6px;align-items:center}.efor-durum.calisiyor{color:#2e8b57}.efor-durum.molada{color:#c47f00}.efor-gecmis summary{cursor:pointer;color:var(--mut,#777);font-size:13px}
+.efor-cip{display:inline-flex;align-items:center;gap:6px;border:1px solid #2e8b57;color:#2e8b57;background:rgba(46,139,87,.08);border-radius:16px;padding:3px 10px;font:inherit;font-size:13px;cursor:pointer;margin-right:6px}.efor-cip.mola{border-color:#c47f00;color:#c47f00;background:rgba(196,127,0,.08)}.efor-cip.eski{border-color:#c0392b;color:#c0392b;background:rgba(192,57,43,.08)}
+.akt-bant{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--pri,#2b62e3);border-radius:10px;background:rgba(43,98,227,.07)}.akt-bant>div{flex:1;display:flex;flex-direction:column}
+.akt-eksik>label,.akt-eksik>.lbl{outline:2px solid #c0392b;outline-offset:3px;border-radius:6px}
+.bag-liste{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.bag-cip{border:1px solid var(--line);background:var(--card,transparent);border-radius:16px;padding:3px 10px;cursor:pointer;font:inherit;color:inherit}.bag-cip span{color:var(--mut,#777);margin-left:4px}
+.akt-kart{display:grid;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px;margin:6px 0}
+.fiyat-durum{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid var(--line)}.fiyat-durum.uyari{border-color:#e0a030;background:rgba(224,160,48,.1)}.fiyat-durum.iyi{border-color:#2e8b57;background:rgba(46,139,87,.08)}.fiyat-durum.kotu{border-color:#c0392b;background:rgba(192,57,43,.08)}.fiyat-durum .rowbtns{margin-left:auto}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ck-sec{display:flex;flex-wrap:wrap;gap:4px 14px}
 .tel-qr{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.tel-qr-kod{width:190px;height:190px;background:#fff;padding:6px;border-radius:10px;border:1px solid var(--line)}.tel-qr-kod svg{width:100%;height:100%;display:block}.tel-qr>div:last-child{flex:1;min-width:200px}
 .tel-liste{display:flex;flex-direction:column;gap:6px;margin-top:4px}.tel-cihaz{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.tel-cihaz>div{flex:1;display:flex;flex-direction:column}
 .bal .ekler img{width:120px;height:90px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block}
@@ -977,11 +986,12 @@ const FN = [
   ['sablon',_t('Şablon'),'sablon'],['yer',_t('Adres'),'konum'],['sayi',_t('Kısa Sayı'),'sayi'],['fiyat',_t('Fiyat'),'para'],
   ['evet',_t('Evet / Hayır'),'evet'],['yuzde',_t('Yüzde / İlerleme'),'yuzde'],['eposta',_t('E-posta'),'mail'],['telefon',_t('Telefon'),'tel'],
   ['sure',_t('Süre / Efor'),'saat'],['imza',_t('İmza'),'imza'],['konum',_t('Konum'),'konum'],
-  ['stok',_t('Stok Hareketi'),'kutu'],['depo',_t('Depo'),'kamyon'],['kontrol',_t('Kontrol Listesi'),'onay']
+  ['stok',_t('Stok Hareketi'),'kutu'],['depo',_t('Depo'),'kamyon'],['kontrol',_t('Kontrol Listesi'),'onay'],
+  ['fiyatonay',_t('Fiyat Onayı'),'para'],['efor',_t('Zaman Takibi (Efor)'),'saat'],['ticket',_t('Ticket (e-posta)'),'mail']
 ];
 // Yıldız Puan ölçeği fonksiyon tanımındaki tarihVarsayilan (veritabanında tarih_vars) alanında tutulur: '10' ya da boş (5).
 const puanMax=f=>f&&f.tarihVarsayilan==='10'?10:5;
-const COKLU = new Set(['ekip','karar','dokuman','mali','mesaj','baglanti','etiket','sure','stok','kontrol']);
+const COKLU = new Set(['ekip','karar','dokuman','mali','mesaj','baglanti','etiket','sure','stok','kontrol','efor','ticket']);
 const PALET16=['#C00000','#FF0000','#FF6600','#FFC000','#FFFF00','#92D050','#00B050','#00897B','#00B0F0','#0070C0','#002060','#7030A0','#FF66CC','#833C0B','#7F7F7F','#000000'];
 const yaziRengi=h=>{ const m=String(h||'').replace('#',''); if(m.length<6) return '#fff'; const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16); return (r*299+g*587+b*114)/1000>150?'#1a1a1a':'#fff'; };
 const EMOJI=['😀','😂','😊','😍','🙂','😉','🤔','😅','😢','😡','👍','👎','👏','🙏','🤝','💪','👌','👀','✍️','🎉','✅','❌','⚠️','❗','❓','💡','📌','📎','📷','📞','📧','🗓️','⏰','🚚','🔧','🛠️','⚙️','📦','💰','📈','📉','📝','🔥','⭐','🏭','🔒','🧾','📍','🧪','🚀'];
@@ -1034,7 +1044,32 @@ function yazabilir(mid){ return yetki(mid)==='yaz'; }
 function izin(mid, tip){ const u=ben(); if(!u) return false; if(u.rol==='yonetici') return true; return yetki(mid)!=='yok' && !!(u.ek&&u.ek[mid]&&u.ek[mid][tip]); }
 function fnErisim(f){
   const u=ben(); if(!u||u.rol==='yonetici') return 'duzenle';
-  const v=f&&f.yetki&&f.yetki[u.grup]; return v==='gor'||v==='gizli'?v:'duzenle';
+  const v=f&&f.yetki&&f.yetki[u.grup]; if(v==='gor'||v==='gizli') return v;
+  return fnKilit(f)?'gor':'duzenle';
+}
+// Fonksiyonun "Değiştirebilir" kuralı, açık formdaki kayda göre (sunucuda da uygulanır). Kilitliyse sebebini döner.
+function fnKilit(f){
+  const k=f&&f.ayar&&f.ayar.degistir, u=ben();
+  if(!k||!u||u.rol==='yonetici'||!ui.form||!ui.form.tur) return '';
+  if(k==='yonetim') return _t('Bu alanı yalnız yönetim değiştirebilir');
+  if(ui.form.yeni) return '';
+  const kayit=ui.form.tur==='proje'?S.projeler.find(p=>p.id===ui.form.id):S.kartlar.find(x=>x.id===ui.form.id);
+  const acan=kayit&&(kayit.olusturan||kayit.yazarId);
+  if(k==='acan') return acan&&acan!==u.id?_t('Bu alanı yalnız kaydı açan ve yönetim değiştirebilir'):'';
+  if(k==='kilit') return S.degerler.some(d=>d.fnUid===f.uid&&(ui.form.tur==='proje'?d.projeId===ui.form.id&&!d.kartId:d.kartId===ui.form.id))?_t('Bu alan kaydedildikten sonra kilitlenir'):'';
+  return '';
+}
+// Formdaki durum seçeneğinin etiketi: kapatır / geçiş kilidi
+function durumEtiket(d){
+  const kayit=ui.form&&!ui.form.yeni?(ui.form.tur==='proje'?S.projeler.find(p=>p.id===ui.form.id):S.kartlar.find(x=>x.id===ui.form.id)):null;
+  return d.ad+(d.kapat?_t(' (kapatır)'):'')+(kayit&&d.id!==kayit.durumId&&!durumGecebilir(d,kayit)?' 🔒':'');
+}
+// Durumun "kim geçirebilir" kuralı
+function durumGecebilir(d, kayit){
+  const u=ben(); if(!d||!d.gecis||!u) return true;
+  if(d.gecis==='acanYonetim'&&u.rol==='yonetici') return true;
+  const acan=kayit&&(kayit.olusturan||kayit.yazarId);
+  return !acan||acan===u.id;
 }
 function fnGorunur(f){ return fnErisim(f)!=='gizli'; }
 function sistemVars(){ return {_olusturma:{kanban:false,liste:true},_olusturan:{kanban:false,liste:true},_guncelleyen:{kanban:false,liste:true},_guncelleme:{kanban:false,liste:true}}; }
@@ -1146,7 +1181,9 @@ function degerBos(f,row){
     case 'firma': return !String(row.firma||'').trim();
     case 'yer': { const ulke=String(row.ulke||'').trim(); return ![row.yer,row.il,row.ilce].some(x=>String(x||'').trim()) && (!ulke || ulke==='Türkiye'); }
     case 'sayi': case 'yuzde': return String(row.adet??'').trim()==='';
-    case 'fiyat': return String(row.tutar??'').trim()==='';
+    case 'fiyat': case 'fiyatonay': return String(row.tutar??'').trim()==='';
+    case 'efor': return !row.zaman||!row.tur;
+    case 'ticket': return !String(row.metin||'').trim();
     case 'tur': return !row.tur;
     case 'evet': return row.metin!=='Evet';
     case 'sure': return String(row.adet??'').trim()==='' && !String(row.metin||'').trim();
@@ -1188,6 +1225,9 @@ function ozet(row){
     case 'sayi': return String(row.adet??'');
     case 'yuzde': return String(row.adet??'')!==''?'%'+row.adet:'';
     case 'fiyat': return [row.tutar,row.para].filter(x=>String(x??'').trim()).join(' ');
+    case 'ticket': return [row.tur==='yanit'?_t('Yanıt'):_t('E-posta'), row.kisi].filter(Boolean).join(' · ');
+    case 'efor': return [kisiAd(row.kisi), EFOR_TUR()[row.tur]||row.tur, String(row.adet??'').trim()&&sayiOku(row.adet)>0?dakikaYaz(sayiOku(row.adet)):''].filter(Boolean).join(' · ');
+    case 'fiyatonay': return [[row.tutar,row.para].filter(x=>String(x??'').trim()).join(' '), FIYAT_DURUM()[row.onay]||''].filter(Boolean).join(' · ');
     case 'evet': return row.metin==='Evet'?_t('Evet'):_t('Hayır');
     case 'sure': return [String(row.adet||'')?row.adet+' sa':'', kisiAd(row.kisi), metin].filter(Boolean).join(' · ');
     case 'imza': return row.url?('İmzalı'+(row.kisi?' · '+row.kisi:'')):'';
@@ -1427,7 +1467,7 @@ function ornek(s){
 /*i18n-var*/
 function migrate(s){
   s.sema=s.sema||1; s.seq=s.seq||1000;
-  ['log','sablonlar','opsiyonlar','degerler','kartlar','projeler','moduller','durumlar','kullanicilar','firmalar','kisiler','epostalar','panolar','yetkiGruplari','depolar','malzemeler','kiosklar','departmanlar','ciktilar'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
+  ['log','sablonlar','opsiyonlar','degerler','kartlar','projeler','moduller','durumlar','kullanicilar','firmalar','kisiler','epostalar','panolar','yetkiGruplari','depolar','malzemeler','kiosklar','departmanlar','ciktilar','baglar'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
   s.firma=s.firma||{ad:'Firma',sub:'firma',logo:''};
   s.firma.depo=s.firma.depo||'yerel'; s.firma.depoBagli=s.firma.depoBagli||{gdrive:false,onedrive:false};
   if(!s.depolar.length) s.depolar=varsayilanDepolar();
@@ -1848,6 +1888,7 @@ function kontrol(f, row, ck){
     case 'firma': return ortak('firma',`<input list="firmaDL" value="${esc(row.firma)}" placeholder="${_t('Kayıtlı firma ya da yeni ad')}" autocomplete="off">`);
     case 'yer': return adresHTML(row, ortak);
     case 'sayi': return `<div class="sayi-kisa">${ortak('adet',`<input inputmode="decimal" value="${esc(row.adet)}" placeholder="0">`)}</div>`;
+    case 'fiyatonay': return `<div class="fiyat">${ortak('tutar',`<input inputmode="decimal" value="${esc(row.tutar)}" placeholder="0,00">`)}${ortak('para',`<select>${secOp(['TRY','USD','EUR','GBP','CHF'], row.para||'TRY')}</select>`)}</div>`;
     case 'fiyat': return `<div class="fiyat">${ortak('tutar',`<input inputmode="decimal" value="${esc(row.tutar)}" placeholder="0,00">`)}${ortak('para',`<select>${secOp(['TRY','EUR','USD'], row.para||'TRY')}</select>`)}</div>`;
     case 'tur': return alanGrup(grup, row.tur, ck?`data-ck="${f.uid}" data-i="${ck.i}" data-k="tur"`:`data-sk="${f.uid}" data-k="tur"`);
     case 'baglanti': return `<div class="two">${ortak('metin',`<input value="${esc(row.metin)}" placeholder="${_t('Ad')}">`)}${ortak('url',`<input type="url" value="${esc(row.url)}" placeholder="https://">`)}</div>`;
@@ -2033,6 +2074,8 @@ function dokPaylas(r){
 /* ---------- çoklu satırlar ---------- */
 function cokluHTML(f){
   const rows=ui.form.coklu[f.uid]||[];
+  if(f.tip==='efor') return eforHTML(f, rows);
+  if(f.tip==='ticket') return rows.length?`<div class="ticket-liste">${rows.slice().sort((a,b)=>String(a.zaman).localeCompare(String(b.zaman))).map(r=>`<div class="zaman">${ic('mail')} ${r.tur==='yanit'?_t('Yanıt geldi'):_t('E-postadan açıldı')} · ${esc(r.not?r.not+' <'+r.kisi+'>':r.kisi||'')} · ${esc(trh(String(r.zaman).slice(0,10)))} ${esc(String(r.zaman).slice(11,16))}</div>`).join('')}</div>`:`<p class="zaman">${_t('Bu kayıt e-postadan açılmadı.')}</p>`;
   if(f.tip==='dokuman') return dokumanHTML(f, rows);
   if(f.tip==='etiket'){
     const chipler=rows.filter(r=>String(r.metin||'').trim()).map(r=>{
@@ -2201,17 +2244,247 @@ function modulSekmeler(m){
   (m.fn||[]).filter(fnGorunur).forEach(f=>{ const a=sekmeAd(f); if(!ad.includes(a)) ad.push(a); });
   return ad.length?ad:['Genel'];
 }
-const DIV_TIP=new Set(['imza','konum','yuzde','evet','yer','sablon']);
+const DIV_TIP=new Set(['imza','konum','yuzde','evet','yer','sablon','fiyatonay']);
+/* --- Ticket: modüle bağlı e-posta kutusundan kayıt (sunucu modunda) --- */
+function ticketAyarHTML(f, m){
+  const a=(f.ayar||{}).ticket||{}, sel=(k,ops,bos)=>`<select data-fn-ticket="${f.uid}:${k}">${secOp(ops, a[k]||'', bos)}</select>`;
+  const genel=`<div class="lbl">${_t('Ticket ayarı')}<div class="two"><label>${_t('Kayıtların açılacağı proje')}${sel('projeId', projelerA().filter(p=>!p.arsiv).map(p=>[p.id,p.kod+' · '+p.ad]), _t('Seç…'))}</label><label>${_t('İlk durum')}${sel('durumId', akis(m.id).map(d=>[d.id,d.ad]), _t('İlk durum'))}</label></div>
+    <div class="two"><label>${_t('Konu yazılacak alan')}${sel('konuFn', m.fn.filter(x=>x.tip==='light').map(x=>[x.uid,x.ad]), _t('İlk kısa metin'))}</label><label>${_t('E-posta metni yazılacak alan')}${sel('govdeFn', m.fn.filter(x=>['aciklama','rich','zengin','light'].includes(x.tip)).map(x=>[x.uid,x.ad]), _t('İlk açıklama'))}</label></div>
+    <p class="zaman">${_t('Okunmamış her e-posta bu modülde yeni kayıt açar. Konuda kayıt kodu varsa ([{0}-1001] gibi) e-posta o kayda mesaj olarak eklenir. Gönderen rehberdeki e-postasıyla firmaya bağlanır. Kutu, modül açıldığında en çok 2 dakikada bir kontrol edilir.', esc(m.onek||''))}</p></div>`;
+  if(!API.acik) return genel+`<p class="zaman">${_t('E-posta kutusu sunucu modunda bağlanır.')}</p>`;
+  ui.ticket=ui.ticket||{};
+  const d=ui.ticket[f.uid];
+  if(d===undefined){ ui.ticket[f.uid]=null; apiIstek('/ticket/'+encodeURIComponent(f.uid)).then(v=>{ ui.ticket[f.uid]=v; renderMain(); }).catch(e=>{ ui.ticket[f.uid]={hata:e.message}; renderMain(); }); }
+  if(!d) return genel+`<p class="zaman">${_t('Yükleniyor…')}</p>`;
+  const son=d.son?_t('Son kontrol: {0}', trh(d.son.slice(0,10))+' '+new Date(d.son).toLocaleTimeString(LOKAL,{hour:'2-digit',minute:'2-digit'}))+(d.sonuc?' · '+_t('{0} yeni, {1} yanıt', d.sonuc.yeni||0, d.sonuc.yanit||0):''):'';
+  return genel+`<div class="lbl">${_t('E-posta kutusu (IMAP)')}<div class="form" id="ticketForm" data-uid="${f.uid}"><div class="two"><label>${_t('IMAP sunucusu')}<input name="host" value="${esc(d.host||'')}" placeholder="imap.gmail.com"></label><label>${_t('Port')}<input name="port" inputmode="numeric" value="${esc(d.port||993)}"></label></div>
+    <div class="two"><label>${_t('Kullanıcı (e-posta)')}<input name="kullanici" value="${esc(d.kullanici||'')}" autocomplete="off"></label><label>${_t('Şifre / uygulama şifresi')}<input name="sifre" type="password" autocomplete="new-password" placeholder="${d.sifreKayitli?esc(_t('Kayıtlı · değiştirmek için yaz')):''}"></label></div>
+    <label>${_t('Klasör')}<input name="klasor" value="${esc(d.klasor||'INBOX')}"></label>
+    <div class="rowbtns"><button type="button" class="btn sm pri" data-act="ticket-kaydet" data-uid="${f.uid}">${_t('Test et ve kaydet')}</button>${d.sifreKayitli?`<button type="button" class="btn sm" data-act="ticket-kontrol" data-fn="${f.uid}" data-mid="${m.id}">${ic('mail')}${_t('Şimdi kontrol et')}</button>`:''}</div>
+    <p class="zaman">${esc(son)}${d.hata?' · '+esc(sunucuHatasi(d.hata)):''}</p><p class="zaman">${_t('Gmail ve Outlook için hesabın IMAP erişimi açık olmalı ve normal şifre yerine "uygulama şifresi" kullanılmalı. Şifre şifreli kasada tutulur, ekrana geri gelmez.')}</p></div></div>`;
+}
+function ticketKontrol(mid, fnUid, zorla){
+  const m=modul(mid); if(!m||!API.acik) return Promise.resolve();
+  const L=(m.fn||[]).filter(f=>f.tip==='ticket'&&(!fnUid||f.uid===fnUid));
+  return L.reduce((p,f)=>p.then(()=>apiIstek('/ticket/'+encodeURIComponent(f.uid)+'/kontrol',{method:'POST', govde:{zorla:!!zorla}}).then(r=>{
+    if(ui.ticket) delete ui.ticket[f.uid];
+    if(r.atlandi){ if(zorla) toast(_t('Kutu az önce kontrol edildi')); return; }
+    if((r.yeni||0)+(r.yanit||0)>0){
+      toast(_t('{0} yeni ticket, {1} e-posta yanıtı: {2}', r.yeni||0, r.yanit||0, (r.kodlar||[]).join(', ')), 6000);
+      API.kuyruk=API.kuyruk.then(async()=>{ if(JSON.stringify(iz(S))!==JSON.stringify(API.son)) return; await durumYukle(); renderSide(); renderTop(); if(!ui.form&&!ui.cekmece) renderMain(); }).catch(()=>{});
+    } else if(zorla) toast(_t('Yeni e-posta yok'));
+  }).catch(e=>{ if(zorla) toast(sunucuHatasi(e.message)); })), Promise.resolve());
+}
+// Modül açılınca (en çok 2 dakikada bir) kendiliğinden
+function ticketOto(m){
+  if(!API.acik||!yazabilir(m.id)||!(m.fn||[]).some(f=>f.tip==='ticket')) return;
+  ui.ticketSon=ui.ticketSon||{};
+  if(Date.now()-(ui.ticketSon[m.id]||0)<120000) return;
+  ui.ticketSon[m.id]=Date.now();
+  setTimeout(()=>ticketKontrol(m.id), 50);
+}
+/* --- Misafir kullanıcı: tür, firma, görünürlük, giriş penceresi --- */
+function misafirAyarHTML(u){
+  const tur=`<label>${_t('Tür')}<select data-user="${u.id}" data-alan="tur" ${u.sistem?'disabled':''}>${secOp([['kullanici',_t('Kullanıcı')],['misafir',_t('Misafir (dışarıdan, süreli)')]], u.tur==='misafir'?'misafir':'kullanici')}</select></label>`;
+  if(u.tur!=='misafir') return tur;
+  const GUN=[[1,_t('Pzt')],[2,_t('Sal')],[3,_t('Çar')],[4,_t('Per')],[5,_t('Cum')],[6,_t('Cmt')],[7,_t('Paz')]];
+  return tur+`<div class="lbl misafir-kutu">${_t('Misafir erişimi')}
+    <label>${_t('Firma')}<input list="firmaDL" data-user="${u.id}" data-alan="firma" value="${esc(u.firma||'')}" placeholder="${_t('Rehberdeki firma')}"></label>
+    <label>${_t('Görebileceği kayıtlar')}<select data-user="${u.id}" data-alan="gorunum">${secOp([['kendi',_t('Yalnız kendi kayıtları (açtığı ya da kişi alanında adı geçen)')],['firma',_t('Firmasının kayıtları da (Firma alanı eşleşen kayıt ve projeler)')]], u.gorunum==='firma'?'firma':'kendi')}</select></label>
+    <div class="two"><label>${_t('Başlangıç tarihi')}<input type="date" data-user="${u.id}" data-alan="gecerliBas" value="${esc(u.gecerliBas||'')}"></label><label>${_t('Bitiş tarihi')}<input type="date" data-user="${u.id}" data-alan="gecerliBit" value="${esc(u.gecerliBit||'')}"></label></div>
+    <div class="two"><label>${_t('Giriş saati: başlangıç')}<input type="time" data-user="${u.id}" data-alan="saatBas" value="${esc(u.saatBas||'')}"></label><label>${_t('Giriş saati: bitiş')}<input type="time" data-user="${u.id}" data-alan="saatBit" value="${esc(u.saatBit||'')}"></label></div>
+    <div class="ck-sec">${GUN.map(([g,ad])=>`<label class="anahtar"><input type="checkbox" data-ugun="${u.id}:${g}" ${String(u.gunler||'').includes(String(g))?'checked':''}><span>${ad}</span></label>`).join('')}</div>
+    <p class="zaman">${_t('Misafir normal kullanıcı gibi e-posta ve şifreyle girer; yetkileri yetki grubundan gelir. Tarih, gün ve saat dışında yeni giriş yapamaz (açık oturumu kapanmaz). Saatler İstanbul saatidir. Boş bırakılan sınır uygulanmaz. Misafir kullanıcı sayısına girer.')}</p></div>`;
+}
+/* --- Açık form bağlantısı: kayıt açmadan dışarıdan yeni kayıt (sunucu modunda) --- */
+const MUSTERI_ALAN_RE=/\[\[\s*([^\[\]]+?)\s*\]\]/g;
+const sablonMusteriAlanlari=html=>[...new Set([...String(html||'').replace(/<[^>]*>/g,'').matchAll(MUSTERI_ALAN_RE)].map(x=>x[1].replace(/\s+/g,' ').trim()))];
+function acikFormYukle(zorla){
+  if(!API.acik||(ui.acikForm&&!zorla)) return;
+  ui.acikForm={L:null};
+  apiIstek('/acik-formlar').then(L=>{ ui.acikForm={L}; if(ui.ekran==='ayar') renderMain(); }).catch(e=>{ ui.acikForm={L:[], hata:e.message}; if(ui.ekran==='ayar') renderMain(); });
+}
+function acikFormAyarHTML(m){
+  const bas=`<div class="lbl">${_t('Açık form bağlantısı')}<p class="zaman">${_t('Kayıt açmadan, kalıcı bir bağlantı ya da QR ile dışarıdan doldurulan form. Gönderilen her form bu modülde yeni kayıt açar. Formun alanları şablondaki [[Alan]] işaretleridir; aynı adlı fonksiyona kendiliğinden yazılır. Dolduran kişiye takip bağlantısı verilir.')}</p>`;
+  if(!API.acik) return bas+`<p class="zaman">${_t('Sunucu modunda çalışır.')}</p></div>`;
+  if(ben().rol!=='yonetici') return '';
+  acikFormYukle();
+  const d=ui.acikForm||{}; if(!d.L) return bas+`<p class="zaman">${_t('Yükleniyor…')}</p></div>`;
+  const sablonlar=S.sablonlar.filter(x=>sablonMusteriAlanlari(x.metin).length);
+  const L=d.L.filter(x=>x.modulId===m.id);
+  const kart=x=>{
+    const sb=S.sablonlar.find(y=>y.id===x.sablonId), alanlar=sablonMusteriAlanlari(sb?.metin), url=x.anahtar?location.origin+'/onay.html#f='+x.anahtar:'';
+    const nm=s=>String(s||'').trim().toLocaleLowerCase(LOKAL);
+    const es=alanlar.map(a=>{ const el=(x.eslesme||{})[a]||''; const oto=!el&&m.fn.find(f=>nm(f.ad)===nm(a)); return `<tr><td>[[${esc(a)}]]</td><td><select data-af-es="${x.id}:${esc(a)}">${secOp([['',oto?_t('Otomatik: {0}', oto.ad):_t('Yazılmaz (yalnız belgede kalır)')],['-',_t('Yazılmaz')],...m.fn.filter(f=>!['gecmis','mesaj','efor','fiyatonay','kontrol','dokuman','sablon','stok','mali','karar','ekip'].includes(f.tip)).map(f=>[f.uid,f.ad])], el)}</select></td></tr>`; }).join('');
+    return `<div class="akt-kart"><div class="rowbtns"><b>${esc(x.ad)}</b><span class="zaman">${x.aktif?_t('Açık'):_t('Kapalı')} · ${_t('{0} form geldi', x.sayac)}</span></div>
+      ${url?`<div class="tel-qr"><div class="tel-qr-kod" style="width:130px;height:130px">${QR.svg(url,{kenar:4})}</div><div><input readonly value="${esc(url)}" onclick="this.select()"><div class="rowbtns"><button type="button" class="btn sm" data-act="dis-kopya" data-url="${esc(url)}">${ic('kopya')}${_t('Bağlantıyı kopyala')}</button><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">${_t('Aç')}</a></div></div></div>`:''}
+      <div class="two"><label>${_t('Şablon')}<select data-af="${x.id}:sablonId">${secOp(sablonlar.map(y=>[y.id,y.ad]), x.sablonId)}</select></label><label>${_t('Proje')}<select data-af="${x.id}:projeId">${secOp(projelerA().map(p=>[p.id,p.kod+' · '+p.ad]), x.projeId)}</select></label></div>
+      <label>${_t('Açılacak kaydın durumu')}<select data-af="${x.id}:durumId">${secOp(akis(m.id).map(d=>[d.id,d.ad]), x.durumId, _t('İlk durum'))}</select></label>
+      ${es?`<div class="lbl">${_t('Alan eşleme')}<div class="tbl"><table><tbody>${es}</tbody></table></div></div>`:''}
+      <div class="rowbtns"><button type="button" class="btn sm" data-act="af" data-id="${x.id}" data-eylem="yenile">${_t('Yeni bağlantı (eskisi geçersiz)')}</button><button type="button" class="btn sm" data-act="af" data-id="${x.id}" data-eylem="${x.aktif?'kapat':'ac'}">${x.aktif?_t('Kapat'):_t('Aç')}</button><button type="button" class="btn sm danger" data-act="af" data-id="${x.id}" data-eylem="sil">${ic('sil')}${_t('Sil')}</button></div></div>`;
+  };
+  const yeni=sablonlar.length?`<div class="akt-kart"><b>${_t('Yeni açık form')}</b><div class="two"><label>${_t('Ad')}<input id="afAd" placeholder="${esc(_t('Servis talebi'))}"></label><label>${_t('Şablon')}<select id="afSablon">${secOp(sablonlar.map(y=>[y.id,y.ad]), '')}</select></label></div><label>${_t('Proje')}<select id="afProje">${secOp(projelerA().filter(p=>!p.arsiv).map(p=>[p.id,p.kod+' · '+p.ad]), '', _t('Seç…'))}</select></label><button type="button" class="btn sm pri" style="justify-self:start" data-act="af-ekle" data-mid="${m.id}">${ic('arti')}${_t('Bağlantı oluştur')}</button></div>`
+    :`<p class="zaman">${_t('Önce Ayarlar → Şablonlar\'da dışarıdan doldurulacak alanları [[Alan]] ile işaretlenmiş bir şablon oluştur.')}</p>`;
+  return bas+L.map(kart).join('')+yeni+(d.hata?`<p class="zaman">${esc(sunucuHatasi(d.hata))}</p>`:'')+'</div>';
+}
+/* --- Kayıttan kayda aktarım (modülden modüle) --- */
+const AKT_METIN=new Set(['light','aciklama','rich','zengin']), AKT_DISI=new Set(['gecmis','mesaj']), AKT_FIYAT=new Set(['fiyat','fiyatonay']);
+// hedef fonksiyon → kaynak fonksiyon. Elle seçilen eşleşme önce; yoksa aynı ad ve uyumlu tür. '-' = taşınmaz.
+function aktarimEsleme(a, km, hm){
+  const es={}, ad=x=>String(x||'').trim().toLocaleLowerCase(LOKAL);
+  const uyar=(x,y)=>x===y||(AKT_METIN.has(x)&&AKT_METIN.has(y))||(AKT_FIYAT.has(x)&&AKT_FIYAT.has(y));
+  (hm.fn||[]).forEach(f2=>{
+    if(AKT_DISI.has(f2.tip)) return;
+    const el=(a.eslesme||{})[f2.uid];
+    if(el==='-') return;
+    if(el){ if(km.fn.some(x=>x.uid===el)) es[f2.uid]=el; return; }
+    const uy=km.fn.find(f1=>!AKT_DISI.has(f1.tip)&&ad(f1.ad)===ad(f2.ad)&&uyar(f1.tip,f2.tip));
+    if(uy) es[f2.uid]=uy.uid;
+  });
+  return es;
+}
+const kayitBul2=(tur,id)=>tur==='proje'?proje(id):S.kartlar.find(x=>x.id===id);
+const kaynakModul=(tur,o)=>tur==='proje'?modul('ana'):modul(o&&o.modulId);
+const aktarimYapildi=(id,aid)=>(S.baglar||[]).some(b=>b.kaynakId===id&&b.aktarim===aid);
+// Durum, bir aktarımın tetikleyen durumuna geçtiyse hedef form dolu olarak açılır (kayıt henüz oluşmaz)
+function aktarimTetik(tur, o, onceDurum){
+  if(!o||onceDurum===o.durumId) return;
+  const m=kaynakModul(tur,o); if(!m) return;
+  const a=(m.aktarimlar||[]).find(a=>a.durum&&a.durum===o.durumId&&!aktarimYapildi(o.id,a.id)&&modul(a.hedef)&&yazabilir(a.hedef));
+  if(a) setTimeout(()=>{ toast(_t('"{0}" durumu bir aktarımı başlatıyor: {1} formu bu kayıttaki bilgilerle açıldı', durum(o.durumId)?.ad||'', modul(a.hedef).ad), 6000); aktarimAc(a.id, tur, o.id); }, 30);
+}
+function aktarimAc(aid, kaynakTur, kaynakId){
+  const o=kayitBul2(kaynakTur,kaynakId); if(!o) return;
+  const km=kaynakModul(kaynakTur,o), a=(km.aktarimlar||[]).find(x=>x.id===aid); if(!a) return;
+  const hm=modul(a.hedef); if(!hm) return toast(_t('Aktarımın hedef modülü bulunamadı'));
+  if(!yazabilir(hm.id)) return toast(_t('{0} modülünde yazma yetkin yok', hm.ad));
+  if(aktarimYapildi(kaynakId,aid)) return toast(_t('Bu kayıt bu aktarımla zaten aktarıldı'));
+  ui.ekran='modul'; ui.modulId=hm.id; ui.formSekme=''; ui.scroll=true; ui.eposta=null; ui.msg={}; ui.emoji=null;
+  const hd=akis(hm.id).find(d=>d.id===a.hedefDurum)||akis(hm.id)[0];
+  ui.form={tur:'kart', yeni:true, id:null, modulId:hm.id, projeId:kaynakTur==='proje'?o.id:o.projeId, durumId:hd?.id||'', aktarim:{kaynakTur, kaynakId, aktarimId:aid, kod:o.kod, ad:a.ad||hm.ad}};
+  doldur(hm, ()=>false);
+  const kpred=kaynakTur==='proje'?(d=>d.projeId===o.id&&!d.kartId):(d=>d.kartId===o.id);
+  const es=aktarimEsleme(a, km, hm), idH=new Map(), ONAY=['onay','talep','onaylayan','onayZaman','okuyan','alici','yukleyen'];
+  const kopya=(r,f2)=>{ const x={...r, slot:r.slot?{...r.slot}:{}}; const n=gecici(); idH.set(r.id,n); ['id','fnUid','fnTip','projeId','kartId','modulId'].forEach(k=>delete x[k]); if(r.fnTip==='fiyatonay') ONAY.forEach(k=>delete x[k]); if(r.fnTip==='fiyatonay'&&f2.tip!=='fiyatonay') delete x.kisi; return {...bosSatir(f2), ...x, id:n, fnUid:f2.uid, fnTip:f2.tip}; };
+  hm.fn.forEach(f2=>{
+    const su=es[f2.uid]; if(!su) return;
+    const rows=S.degerler.filter(d=>kpred(d)&&d.fnUid===su).sort((x,y)=>(x.sira||0)-(y.sira||0));
+    if(!rows.length) return;
+    if(COKLU.has(f2.tip)){ if(a.satir!==false) ui.form.coklu[f2.uid]=rows.map(r=>kopya(r,f2)); }
+    else ui.form.skaler[f2.uid]=kopya(rows[0],f2);
+  });
+  Object.values(ui.form.coklu).forEach(L=>L.forEach(r=>{ if(r.ustId) r.ustId=idH.get(r.ustId)||null; }));
+  if(a.ataFn){
+    const f2=hm.fn.find(x=>x.uid===a.ataFn), u=!a.ata||a.ata==='aktaran'?ben():S.kullanicilar.find(x=>x.id===a.ata);
+    if(f2&&u){ if(COKLU.has(f2.tip)) (ui.form.coklu[f2.uid]=ui.form.coklu[f2.uid]||[]).push({...bosSatir(f2), kisi:u.ad}); else ui.form.skaler[f2.uid]={...(ui.form.skaler[f2.uid]||bosSatir(f2)), kisi:u.ad}; }
+  }
+  const bos=f=>COKLU.has(f.tip)?!(ui.form.coklu[f.uid]||[]).some(r=>!degerBos(f,r)):degerBos(f,ui.form.skaler[f.uid]);
+  ui.form.aktarim.eksik=hm.fn.filter(f=>f.zorunlu&&f.tip!=='gecmis'&&fnErisim(f)==='duzenle'&&bos(f)).map(f=>f.uid);
+  if(ui.form.aktarim.eksik.length) ui.formSekme=sekmeAd(hm.fn.find(x=>x.uid===ui.form.aktarim.eksik[0]));
+  render();
+}
+function aktarimBantHTML(){
+  const a=ui.form&&ui.form.aktarim; if(!a) return '';
+  const n=(a.eksik||[]).length;
+  return `<div class="akt-bant">${ic('bag')}<div><b>${_t('{0} kaydından aktarılıyor', esc(a.kod||''))}</b><span class="zaman">${n?_t('Kırmızı çerçeveli {0} zorunlu alan kaynakta yok; doldurup kaydet. Kaydetmeden kayıt açılmaz.', n):_t('Bilgileri kontrol edip kaydet. Kaydetmeden kayıt açılmaz.')}</span></div><button type="button" class="btn sm" data-act="akt-vazgec">${_t('Vazgeç')}</button></div>`;
+}
+// Bağlı kayıtlar ve bu kayıttan yapılabilecek aktarımlar
+function baglarHTML(tur, o){
+  const L=(S.baglar||[]).filter(b=>b.kaynakId===o.id||b.hedefId===o.id);
+  const cip=L.map(b=>{ const gelen=b.hedefId===o.id, t=gelen?b.kaynakTur:b.hedefTur, id=gelen?b.kaynakId:b.hedefId, x=kayitBul2(t,id); if(!x) return ''; const md=t==='proje'?modul('ana'):modul(x.modulId);
+    return `<button type="button" class="bag-cip" data-act="bag-ac" data-tur="${t}" data-id="${esc(id)}" title="${esc(md?.ad||'')}">${gelen?'←':'→'} ${esc(x.kod)} <span>${esc(t==='proje'?x.ad:kartBaslik(x)||md?.ad||'')}</span></button>`; }).join('');
+  const m=kaynakModul(tur,o);
+  const ak=yazabilir(m.id)?(m.aktarimlar||[]).filter(a=>modul(a.hedef)&&!aktarimYapildi(o.id,a.id)&&yazabilir(a.hedef)).map(a=>`<button type="button" class="btn sm" data-act="aktar" data-aid="${esc(a.id)}" data-tur="${tur}" data-id="${esc(o.id)}">${ic('bag')}${esc(a.ad||_t('{0} kaydına aktar', modul(a.hedef).ad))}</button>`).join(''):'';
+  if(!cip&&!ak) return '';
+  return `<div class="lbl">${_t('Bağlı kayıtlar')}<div class="bag-liste">${cip}${ak}</div></div>`;
+}
+// Modül ayarlarında aktarım tanımları
+function aktarimAyarHTML(m){
+  const L=m.aktarimlar||[], hedefler=S.moduller.filter(x=>x.tur!=='proje'&&x.id!==m.id);
+  const kart=a=>{
+    const hm=modul(a.hedef), es=hm?aktarimEsleme(a,m,hm):{}, sel=(k,v,ops,bos)=>`<select data-akt="${m.id}:${a.id}:${k}">${secOp(ops,v||'',bos)}</select>`;
+    const kaynakOp=m.fn.filter(f=>!AKT_DISI.has(f.tip)).map(f=>[f.uid,f.ad+' · '+(FNAD[f.tip]||f.tip)]);
+    const tablo=hm?`<div class="tbl"><table><thead><tr><th>${esc(hm.ad)}</th><th>${esc(m.ad)}</th></tr></thead><tbody>${hm.fn.filter(f=>!AKT_DISI.has(f.tip)).map(f2=>{ const el=(a.eslesme||{})[f2.uid]||''; const oto=!el&&es[f2.uid]?m.fn.find(x=>x.uid===es[f2.uid]):null;
+      return `<tr><td>${esc(f2.ad)}${f2.zorunlu?' *':''}</td><td><select data-akt-es="${m.id}:${a.id}:${f2.uid}">${secOp([['',oto?_t('Otomatik: {0}', oto.ad):_t('Otomatik (aynı ad)')],['-',_t('Taşıma')],...kaynakOp], el)}</select></td></tr>`; }).join('')}</tbody></table></div>`:'';
+    return `<div class="akt-kart"><div class="two"><label>${_t('Ad')}<input data-akt="${m.id}:${a.id}:ad" value="${esc(a.ad||'')}" placeholder="${esc(hm?hm.ad:'')}"></label><label>${_t('Hedef modül')}${sel('hedef',a.hedef,hedefler.map(x=>[x.id,x.ad]),_t('Seç…'))}</label></div>
+      <div class="two"><label>${_t('Tetikleyen durum')}${sel('durum',a.durum,akis(m.id).map(d=>[d.id,d.ad]),_t('Yok (yalnız düğmeyle)'))}</label><label>${_t('Hedef kaydın durumu')}${hm?sel('hedefDurum',a.hedefDurum,akis(hm.id).map(d=>[d.id,d.ad]),_t('İlk durum')):'<select disabled></select>'}</label></div>
+      <div class="two"><label>${_t('Kime atansın')}${sel('ata',a.ata,[['aktaran',_t('Aktaran kişi')],...S.kullanicilar.filter(u=>u.aktif!==false).map(u=>[u.id,u.ad])],_t('Atama yok'))}</label><label>${_t('Atanacak kişi alanı')}${hm?sel('ataFn',a.ataFn,hm.fn.filter(f=>f.tip==='kisi'||f.tip==='ekip').map(f=>[f.uid,f.ad]),_t('Yok')):'<select disabled></select>'}</label></div>
+      <label class="anahtar"><input type="checkbox" data-akt-satir="${m.id}:${a.id}" ${a.satir!==false?'checked':''}><span>${_t('Çok satırlı fonksiyonları da taşı (malzeme, efor, görevler…)')}</span></label>
+      ${tablo?`<div class="lbl">${_t('Alan eşleme')}${tablo}</div>`:''}
+      <button type="button" class="btn sm danger" style="justify-self:start" data-act="akt-sil" data-mid="${m.id}" data-aid="${esc(a.id)}">${ic('sil')}${_t('Aktarımı sil')}</button></div>`;
+  };
+  return `<div class="lbl">${_t('Aktarımlar')}<p class="zaman">${_t('Kayıt seçilen duruma geçince hedef modülde, bu kayıttaki bilgilerle dolu yeni bir form açılır. Kullanıcı eksik zorunlu alanları doldurup kaydeder; kaydetmezse kayıt açılmaz. Bir kayıttan her aktarımla tek kayıt açılır, kaynak kayıt açık kalır.')}</p>${L.map(kart).join('')}<button type="button" class="btn sm" style="justify-self:start" data-act="akt-ekle" data-mid="${m.id}">${ic('arti')}${_t('Aktarım ekle')}</button></div>`;
+}
+/* --- Efor (zaman takibi): Başla / Mola / Devam / Bitir — satırlar anında yazılır --- */
+const EFOR_TUR=()=>({calisma:_t('Çalışma'), mola:_t('Mola'), durdu:_t('Durdu (başka işe geçti)'), bitti:_t('Bitti')});
+const dakikaYaz=dk=>{ const d=Math.round(dk); return d>=60?_t('{0} sa {1} dk', Math.floor(d/60), d%60):_t('{0} dk', d); };
+const eforAcikMi=r=>(r.tur==='calisma'||r.tur==='mola')&&String(r.adet??'').trim()==='';
+const zms=r=>new Date(String(r.zaman).replace(' ','T')).getTime();
+function eforDurumu(rows,kisi){ const L=rows.filter(r=>r.kisi===kisi&&r.zaman).sort((a,b)=>zms(a)-zms(b)); const s=L[L.length-1]; if(!s) return 'yok'; if(eforAcikMi(s)) return s.tur==='calisma'?'calisiyor':'molada'; return s.tur==='bitti'?'bitti':'durdu'; }
+function eforToplam(rows){ const o={}, now=Date.now(); rows.forEach(r=>{ if(r.tur!=='calisma'&&r.tur!=='mola') return; const dk=eforAcikMi(r)?Math.max(0,(now-zms(r))/60000):sayiOku(r.adet); const x=o[r.kisi]=o[r.kisi]||{calisma:0,mola:0}; x[r.tur]+=dk; }); return o; }
+function eforHTML(f, rows){
+  const u=ben(), d=eforDurumu(rows,u.id), kayitli=!ui.form.yeni, yaz=fnErisim(f)==='duzenle';
+  const D={yok:_t('Başlamadın'), calisiyor:_t('Çalışıyorsun'), molada:_t('Moladasın'), durdu:_t('Durduruldu'), bitti:_t('Bitirdin')};
+  const b=(e,ad,cls)=>`<button type="button" class="btn sm ${cls||''}" data-act="efor" data-uid="${f.uid}" data-eylem="${e}">${ad}</button>`;
+  const dugmeler=!kayitli?`<span class="zaman">${_t('Kaydı kaydettikten sonra sayaç başlatılabilir.')}</span>`:!yaz?'':
+    d==='calisiyor'?b('mola',_t('Mola'))+b('bitir',_t('Bitir'),'danger'):d==='molada'?b('devam',_t('Devam'),'pri')+b('bitir',_t('Bitir'),'danger'):b('basla',d==='yok'||d==='bitti'?_t('Başla'):_t('Devam'),'pri');
+  const T=eforToplam(rows), kisiler=Object.keys(T);
+  const tablo=kisiler.length?`<div class="tbl"><table><thead><tr><th>${_t('Kişi')}</th><th>${_t('Net çalışma')}</th><th>${_t('Mola')}</th><th>${_t('Durum')}</th></tr></thead><tbody>${kisiler.map(k=>`<tr><td>${esc(kisiAd(k))}</td><td>${esc(dakikaYaz(T[k].calisma))}</td><td>${esc(dakikaYaz(T[k].mola))}</td><td>${esc(D[eforDurumu(rows,k)]||'')}</td></tr>`).join('')}<tr><td><b>${_t('Toplam')}</b></td><td><b>${esc(dakikaYaz(kisiler.reduce((a,k)=>a+T[k].calisma,0)))}</b></td><td>${esc(dakikaYaz(kisiler.reduce((a,k)=>a+T[k].mola,0)))}</td><td></td></tr></tbody></table></div>`:'';
+  const gecmis=rows.length?`<details class="efor-gecmis"><summary>${_t('Hareketler ({0})', rows.length)}</summary>${rows.slice().sort((a,b)=>zms(b)-zms(a)).map(r=>`<div class="zaman">${esc(trh(String(r.zaman).slice(0,10)))} ${esc(String(r.zaman).slice(11,16))} · ${esc(kisiAd(r.kisi))} · ${esc(EFOR_TUR()[r.tur]||r.tur)}${eforAcikMi(r)?' · '+_t('sürüyor'):String(r.adet??'').trim()&&sayiOku(r.adet)>0?' · '+esc(dakikaYaz(sayiOku(r.adet))):''}</div>`).join('')}</details>`:'';
+  return `<div class="efor"><div class="efor-ust"><span class="efor-durum ${d}">${ic('saat')} ${esc(D[d])}</span><span class="rowbtns">${dugmeler}</span></div>${tablo}${gecmis}</div>`;
+}
+// Yerel (şablon) modunda sunucunun yaptığını burada yapar
+function eforYerel(f, tur, id, eylem){
+  const kpred=tur==='proje'?(x=>x.projeId===id&&!x.kartId):(x=>x.kartId===id);
+  const rows=S.degerler.filter(x=>kpred(x)&&x.fnUid===f.uid), d=eforDurumu(rows,ui.uid), now=new Date(), z=now.toISOString();
+  const kapat=x=>{ x.adet=String(Math.round((now-zms(x))/600)/100).replace('.',','); };
+  if((eylem==='basla'||eylem==='devam')&&d==='calisiyor') return;
+  if(eylem==='mola'&&d!=='calisiyor') return toast(_t('Mola için önce işe başlanmalı'));
+  if(eylem==='bitir'&&(d==='yok'||d==='bitti')) return toast(_t('Bitirilecek açık iş yok'));
+  if(eylem==='basla'||eylem==='devam') S.degerler.filter(x=>x.fnTip==='efor'&&x.kisi===ui.uid&&eforAcikMi(x)&&!kpred(x)).forEach(x=>{ kapat(x); S.degerler.push({...x, id:nid('d'), tur:'durdu', zaman:z, adet:'0'}); });
+  rows.filter(x=>x.kisi===ui.uid&&eforAcikMi(x)).forEach(kapat);
+  const o=tur==='proje'?{projeId:id, modulId:'ana', kartId:null}:{projeId:S.kartlar.find(k=>k.id===id)?.projeId, modulId:f.modulId||modul(S.kartlar.find(k=>k.id===id)?.modulId)?.id, kartId:id};
+  S.degerler.push({id:nid('d'), fnUid:f.uid, fnTip:'efor', ...o, kisi:ui.uid, tur:eylem==='mola'?'mola':eylem==='bitir'?'bitti':'calisma', zaman:z, adet:eylem==='bitir'?'0':'', sira:rows.length});
+  persist();
+}
+// Üst çubukta açık sayaç (unutulan sayaç uyarısı: dünden kalan ya da 10 saati geçen)
+function eforCipHTML(){
+  const L=(S.degerler||[]).filter(x=>x.fnTip==='efor'&&x.kisi===ui.uid&&eforAcikMi(x)); if(!L.length) return '';
+  const r=L.sort((a,b)=>zms(b)-zms(a))[0], dk=(Date.now()-zms(r))/60000;
+  const eski=dk>600||new Date(zms(r)).toDateString()!==new Date().toDateString();
+  const k=r.kartId&&S.kartlar.find(x=>x.id===r.kartId), p=proje(r.projeId), kod=k?k.kod:p?.kod||'';
+  return `<button type="button" class="efor-cip ${eski?'eski':''} ${r.tur}" data-act="bag-ac" data-tur="${k?'kart':'proje'}" data-id="${esc(k?k.id:r.projeId)}" title="${eski?esc(_t('Sayaç hâlâ açık. Bitirmeyi unuttun mu?')):''}">${ic('saat')} ${esc(kod)} · ${esc(r.tur==='mola'?_t('Mola'):'')} ${esc(dakikaYaz(dk))}</button>`;
+}
+const FIYAT_DURUM=()=>({gerekmez:_t('Onay gerekmez'), bekliyor:_t('Onay bekliyor'), onaylandi:_t('Onaylandı'), reddedildi:_t('Reddedildi')});
+// Fiyat onayı satırının durumu ve (onaylayan bensem) Onayla / Reddet düğmeleri. Onay alanları sunucuda hesaplanır.
+function fiyatOnayHTML(f){
+  const row=ui.form.skaler[f.uid]; if(!row||ui.form.yeni) return `<p class="zaman">${_t('Kaydedince limitine göre onay gerekip gerekmediği hesaplanır.')}</p>`;
+  const kayitli=S.degerler.find(d=>d.fnUid===f.uid&&(ui.form.tur==='proje'?d.projeId===ui.form.id&&!d.kartId:d.kartId===ui.form.id));
+  if(!kayitli||!kayitli.onay) return '';
+  const u=ben(), D=FIYAT_DURUM(), renk={gerekmez:'',bekliyor:'uyari',onaylandi:'iyi',reddedildi:'kotu'}[kayitli.onay]||'';
+  const kim=kayitli.onay==='bekliyor'?(kayitli.kisi?' · '+_t('Onaylayacak: {0}', kisiAd(kayitli.kisi)):''):kayitli.onaylayan?' · '+kisiAd(kayitli.onaylayan)+(kayitli.onayZaman?' · '+trh(String(kayitli.onayZaman).slice(0,10)):''):'';
+  const benim=kayitli.onay==='bekliyor'&&API.acik&&(kayitli.kisi===u.id||u.rol==='yonetici');
+  const dugme=benim?`<span class="rowbtns"><button type="button" class="btn sm pri" data-act="fiyat-onay" data-uid="${f.uid}" data-karar="onay">${ic('onay')}${_t('Onayla')}</button><button type="button" class="btn sm danger" data-act="fiyat-onay" data-uid="${f.uid}" data-karar="red">${_t('Reddet')}</button></span>`:'';
+  const degisti=String(row.tutar||'')!==String(kayitli.tutar||'')||String(row.para||'TRY')!==String(kayitli.para||'TRY');
+  return `<div class="fiyat-durum ${renk}"><b>${esc(D[kayitli.onay]||'')}</b><span class="zaman">${esc(kim)}${kayitli.not?' · '+esc(kayitli.not):''}</span>${degisti?`<span class="zaman">${_t('Tutar değişti; kaydedince onay yeniden hesaplanır.')}</span>`:dugme}</div>`;
+}
 function fnSatirHTML(f){
+  const h=fnSatirHTML0(f), a=ui.form&&ui.form.aktarim;
+  if(!h||!a||!(a.eksik||[]).includes(f.uid)) return h;
+  const bos=COKLU.has(f.tip)?!(ui.form.coklu[f.uid]||[]).some(r=>!degerBos(f,r)):degerBos(f,ui.form.skaler[f.uid]);
+  return bos?`<div class="akt-eksik">${h}</div>`:h;
+}
+function fnSatirHTML0(f){
   const er=fnErisim(f);
   if(er==='gizli') return '';
   const salt=er==='gor';
-  const kilit=salt?` <span class="zaman" title="${_t('Bu alan senin grubuna salt okunur')}">${ic('kilit')}</span>`:'';
+  const kilit=salt?` <span class="zaman" title="${esc(fnKilit(f)||_t('Bu alan senin grubuna salt okunur'))}">${ic('kilit')}</span>`:'';
   const sar=ic2=>salt?`<fieldset class="salt" disabled>${ic2}</fieldset>`:ic2;
   if(f.tip==='gecmis') return `<div class="lbl">${esc(f.ad)}${gecmisHTML(ui.form.tur==='proje' ? (l=>l.projeId===ui.form.id&&!l.kartId) : (l=>l.kartId===ui.form.id))}</div>`;
   if(COKLU.has(f.tip)) return `<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(cokluHTML(f))}</div>`;
   const row=ui.form.skaler[f.uid];
   const div=salt||DIV_TIP.has(f.tip)||(f.tip==='tur'&&grupTur(fnGrup(f))!=='select');
+  if(f.tip==='fiyatonay') return `<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}${fiyatOnayHTML(f)}</div>`;
   return div?`<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}</div>`:`<label>${esc(f.ad)}${f.zorunlu?' *':''}${kontrol(f,row)}</label>`;
 }
 function fonksiyonAlani(m){
@@ -2238,10 +2511,11 @@ function projeFormHTML(){
   const f=ui.form, p=f.id&&proje(f.id), yaz=yazabilir('ana')||f.yeni;
   const bilgi=`<form id="kayitForm" class="form">
       <label>${_t('Ad *')}<input data-pf="ad" required value="${esc(f.ad)}" ${yaz?'':'disabled'}></label>
-      <div class="two"><label>${_t('Durum')}<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis('ana').map(d=>[d.id,d.ad+(d.kapat?_t(' (kapatır)'):'')]), f.durumId)}</select></label>
+      <div class="two"><label>${_t('Durum')}<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis('ana').map(d=>[d.id,durumEtiket(d)]), f.durumId)}</select></label>
       <div class="lbl">${_t('Kategori')}${alanGrup('kategori', f.kategori, `data-pf="kategori"${yaz?'':' disabled'}`)}</div></div>
       ${kisiSecici(_t('Yönetici'),'yon-sec', f.yonetici, yaz)}
       ${kisiSecici(_t('Ekip'),'ekip-sec', f.ekip, yaz)}
+      ${p?baglarHTML('proje',p):''}
       ${fonksiyonAlani(modul('ana'))}
       <label><input type="checkbox" data-pf="arsiv" ${f.arsiv?'checked':''} ${yaz?'':'disabled'}> ${_t('Arşiv')}</label>
       ${yaz?`<div class="rowbtns"><button class="btn pri" type="submit">${ic('onay')}${_t('Kaydet')}</button>${p?`<button class="btn danger" type="button" data-act="sil-proje">${ic('sil')}${_t('Sil')}</button>`:''}</div>`:'<p class="zaman">Salt okunur</p>'}
@@ -2258,7 +2532,8 @@ function kartFormHTML(){
   return panelUst(m.ad+' · '+(k?k.kod:_t('Yeni')), k?kartBaslik(k):_t('Yeni kayıt'), mail)+`
     <form id="kayitForm" class="form">
       <div class="two"><label>${_t('Proje *')}<select data-pf="projeId" required ${yaz?'':'disabled'}>${secOp(projelerA().filter(p=>!p.arsiv||p.id===f.projeId).map(p=>[p.id,p.kod+' · '+p.ad]), f.projeId, _t('Seç…'))}</select></label>
-      <label>${_t('Durum')}<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis(f.modulId).map(d=>[d.id,d.ad+(d.kapat?_t(' (kapatır)'):'')]), f.durumId)}</select></label></div>
+      <label>${_t('Durum')}<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis(f.modulId).map(d=>[d.id,durumEtiket(d)]), f.durumId)}</select></label></div>
+      ${aktarimBantHTML()}${k?baglarHTML('kart',k):''}
       ${fonksiyonAlani(m)}
       ${yaz?`<div class="rowbtns"><button class="btn pri" type="submit">${ic('onay')}${_t('Kaydet')}</button>${k?`<button class="btn danger" type="button" data-act="sil-kart">${ic('sil')}${_t('Sil')}</button>`:''}</div>`:'<p class="zaman">Salt okunur</p>'}
     </form>${denetimHTML(k)}${dl()}`;
@@ -2542,7 +2817,8 @@ function zorunluTamam(m){
   }
   return true;
 }
-function kapanisIzni(mid, once, yeni){
+function kapanisIzni(mid, once, yeni, kayit){
+  if(once!==yeni && kayit && !durumGecebilir(durum(yeni), kayit)){ const d=durum(yeni); toast(d.gecis==='acan'?_t('"{0}" durumuna yalnız kaydı açan geçirebilir', d.ad):_t('"{0}" durumuna yalnız kaydı açan ya da yönetim geçirebilir', d.ad)); return false; }
   if(once===yeni || !kapali(yeni) || izin(mid,'onay')) return true;
   toast(_t('{0} akışı kapatır; onay yetkisi gerekir', (durum(yeni)?.ad||'Bu durum')));
   return false;
@@ -2555,9 +2831,11 @@ function kaydetForm(){
   if(!ui.form.projeId) return toast(_t('Kayıt bir projeye bağlanmalı'));
   if(!zorunluTamam(m)) return;
   let k=ui.form.id&&S.kartlar.find(x=>x.id===ui.form.id);
-  if(!kapanisIzni(m.id, k?k.durumId:akis(m.id)[0]?.id, ui.form.durumId)) return;
+  if(!kapanisIzni(m.id, k?k.durumId:akis(m.id)[0]?.id, ui.form.durumId, k)) return;
   const yeni=!k;
   if(!k){ k={id:nid('k'), kod:yeniKod(m.onek||onekUret(m.ad), S.kartlar), modulId:m.id, yazarId:ui.uid}; S.kartlar.push(k); }
+  const akt=yeni&&ui.form.aktarim?ui.form.aktarim:null;
+  if(akt){ k.aktarim={kaynakTur:akt.kaynakTur, kaynakId:akt.kaynakId, aktarimId:akt.aktarimId}; S.baglar.push({id:nid('bg'), kaynakTur:akt.kaynakTur, kaynakId:akt.kaynakId, hedefTur:'kart', hedefId:k.id, aktarim:akt.aktarimId}); }
   const pred=d=>d.kartId===k.id;
   const once=fnOzetleri(m, pred), onceDurum=k.durumId, oncePrj=k.projeId;
   const eski=S.degerler.filter(pred);
@@ -2574,7 +2852,9 @@ function kaydetForm(){
     if(oncePrj!==k.projeId) logEkle({...ortak, tip:'alan', alan:'Proje', eski:proje(oncePrj)?.ad||'', yeni:proje(k.projeId)?.ad||'', metin:'Proje değişti'});
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
+  if(akt){ const ko=kayitBul2(akt.kaynakTur, akt.kaynakId); logEkle({...ortak, tip:'alan', alan:'Aktarım', eski:'', yeni:ko?.kod||'', metin:(ko?.kod||'')+' kaydından aktarıldı'}); }
   ui.form=null; persist(); toast(kayitMesaji(kalan), kalan.length?7000:0); render();
+  aktarimTetik('kart', k, yeni?null:onceDurum);
 }
 function kaydetProje(kalan){
   if(!yazabilir('ana')) return toast(_t('Proje yazma yetkin yok'));
@@ -2582,11 +2862,11 @@ function kaydetProje(kalan){
   const m=modul('ana');
   if(!zorunluTamam(m)) return;
   let p=ui.form.id&&proje(ui.form.id);
-  if(!kapanisIzni('ana', p?p.durumId:akis('ana')[0]?.id, ui.form.durumId)) return;
+  if(!kapanisIzni('ana', p?p.durumId:akis('ana')[0]?.id, ui.form.durumId, p)) return;
   const yeni=!p;
   if(!p){ p={id:nid('p'), kod:yeniKod(m.onek||'PRJ', S.projeler)}; S.projeler.push(p); }
   const pred=d=>d.projeId===p.id&&!d.kartId;
-  const once=fnOzetleri(m, pred);
+  const once=fnOzetleri(m, pred), onceDurumP=yeni?null:p.durumId;
   const eskiP={ad:p.ad||'', durum:durum(p.durumId)?.ad||'', kategori:p.kategori||'', yonetici:yoneticiler(p).map(u=>u.ad).join(', '), ekip:(p.ekip||[]).map(kisiAd).join(', '), arsiv:p.arsiv?'Evet':'Hayır'};
   const eski=S.degerler.filter(pred);
   Object.assign(p,{ad:ui.form.ad.trim(), durumId:ui.form.durumId, kategori:ui.form.kategori||'', arsiv:!!ui.form.arsiv, yonetici:[...(ui.form.yonetici||[])], ekip:ui.form.ekip||[]});
@@ -2603,18 +2883,21 @@ function kaydetProje(kalan){
     alanLoglari(m, once, fnOzetleri(m, pred), ortak);
   }
   ui.form=null; persist(); toast(kalan&&kalan.length?_t('Proje kaydedildi · doldurulmamış şablon alanı: ')+kalan.join(', '):_t('Proje kaydedildi'), kalan&&kalan.length?7000:0); render();
+  aktarimTetik('proje', p, onceDurumP);
 }
 function tasi(tip,id,durumId){
   if(tip==='p'){
     const p=proje(id); if(!p||!yazabilir('ana')||p.durumId===durumId) return;
-    if(!kapanisIzni('ana', p.durumId, durumId)) return;
+    if(!kapanisIzni('ana', p.durumId, durumId, p)) return;
     const once=p.durumId; p.durumId=durumId; denetle(p,false);
     logEkle({projeId:p.id, modulId:'ana', kartId:null, tip:'durum', alan:'Durum', eski:durum(once)?.ad||'', yeni:durum(durumId)?.ad||'', metin:'Durum değişti'});
+    persist(); render(); aktarimTetik('proje', p, once); return;
   } else {
     const k=S.kartlar.find(x=>x.id===id); if(!k||!yazabilir(k.modulId)||k.durumId===durumId) return;
-    if(!kapanisIzni(k.modulId, k.durumId, durumId)) return;
+    if(!kapanisIzni(k.modulId, k.durumId, durumId, k)) return;
     const once=k.durumId; k.durumId=durumId; denetle(k,false);
     logEkle({projeId:k.projeId, modulId:k.modulId, kartId:k.id, tip:'durum', alan:'Durum', eski:durum(once)?.ad||'', yeni:durum(durumId)?.ad||'', metin:'Durum değişti'});
+    persist(); render(); aktarimTetik('kart', k, once); return;
   }
   persist(); render();
 }
@@ -2710,6 +2993,7 @@ function filtreBar(){
     <span class="sp"></span>
     <button type="button" class="ibtn" data-act="gorunum-ac" title="${_t('Görünümü özelleştir (göster / gizle)')}" aria-label="${_t('Görünümü özelleştir')}">${ic('katman')}</button>
     ${disa?`<button type="button" class="ibtn" data-act="excel" title="${_t('Excel\'e aktar')}" aria-label="${_t('Excel\'e aktar')}">${ic('indir')}</button><button type="button" class="ibtn" data-act="yazdir" title="${_t('Yazdır')}" aria-label="${_t('Yazdır')}">${ic('yazdir')}</button>`:''}
+    ${yaz&&API.acik&&(m.fn||[]).some(f=>f.tip==='ticket')?`<button type="button" class="btn" data-act="ticket-kontrol" data-mid="${m.id}" title="${_t('Gelen e-postaları kontrol et')}">${ic('mail')}${_t('E-posta')}</button>`:''}${(ticketOto(m),'')}
     ${yaz?`<button type="button" class="btn pri" data-act="${m.tur==='proje'?'yeni-proje':'yeni-kart'}">${ic('arti')}${_t('Oluştur')}</button>`:''}
   </div>`;
 }
@@ -3316,12 +3600,16 @@ function cekmeceHTML(){
       :`<div class="rowbtns"><span class="depo gdrive">${ic('bulut')}${_t('Google Drive')}</span><span class="zaman">${S.firma.depoBagli.gdrive?_t('Bağlı'):_t('Bağlı değil')}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="gdrive">${S.firma.depoBagli.gdrive?_t('Bağlantıyı kes'):_t('Bağlan')}</button></div>
       <div class="rowbtns"><span class="depo onedrive">${ic('bulut')}${_t('OneDrive / SharePoint')}</span><span class="zaman">${S.firma.depoBagli.onedrive?_t('Bağlı'):_t('Bağlı değil')}</span><span class="sp"></span><button type="button" class="btn sm" data-act="depo-bagla" data-v="onedrive">${S.firma.depoBagli.onedrive?_t('Bağlantıyı kes'):_t('Bağlan')}</button></div>
       <p class="zaman">${_t('Şablon modu: bağlantı simüle edilir, bağlantılar elle yapıştırılır.')}</p>`}</div>${firmaEpostaHTML()}</form>`;
-  if(c.tur==='kullanici' && c.id==='yeni') return bas(_t('Kullanıcı'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Ad')}<input name="ad" required></label><label>${_t('Ünvan')}<input name="unvan"></label><label>${_t('E-posta (giriş)')}<input name="eposta" type="email" required></label><div class="two"><label>${_t('Yetki grubu')}<select name="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), S.yetkiGruplari[1]?.id)}</select></label><label>${_t('Departman')}<select name="departman">${secOp(S.departmanlar, '', _t('Departmansız'))}</select></label></div>${onay}</form>`;
+  if(c.tur==='kullanici' && c.id==='yeni') return bas(_t('Kullanıcı'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Ad')}<input name="ad" required></label><label>${_t('Ünvan')}<input name="unvan"></label><label>${_t('E-posta (giriş)')}<input name="eposta" type="email" required></label><label>${_t('Tür')}<select name="tur">${secOp([['kullanici',_t('Kullanıcı')],['misafir',_t('Misafir (dışarıdan, süreli)')]], 'kullanici')}</select></label><div class="two"><label>${_t('Yetki grubu')}<select name="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), S.yetkiGruplari[1]?.id)}</select></label><label>${_t('Departman')}<select name="departman">${secOp(S.departmanlar, '', _t('Departmansız'))}</select></label></div>${onay}</form>`;
   if(c.tur==='kullanici'){
     const u=S.kullanicilar.find(x=>x.id===c.id); if(!u) return bas(_t('Kullanıcı'),'');
     return bas(_t('Kullanıcı'),u.ad)+`<form class="form"><div class="rowbtns">${u.foto?`<img class="foto-on" alt="" src="${u.foto}">`:av(u.ad).replace('class="av"','class="av" style="width:72px;height:72px;font-size:22px"')}<div class="foto-btns"><label class="btn sm">${ic('yukle')}${_t('Fotoğraf seç')}<input id="fotoIn" data-uid="${u.id}" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>${u.foto?`<button type="button" class="btn sm" data-act="foto-sil" data-id="${u.id}">${_t('Fotoğrafı kaldır')}</button>`:''}</div></div>
       <label>${_t('Ad')}<input data-user="${u.id}" data-alan="ad" value="${esc(u.ad)}"></label><label>${_t('Ünvan')}<input data-user="${u.id}" data-alan="unvan" value="${esc(u.unvan)}"></label><label>${_t('E-posta (giriş)')}<input type="email" data-user="${u.id}" data-alan="eposta" value="${esc(u.eposta||'')}"></label>
-      <div class="two"><label>${_t('Rol')}<select data-user="${u.id}" data-alan="rol">${secOp([['personel',_t('Personel')],['yonetici',_t('Yönetici')]], u.rol)}</select></label><label>${_t('Yetki grubu')}<select data-user="${u.id}" data-alan="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), u.grup)}</select></label></div><label>${_t('Departman')}<select data-user="${u.id}" data-alan="departman">${secOp(S.departmanlar, u.departman||'', _t('Departmansız'))}</select></label>
+      <div class="two"><label>${_t('Rol')}<select data-user="${u.id}" data-alan="rol" ${u.tur==='misafir'?'disabled':''}>${secOp([['personel',_t('Personel')],['yonetici',_t('Yönetici')]], u.rol)}</select></label><label>${_t('Yetki grubu')}<select data-user="${u.id}" data-alan="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), u.grup)}</select></label></div><label>${_t('Departman')}<select data-user="${u.id}" data-alan="departman">${secOp(S.departmanlar, u.departman||'', _t('Departmansız'))}</select></label>
+      ${misafirAyarHTML(u)}
+      <div class="lbl">${_t('Fiyat onayı')}<label>${_t('Yöneticisi')}<select data-user="${u.id}" data-alan="ust">${secOp(S.kullanicilar.filter(x=>x.id!==u.id&&x.aktif!==false&&x.tur!=='misafir').map(x=>[x.id,x.ad]), u.ust||'', _t('Yok'))}</select></label>
+        <div class="three">${['TL','USD','EUR'].map(pb=>`<label>${_t('Onay limiti')} (${pb})<input inputmode="decimal" data-ulimit="${u.id}:${pb}" value="${esc((u.onayLimit||{})[pb]??'')}" placeholder="0"></label>`).join('')}</div>
+        <p class="zaman">${u.rol==='yonetici'?_t('Yönetim rolündeki kullanıcı limitsizdir.'):_t('Kaydettiği fiyat bu limiti aşarsa onay yöneticisine gider. Boş limit 0 sayılır.')}</p></div>
       <label class="anahtar"><input type="checkbox" data-user="${u.id}" data-alan="aktif" ${u.aktif!==false?'checked':''}><span>${_t('Aktif')}</span></label><p class="zaman">${_t('Kullanıcı silinmez. Pasif kullanıcı giriş yapamaz, seçim listelerinde çıkmaz; geçmişteki kayıtları ve logları durur.')}</p>
       <div class="lbl">${_t('Giriş')}<div class="rowbtns">${u.sistem||u.id===ui.uid?'':`<button type="button" class="btn sm" data-act="sifre-sifirla" data-id="${u.id}">${ic('kilit')}${_t('Şifreyi sıfırla')}</button>`}<span class="zaman">${u.sifre?_t('Kendi şifresini belirlemiş'):_t('İlk şifrede')}${u.kilit&&u.kilit>new Date().toISOString()?_t(' · hatalı denemeden kilitli'):''} ${_t('· E-posta hesabı:')} ${esc(EP_TUR[(u.epostaHesap||{}).tur||'yok'])}${(u.epostaHesap||{}).bagli?_t(' (bağlı)'):''}</span></div></div></form>`;
   }
@@ -3340,7 +3628,7 @@ function cekmeceHTML(){
   if(c.tur==='durum' && c.id==='yeni') return bas(_t('Durum'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Ad')}<input name="ad" required></label><label>${_t('Renk')}<input name="renk" type="color" value="#2b62e3"></label><label><input type="checkbox" name="kapat"> ${_t('Akışı kapatır')}</label>${onay}</form>`;
   if(c.tur==='durum'){
     const d=durum(c.id); if(!d) return bas(_t('Durum'),'');
-    return bas(_t('Durum'),d.ad)+`<form class="form"><label>${_t('Ad')}<input data-durum="${d.id}" data-alan="ad" value="${esc(d.ad)}"></label><label>${_t('Renk')}<input data-durum="${d.id}" data-alan="renk" type="color" value="${d.renk}"></label><label class="anahtar"><input type="checkbox" data-durum-kapat="${d.id}" ${d.kapat?'checked':''}><span>${_t('Akışı kapatır')}</span></label><p class="zaman">${_t('Bu durumdaki kayıt kapanmış sayılır: gecikme, açık iş ve teslim hesaplarına girmez. Bu duruma geçirmek için onay yetkisi gerekir.')}</p><button type="button" class="btn danger" style="justify-self:start" data-act="durum-sil" data-id="${d.id}">${ic('sil')}${_t('Sil')}</button></form>`;
+    return bas(_t('Durum'),d.ad)+`<form class="form"><label>${_t('Ad')}<input data-durum="${d.id}" data-alan="ad" value="${esc(d.ad)}"></label><label>${_t('Renk')}<input data-durum="${d.id}" data-alan="renk" type="color" value="${d.renk}"></label><label class="anahtar"><input type="checkbox" data-durum-kapat="${d.id}" ${d.kapat?'checked':''}><span>${_t('Akışı kapatır')}</span></label><p class="zaman">${_t('Bu durumdaki kayıt kapanmış sayılır: gecikme, açık iş ve teslim hesaplarına girmez. Bu duruma geçirmek için onay yetkisi gerekir.')}</p><label>${_t('Bu duruma kim geçirebilir')}<select data-durum-gecis="${d.id}">${secOp([['',_t('Yazma yetkisi olan herkes')],['acan',_t('Yalnız kaydı açan')],['acanYonetim',_t('Kaydı açan ve yönetim')]], d.gecis||'')}</select></label><button type="button" class="btn danger" style="justify-self:start" data-act="durum-sil" data-id="${d.id}">${ic('sil')}${_t('Sil')}</button></form>`;
   }
   if(c.tur==='modul'){
     const m=modul(c.id); if(!m) return bas(_t('Modül'),'');
@@ -3352,7 +3640,7 @@ function cekmeceHTML(){
     }).join('');
     const fnSec=`<div class="fn-ekle"><select id="fnTipSec" aria-label="${_t('Fonksiyon')}">${FN.map(([tip,ad])=>`<option value="${tip}">${esc(ad)}</option>`).join('')}</select><button type="button" class="btn pri" data-act="fn-bagla">${ic('arti')}${_t('Bağla')}</button></div>`;
     return bas(_t('Modül'),m.ad)+`<form class="form"><label>${_t('Ad')}<input data-modul="${m.id}" data-alan="ad" value="${esc(m.ad)}"></label><div class="two"><label>${_t('Renk')}<input data-modul="${m.id}" data-alan="renk" type="color" value="${m.renk}"></label><label>${_t('Kod öneki')}<input data-modul="${m.id}" data-alan="onek" value="${esc(m.onek)}" maxlength="6" style="text-transform:uppercase"></label></div><p class="zaman">${_t('Yeni kayıtlar {0}-1001, {1}-1002… diye numaralanır. Mevcut kodlar değişmez.', esc(m.onek), esc(m.onek))}</p>${ikonSecici('modul',m.id,m.ikon)}<label><input type="checkbox" data-modul-ac="${m.id}" ${m.acik?'checked':''}> ${_t('Sol menüde açık')}</label>${fnSec}<div class="lbl">${_t('Fonksiyonlar')}<p class="zaman">${_t('Sırayı sürükle. Satıra tıklayınca ayrıntı ve grup yetkisi açılır.')}</p><div class="fn-form">${fnler||`<p class="zaman">${_t('Henüz yok.')}</p>`}</div></div>
-      <div class="lbl">${_t('Sistem alanları')}<p class="zaman">${_t('Her kayıtta otomatik dolar, silinemez. Varsayılan görünümü seç; kullanıcı kendi ekranında değiştirebilir.')}</p><div class="tbl gorunum-tbl"><table><thead><tr><th>${_t('Alan')}</th><th>${_t('Kanban')}</th><th>${_t('Liste')}</th></tr></thead><tbody>${SISTEM.map(x=>`<tr><td>${ic(x[2])} ${esc(x[1])}</td><td><input type="checkbox" data-sistem="${m.id}:kanban:${x[0]}" ${m.sistem?.[x[0]]?.kanban?'checked':''}></td><td><input type="checkbox" data-sistem="${m.id}:liste:${x[0]}" ${m.sistem?.[x[0]]?.liste!==false?'checked':''}></td></tr>`).join('')}</tbody></table></div></div>${m.tur!=='proje'?`<button type="button" class="btn danger" style="justify-self:start" data-act="modul-sil" data-id="${m.id}">${ic('sil')}${_t('Modülü sil')}</button>`:''}</form>`;
+      <div class="lbl">${_t('Sistem alanları')}<p class="zaman">${_t('Her kayıtta otomatik dolar, silinemez. Varsayılan görünümü seç; kullanıcı kendi ekranında değiştirebilir.')}</p><div class="tbl gorunum-tbl"><table><thead><tr><th>${_t('Alan')}</th><th>${_t('Kanban')}</th><th>${_t('Liste')}</th></tr></thead><tbody>${SISTEM.map(x=>`<tr><td>${ic(x[2])} ${esc(x[1])}</td><td><input type="checkbox" data-sistem="${m.id}:kanban:${x[0]}" ${m.sistem?.[x[0]]?.kanban?'checked':''}></td><td><input type="checkbox" data-sistem="${m.id}:liste:${x[0]}" ${m.sistem?.[x[0]]?.liste!==false?'checked':''}></td></tr>`).join('')}</tbody></table></div></div>${aktarimAyarHTML(m)}${m.tur!=='proje'?acikFormAyarHTML(m):''}${m.tur!=='proje'?`<button type="button" class="btn danger" style="justify-self:start" data-act="modul-sil" data-id="${m.id}">${ic('sil')}${_t('Modülü sil')}</button>`:''}</form>`;
   }
   if(c.tur==='fn'){
     const f=fnBul(c.id); if(!f) return bas(_t('Fonksiyon'),'');
@@ -3362,7 +3650,7 @@ function cekmeceHTML(){
     const tarihDef=f.tip==='tarih'?`<label>${_t('Varsayılan')}<select data-fn-tarih="${f.uid}"><option value="" ${f.tarihVarsayilan==='bugun'?'':'selected'}>${_t('Boş')}</option><option value="bugun" ${f.tarihVarsayilan==='bugun'?'selected':''}>${_t('Günün tarihi')}</option></select></label>`:'';
     const sekmeSec=`<label>${_t('Sekme')}<input data-fn-sekme="${f.uid}" list="sekmeDL" value="${esc(f.sekme||'')}" placeholder="${_t('Genel')}"></label><datalist id="sekmeDL">${modulSekmeler(m).map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;
     const yt=`<div class="lbl">${_t('Grup yetkisi')}<div class="tbl"><table><thead><tr><th>${_t('Grup')}</th><th>${_t('Erişim')}</th></tr></thead><tbody>${S.yetkiGruplari.map(g=>`<tr><td>${esc(g.ad)}</td><td><select data-fn-yetki="${f.uid}:${g.id}">${secOp([['duzenle',_t('Düzenle')],['gor',_t('Gör')],['gizli',_t('Görme')]], (f.yetki||{})[g.id]||'duzenle')}</select></td></tr>`).join('')}</tbody></table></div><p class="zaman">Görme: alan formda, kanbanda, listede, Excel'de ve aramada çıkmaz. Gör: salt okunur. Yöneticiler her alanı düzenler.</p></div>`;
-    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}${_t('Modüle dön')}</button><form class="form"><label>${_t('Ad')}<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'?`<label>${_t('Opsiyon grubu')}<select data-fn-grup="${f.uid}">${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>`:''}${f.tip==='kontrol'?`<div class="lbl">${_t('Madde listeleri (opsiyon grupları)')}<div class="secim">${gruplar().map(g=>`<label><input type="checkbox" data-fn-kgrup="${f.uid}" value="${esc(g)}" ${ktGruplar(f).includes(g)?'checked':''}>${esc(g)}</label>`).join('')}</div></div><p class="zaman">${_t('Birden çok liste seçersen kullanıcı kayıtta uygun olanı seçer; tek liste seçiliyse maddeler kendiliğinden gelir. Listeler Ayarlar → Opsiyonlar\'da tanımlanır. Kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.')}</p>`:''}${tarihDef}${puanDef}${zorunlu}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">${_t('Bağlantıyı çöz')}</button></form>`;
+    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}${_t('Modüle dön')}</button><form class="form"><label>${_t('Ad')}<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'?`<label>${_t('Opsiyon grubu')}<select data-fn-grup="${f.uid}">${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>`:''}${f.tip==='kontrol'?`<div class="lbl">${_t('Madde listeleri (opsiyon grupları)')}<div class="secim">${gruplar().map(g=>`<label><input type="checkbox" data-fn-kgrup="${f.uid}" value="${esc(g)}" ${ktGruplar(f).includes(g)?'checked':''}>${esc(g)}</label>`).join('')}</div></div><p class="zaman">${_t('Birden çok liste seçersen kullanıcı kayıtta uygun olanı seçer; tek liste seçiliyse maddeler kendiliğinden gelir. Listeler Ayarlar → Opsiyonlar\'da tanımlanır. Kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.')}</p>`:''}${tarihDef}${puanDef}${f.tip==='ticket'?ticketAyarHTML(f,m):''}${f.tip==='fiyatonay'?`<div class="lbl">${_t('Onay beklerken geçilemeyen durumlar')}<div class="ck-sec">${akis(m.id).map(d=>`<label class="anahtar"><input type="checkbox" data-fn-engel="${f.uid}:${d.id}" ${((f.ayar||{}).engel||[]).includes(d.id)?'checked':''}><span>${esc(d.ad)}</span></label>`).join('')}</div><p class="zaman">${_t('Hiçbiri seçilmezse "akışı kapatır" durumları engellenir. Tutar, kaydedenin limitini (kullanıcı kartında TL / USD / EUR) aşarsa onay yöneticisine gider; onun limiti de yetmezse bir üste çıkar. Yönetim limitsizdir.')}</p></div>`:''}${zorunlu}${f.tip==='gecmis'?'':`<label>${_t('Değiştirebilir')}<select data-fn-degistir="${f.uid}">${secOp([['',_t('Yetki grubuna göre')],['acan',_t('Kaydı açan ve yönetim')],['yonetim',_t('Yalnız yönetim')],['kilit',_t('Kaydedildikten sonra kilitli')]], (f.ayar||{}).degistir||'')}</select></label><p class="zaman">${_t('Grup yetkisinin üstüne ikinci kuraldır. Yönetim her zaman değiştirir. "Kilitli" seçilirse alan bir kez doldurulur, sonra değiştirilemez.')}</p>`}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">${_t('Bağlantıyı çöz')}</button></form>`;
   }
   if(c.tur==='grup' && c.id==='yeni') return bas(_t('Opsiyon'),_t('Yeni grup'))+`<form class="form" id="ayarForm"><label>${_t('Grup')}<input name="grup" required placeholder="odeme"></label><label>${_t('Tür')}<select name="tur">${secOp([['select',_t('Selectbox')],['radio',_t('Radio')],['check',_t('Check Box')]], 'select')}</select></label><label>${_t('İlk seçenek')}<input name="ad" required placeholder="${_t('Nakit')}"></label>${onay}</form>`;
   if(c.tur==='grup'){
@@ -3460,7 +3748,8 @@ function kaydetAyar(form){
   const v=name=>(form.elements[name]?.value||'').trim();
   if(c.tur==='kullanici'){
     const ad=v('ad'); if(!ad) return toast(_t('Ad gerekli'));
-    const u={id:nid('u'), ad, unvan:v('unvan'), eposta:v('eposta'), grup:v('grup'), departman:v('departman'), rol:'personel', aktif:true, yetki:yetkiBos(), ek:{}};
+    const u={id:nid('u'), ad, unvan:v('unvan'), eposta:v('eposta'), grup:v('grup'), departman:v('departman'), rol:'personel', aktif:true, yetki:yetkiBos(), ek:{}, tur:v('tur')==='misafir'?'misafir':'kullanici'};
+    if(u.tur==='misafir'){ u.gorunum='kendi'; u.gunler='12345'; u.saatBas='08:00'; u.saatBit='18:00'; u.gecerliBas=bugun(); }
     S.kullanicilar.push(u); ui.cekmece={tur:'kullanici', id:u.id};
   } else if(c.tur==='ygrup'){
     const ad=v('ad'); if(!ad) return toast(_t('Ad gerekli'));
@@ -3540,7 +3829,7 @@ function renderTop(){
   const ok=okunmamis().length;
   $('#top').innerHTML=`<button type="button" class="ibtn menu-btn" data-act="menu" aria-label="${_t('Menü')}">${ic('menu')}</button>
     <label class="search">${ic('ara')}<input id="q" type="search" placeholder="${_t('Ara… proje, açıklama, kişi, kod')}" value="${esc(ui.q)}" autocomplete="off"></label>
-    <span class="sp"></span>
+    <span class="sp"></span>${eforCipHTML()}
     <button type="button" class="ibtn" data-act="gelen" title="${_t('Gelen kutusu')}" aria-label="${_t('Gelen kutusu')}">${ic('gelen')}${ok?`<span class="badge">${ok}</span>`:''}</button>
     ${API.acik?'':`<select id="firmaSel" class="sel" aria-label="${_t('Firma')}">${firmaOp}</select>
     <select id="kim" class="sel" aria-label="Şablon: kullanıcı değiştir" title="${_t('Şablon testi: başka kullanıcının gözünden bak (gerçek sistemde yok)')}">${aktifKullanicilar().map(u=>`<option value="${u.id}" ${u.id===ui.uid?'selected':''}>${esc(u.ad)}</option>`).join('')}</select>`}
@@ -5056,6 +5345,7 @@ function isoZaman(v){
 
 /* sunucudan gelen durumu şablon biçimine getir */
 function durumUygula(v){
+  v.baglar=v.baglar||[];
   v.projeler.forEach(p=>{ p.olusturma=yerelZaman(p.olusturma); p.guncelleme=yerelZaman(p.guncelleme); });
   v.kartlar.forEach(k=>{ k.olusturma=yerelZaman(k.olusturma); k.guncelleme=yerelZaman(k.guncelleme); k.yazarId=k.olusturan; });
   v.degerler.forEach(d=>{ d.zaman=yerelZaman(d.zaman); });
@@ -5128,9 +5418,9 @@ function degerIz(L){ return JSON.stringify(L.slice().sort((a,b)=>String(a.id).lo
 const AYAR_TABLO=[
   {t:'yetki_gruplari', k:'id', L:s=>s.yetkiGruplari.map((g,i)=>({id:g.id, ad:g.ad, sira:i}))},
   {t:'departmanlar', k:'ad', L:s=>s.departmanlar.map((d,i)=>({ad:d, sira:i}))},
-  {t:'moduller', k:'id', L:s=>s.moduller.map((m,i)=>({id:m.id, ad:m.ad, renk:m.renk, ikon:m.ikon, onek:m.onek, tur:m.tur||'kart', acik:m.acik!==false, sira:i, sistem:m.sistem||{}}))},
-  {t:'durumlar', k:'id', L:s=>s.moduller.flatMap(m=>(m.durumlar||[]).map((d,i)=>({id:d.id, modul_id:m.id, ad:d.ad, renk:d.renk, sira:i, kapat:!!d.kapat})))},
-  {t:'fonksiyonlar', k:'uid', L:s=>s.moduller.flatMap(m=>(m.fn||[]).map((f,i)=>({uid:f.uid, modul_id:m.id, tip:f.tip, ad:f.ad, zorunlu:!!f.zorunlu, grup:f.grup||null, tarih_vars:f.tarihVarsayilan||'', ...(f.sekme?{sekme:String(f.sekme)}:{}), kanban:!!f.kanban, liste:f.liste!==false, sira:i, yetki:f.yetki||{}})))},
+  {t:'moduller', k:'id', L:s=>s.moduller.map((m,i)=>({id:m.id, ad:m.ad, renk:m.renk, ikon:m.ikon, onek:m.onek, tur:m.tur||'kart', acik:m.acik!==false, sira:i, sistem:m.sistem||{}, aktarimlar:m.aktarimlar||[]}))},
+  {t:'durumlar', k:'id', L:s=>s.moduller.flatMap(m=>(m.durumlar||[]).map((d,i)=>({id:d.id, modul_id:m.id, ad:d.ad, renk:d.renk, sira:i, kapat:!!d.kapat, gecis:d.gecis||''})))},
+  {t:'fonksiyonlar', k:'uid', L:s=>s.moduller.flatMap(m=>(m.fn||[]).map((f,i)=>({uid:f.uid, modul_id:m.id, tip:f.tip, ad:f.ad, zorunlu:!!f.zorunlu, grup:f.grup||null, tarih_vars:f.tarihVarsayilan||'', ...(f.sekme?{sekme:String(f.sekme)}:{}), kanban:!!f.kanban, liste:f.liste!==false, sira:i, yetki:f.yetki||{}, ayar:f.ayar||{}})))},
   {t:'opsiyonlar', k:'id', L:s=>s.opsiyonlar.map((o,i)=>({id:o.id, grup:o.grup, ad:o.ad, varsayilan:!!o.varsayilan, tur:o.tur||'select', sira:i}))},
   {t:'depolar', k:'id', L:s=>s.depolar.map((d,i)=>({id:d.id, ad:d.ad, sira:i}))},
   {t:'malzemeler', k:'id', herkes:true, L:s=>s.malzemeler.map(m=>({id:m.id, kod:m.kod||'', ad:m.ad, birim:m.birim||'', kritik:String(m.kritik??'').trim()===''?null:sayiOku(m.kritik)}))},
@@ -5138,7 +5428,8 @@ const AYAR_TABLO=[
   {t:'rehber_kisiler', k:'id', herkes:true, L:s=>s.kisiler.map(k=>({id:k.id, ad:k.ad, firma_id:k.firmaId||null, unvan:k.unvan||'', tel:k.tel||'', eposta:k.eposta||''}))},
   ...['sablonlar','panolar','kiosklar','ciktilar'].map(t=>({t, k:'id', L:s=>s[t].map((x,i)=>{ const {id,ad,sira,...tanim}=x; return {id, ad, sira:i, tanim}; })})),
 ];
-const KUL_ALAN=u=>({ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false, foto:/^data:image\/(png|jpeg|webp);base64,/.test(u.foto||'')?u.foto:''});
+const limitNum=v=>v===null||v===undefined||String(v).trim()===''?null:sayiOku(v);
+const KUL_ALAN=u=>({tur:u.tur==='misafir'?'misafir':'kullanici', ...(u.tur==='misafir'?{firma:u.firma||null, gecerli_bas:u.gecerliBas||null, gecerli_bit:u.gecerliBit||null, saat_bas:u.saatBas||null, saat_bit:u.saatBit||null, gunler:u.gunler||null, gorunum:u.gorunum==='firma'?'firma':'kendi'}:{}), ust_id:u.ust||null, onay_limit:{TL:limitNum((u.onayLimit||{}).TL), USD:limitNum((u.onayLimit||{}).USD), EUR:limitNum((u.onayLimit||{}).EUR)}, ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false, foto:/^data:image\/(png|jpeg|webp);base64,/.test(u.foto||'')?u.foto:''});
 const KUL_YETKI=u=>{ const o={}; new Set([...Object.keys(u.yetki||{}), ...Object.keys(u.ek||{})]).forEach(m=>{ const y=(u.yetki||{})[m]||'yok', e=(u.ek||{})[m]||{}; if(y!=='yok') o[m]={yetki:y, onay:!!e.onay, disa:!!e.disa}; }); return o; };
 const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}, panoEk:u.panoEk||{}, dil:u.dil||''}});
 const EPOSTA=u=>{ const h={...(u.epostaHesap||{tur:'yok'})}; ['bagli','zaman','sifre','sifreKayitli'].forEach(k=>delete h[k]); Object.keys(h).forEach(k=>{ if(k!=='tur'&&(h[k]===''||h[k]==null)) delete h[k]; }); h.tur=h.tur||'yok'; return h; };
@@ -5161,7 +5452,7 @@ function kayitGovde(tur, o){
   const D=S.degerler.filter(d=>tur==='proje'?(d.projeId===o.id&&!d.kartId):d.kartId===o.id).map(d=>({...d, zaman:isoZaman(d.zaman)}));
   return tur==='proje'
     ? {id:o.id, ad:o.ad, durumId:o.durumId, kategori:o.kategori||null, arsiv:!!o.arsiv, yonetici:o.yonetici||[], ekip:o.ekip||[], degerler:D}
-    : {id:o.id, modulId:o.modulId, projeId:o.projeId, durumId:o.durumId, degerler:D};
+    : {id:o.id, modulId:o.modulId, projeId:o.projeId, durumId:o.durumId, degerler:D, ...(o.aktarim?{aktarim:o.aktarim}:{})};
 }
 // kaydedilen kaydı sunucudaki haliyle değiştir (kod, değer kimlikleri, log sunucuda üretilir)
 async function kayitTazele(tur, id){
@@ -5173,6 +5464,8 @@ async function kayitTazele(tur, id){
   if(i>=0) L[i]=Object.assign(L[i], o); else L.push(o);
   S.degerler=S.degerler.filter(d=>tur==='proje'?!(d.projeId===id&&!d.kartId):d.kartId!==id).concat(v.degerler);
   S.log=S.log.filter(l=>tur==='proje'?!(l.projeId===id&&!l.kartId):l.kartId!==id).concat(v.log);
+  if(v.baglar){ S.baglar=(S.baglar||[]).filter(b=>b.kaynakId!==id&&b.hedefId!==id).concat(v.baglar); }
+  if(tur==='kart'&&L[i>=0?i:L.length-1]) delete L[i>=0?i:L.length-1].aktarim;
 }
 function modulOf(tur, o){ return tur==='proje'?(S.moduller.find(m=>m.tur==='proje')||{}).id:o.modulId; }
 async function esitle(){
@@ -5305,6 +5598,8 @@ function bildirimMetni(o){
   const kayit=k?`${k.kod} · ${kartBaslik(k)}`:p?`${p.kod} · ${p.ad}`:_t('Kayıt');
   if(o.tur==='mesaj') return {baslik:_t('Yeni mesaj')+' · '+(kisiAd(o.kimden)||''), govde:kayit+'\n'+(o.metin||''), ikon:'mesaj'};
   if(o.tur==='atama') return {baslik:_t('Sana iş atandı'), govde:kayit+(o.alan?' · '+o.alan:'')+(o.kimden?' · '+o.kimden:''), ikon:'kisi'};
+  if(o.tur==='fiyat') return {baslik:_t('Fiyat onayın bekleniyor'), govde:kayit+' · '+(o.tutar||'')+(o.kimden?' · '+kisiAd(o.kimden):''), ikon:'para'};
+  if(o.tur==='fiyatSonuc') return {baslik:o.karar==='onaylandi'?_t('Fiyat onaylandı'):_t('Fiyat reddedildi'), govde:kayit+' · '+(o.tutar||'')+(o.kimden?' · '+kisiAd(o.kimden):''), ikon:'para'};
   if(o.tur==='onay') return {baslik:o.karar==='red'?_t('Müşteri reddetti'):o.karar==='onay'?_t('Müşteri onayladı'):_t('Müşteri yanıtladı'), govde:kayit+(o.baslik?' · '+o.baslik:''), ikon:'qr'};
   return {baslik:_t('Bildirim'), govde:kayit, ikon:'mesaj'};
 }
@@ -5681,11 +5976,33 @@ function bagla(){
         if(!t.checked && u.rol==='yonetici' && S.kullanicilar.filter(x=>x.rol==='yonetici'&&x.aktif!==false).length<2){ t.checked=true; return toast(_t('Son aktif yönetici pasife alınamaz')); }
         u.aktif=t.checked;
       } else if(a==='departman') u.departman=t.value;
+      else if(a==='tur'){ if(t.value==='misafir'&&u.rol==='yonetici'){ t.value='kullanici'; return toast(_t('Yönetici misafire çevrilemez; önce rolünü personel yap')); } u.tur=t.value==='misafir'?'misafir':'kullanici'; if(u.tur==='misafir'){ u.gorunum=u.gorunum||'kendi'; u.gunler=u.gunler??'12345'; } }
+      else if(['firma','gecerliBas','gecerliBit','saatBas','saatBit','gorunum'].includes(a)) u[a]=t.value.trim();
+      else if(a==='ust'){
+        let x=t.value, n=0; while(x&&n<50){ if(x===u.id){ t.value=u.ust||''; return toast(_t('Yönetici zinciri döngüye giriyor (kişi kendi altındaki birine bağlanamaz)')); } x=S.kullanicilar.find(k=>k.id===x)?.ust; n++; }
+        u.ust=t.value;
+      }
       else u[a]=t.value.trim()||u[a];
       if(a==='rol' && S.kullanicilar.filter(x=>x.rol==='yonetici').length===0){ u.rol='yonetici'; toast(_t('Son yönetici kalır')); }
       persist(); render(); return;
     }
     if(t.dataset.durumKapat){ const d=durum(t.dataset.durumKapat); if(d){ d.kapat=t.checked; persist(); render(); } return; }
+    if(t.dataset.durumGecis){ const d=durum(t.dataset.durumGecis); if(d){ d.gecis=['acan','acanYonetim'].includes(t.value)?t.value:''; persist(); } return; }
+    if(t.dataset.af||t.dataset.afEs){
+      const [id,k]=(t.dataset.af||t.dataset.afEs).split(':'); const x=(ui.acikForm?.L||[]).find(y=>y.id===id); if(!x) return;
+      const govde={ad:x.ad, sablonId:x.sablonId, projeId:x.projeId, durumId:x.durumId||null, eslesme:{...(x.eslesme||{})}};
+      if(t.dataset.af) govde[k]=t.value||null; else { const ad=t.dataset.afEs.slice(id.length+1); if(t.value) govde.eslesme[ad]=t.value; else delete govde.eslesme[ad]; }
+      apiIstek('/acik-formlar/'+encodeURIComponent(id),{method:'PUT', govde}).then(()=>acikFormYukle(true)).catch(e=>toast(sunucuHatasi(e.message)));
+      return;
+    }
+    if(t.dataset.akt){ const [mid,aid,k]=t.dataset.akt.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a[k]=t.value; if(k==='hedef'){ a.eslesme={}; a.hedefDurum=''; a.ataFn=''; } persist(); if(k!=='ad') renderMain(); } return; }
+    if(t.dataset.aktEs){ const [mid,aid,uid]=t.dataset.aktEs.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a.eslesme={...(a.eslesme||{})}; if(t.value) a.eslesme[uid]=t.value; else delete a.eslesme[uid]; persist(); renderMain(); } return; }
+    if(t.dataset.aktSatir){ const [mid,aid]=t.dataset.aktSatir.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a.satir=t.checked; persist(); } return; }
+    if(t.dataset.fnTicket){ const [uid,k]=t.dataset.fnTicket.split(':'); const f=fnBul(uid); if(f){ f.ayar={...(f.ayar||{}), ticket:{...((f.ayar||{}).ticket||{}), [k]:t.value||null}}; persist(); } return; }
+    if(t.dataset.fnEngel){ const [uid,did]=t.dataset.fnEngel.split(':'); const f=fnBul(uid); if(f){ const L=new Set((f.ayar||{}).engel||[]); t.checked?L.add(did):L.delete(did); f.ayar={...(f.ayar||{}), engel:[...L]}; persist(); } return; }
+    if(t.dataset.ugun){ const [uid,g]=t.dataset.ugun.split(':'); const u=S.kullanicilar.find(x=>x.id===uid); if(u){ const L=new Set(String(u.gunler||'').split('').filter(Boolean)); t.checked?L.add(g):L.delete(g); u.gunler=[...L].sort().join(''); persist(); } return; }
+    if(t.dataset.ulimit){ const [uid,pb]=t.dataset.ulimit.split(':'); const u=S.kullanicilar.find(x=>x.id===uid); if(u){ const v=String(t.value).trim(); u.onayLimit={...(u.onayLimit||{}), [pb]:v===''?null:sayiOku(v)}; persist(); } return; }
+    if(t.dataset.fnDegistir){ const f=fnBul(t.dataset.fnDegistir); if(f){ f.ayar={...(f.ayar||{}), degistir:['acan','yonetim','kilit'].includes(t.value)?t.value:''}; persist(); } return; }
     if(t.dataset.durum){ const d=durum(t.dataset.durum); d[t.dataset.alan]=t.dataset.alan==='renk'?t.value:(t.value.trim()||d.ad); persist(); renderMain(); return; }
     if(t.dataset.modul){ const m=modul(t.dataset.modul); const a=t.dataset.alan; m[a]=a==='renk'?t.value:a==='onek'?(t.value.toLocaleUpperCase('tr').replace(/[^A-Z0-9ÇĞİÖŞÜ]/g,'')||m.onek):(t.value.trim()||m.ad); persist(); render(); return; }
     if(t.dataset.modulAc){ modul(t.dataset.modulAc).acik=t.checked; persist(); renderSide(); renderMain(); return; }
@@ -5839,6 +6156,64 @@ function bagla(){
       case 'tel-iptal': { if(ui.tel){ ui.tel.kod=null; clearInterval(ui.tel.zaman); } render(); return; }
       case 'tel-kaldir': { if(!confirm(_t('Bu telefonun bağlantısı kaldırılsın mı? Telefon bir daha bağlanmak için yeni QR okutmalı.'))) return; apiIstek('/cihaz/'+encodeURIComponent(b.dataset.id)+'/kaldir',{method:'POST',govde:{}}).then(()=>{ toast(_t('Telefon kaldırıldı')); telYukle(true); }).catch(e=>toast(e.message)); return; }
       case 'dis-kopya': { const u=b.dataset.url; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast(_t('Bağlantı kopyalandı')),()=>prompt(_t('Bağlantı'),u)); return; }
+      case 'efor': {
+        if(!ui.form||!ui.form.id) return;
+        const f=fnBul(b.dataset.uid), tur=ui.form.tur, id=ui.form.id, eylem=b.dataset.eylem;
+        const yenile=()=>{ if(ui.form&&ui.form.id===id){ const kpred=tur==='proje'?(x=>x.projeId===id&&!x.kartId):(x=>x.kartId===id); ui.form.coklu[f.uid]=S.degerler.filter(x=>kpred(x)&&x.fnUid===f.uid).map(r=>({...r})); } renderTop(); renderDrawer(); };
+        if(!API.acik){ eforYerel(f, tur, id, eylem); yenile(); return; }
+        b.disabled=true;
+        API.kuyruk=API.kuyruk.then(async()=>{
+          const senk=JSON.stringify(iz(S))===JSON.stringify(API.son);
+          // başka kayıtta açık sayacım varsa sunucu onu durdurur: o kayıtlar da tazelenir
+          const digerleri=(eylem==='basla'||eylem==='devam')?[...new Map(S.degerler.filter(x=>x.fnTip==='efor'&&x.kisi===ui.uid&&eforAcikMi(x)).map(x=>x.kartId?['kart:'+x.kartId,['kart',x.kartId]]:['proje:'+x.projeId,['proje',x.projeId]])).values()].filter(([t,i])=>!(t===tur&&i===id)):[];
+          await apiIstek('/efor',{method:'POST', govde:{tur, id, fnUid:f.uid, eylem}});
+          await kayitTazele(tur, id);
+          for(const [t,i] of digerleri) await kayitTazele(t, i).catch(()=>{});
+          if(senk) API.son=iz(S);
+          yenile();
+        }).catch(e=>{ b.disabled=false; toast(sunucuHatasi(e.message)); });
+        return;
+      }
+      case 'ticket-kontrol': { b.disabled=true; ticketKontrol(b.dataset.mid, b.dataset.fn||'', true).then(()=>{ b.disabled=false; if(ui.ekran==='ayar') renderMain(); }); return; }
+      case 'ticket-kaydet': {
+        const fm=$('#ticketForm'); if(!fm) return; const el=k=>fm.querySelector('[name="'+k+'"]'), v=k=>el(k).value.trim();
+        b.disabled=true; b.textContent=_t('Bağlanıyor…');
+        apiIstek('/ticket/'+encodeURIComponent(b.dataset.uid),{method:'PUT', govde:{host:v('host'), port:Number(v('port'))||993, kullanici:v('kullanici'), ...(v('sifre')?{sifre:el('sifre').value}:{}), klasor:v('klasor')||'INBOX'}})
+          .then(()=>{ toast(_t('E-posta kutusuna bağlanıldı ve kaydedildi')); delete ui.ticket[b.dataset.uid]; renderMain(); })
+          .catch(e=>{ toast(sunucuHatasi(e.message), 7000); b.disabled=false; b.textContent=_t('Test et ve kaydet'); });
+        return;
+      }
+      case 'af-ekle': {
+        const ad=$('#afAd')?.value.trim()||_t('Açık form'), sablonId=$('#afSablon')?.value, projeId=$('#afProje')?.value;
+        if(!sablonId||!projeId) return toast(_t('Şablon ve proje seç'));
+        apiIstek('/acik-formlar',{method:'POST', govde:{modulId:b.dataset.mid, ad, sablonId, projeId}}).then(()=>{ toast(_t('Açık form bağlantısı oluşturuldu')); acikFormYukle(true); }).catch(e=>toast(sunucuHatasi(e.message)));
+        return;
+      }
+      case 'af': {
+        const e=b.dataset.eylem;
+        if(e==='sil'&&!confirm(_t('Açık form silinsin mi? Bağlantı ve QR çalışmaz; gelmiş kayıtlar kalır.'))) return;
+        if(e==='yenile'&&!confirm(_t('Yeni bağlantı oluşturulsun mu? Eski bağlantı ve basılı QR artık çalışmaz.'))) return;
+        apiIstek('/acik-formlar/'+encodeURIComponent(b.dataset.id)+'/'+e,{method:'POST', govde:{}}).then(()=>acikFormYukle(true)).catch(er=>toast(sunucuHatasi(er.message)));
+        return;
+      }
+      case 'aktar': { aktarimAc(b.dataset.aid, b.dataset.tur, b.dataset.id); return; }
+      case 'akt-vazgec': { ui.form=null; render(); return; }
+      case 'bag-ac': { b.dataset.tur==='proje'?projeAc(b.dataset.id):kartAc(b.dataset.id); return; }
+      case 'akt-ekle': { const m=modul(b.dataset.mid); if(!m) return; m.aktarimlar=m.aktarimlar||[]; m.aktarimlar.push({id:nid('akt'), ad:'', hedef:'', durum:'', hedefDurum:'', eslesme:{}, satir:true, ata:'', ataFn:''}); persist(); renderMain(); return; }
+      case 'akt-sil': { const m=modul(b.dataset.mid); if(!m||!confirm(_t('Aktarım silinsin mi? Daha önce açılmış bağlı kayıtlar kalır.'))) return; m.aktarimlar=(m.aktarimlar||[]).filter(a=>a.id!==b.dataset.aid); persist(); renderMain(); return; }
+      case 'fiyat-onay': {
+        if(!ui.form||!ui.form.id) return;
+        const red=b.dataset.karar==='red';
+        const not=red?prompt(_t('Reddetme sebebi (isteğe bağlı)'),''):'';
+        if(red&&not===null) return;
+        if(!red&&!confirm(_t('Fiyat onaylansın mı?'))) return;
+        const f=fnBul(b.dataset.uid), id=ui.form.id, tur=ui.form.tur;
+        apiIstek('/fiyat-onay',{method:'POST', govde:{tur, id, fnUid:b.dataset.uid, karar:red?'red':'onay', not:not||''}}).then(async r=>{
+          toast(r.onay==='onaylandi'?_t('Fiyat onaylandı'):r.onay==='reddedildi'?_t('Fiyat reddedildi'):_t('Limitin yetmediği için onay üst yöneticiye gönderildi: {0}', kisiAd(r.kisi)||'—'), 5000);
+          await durumYukle(); if(ui.form&&ui.form.id===id){ tur==='proje'?projeAc(id):kartAc(id); } else render();
+        }).catch(e=>toast(sunucuHatasi(e.message)));
+        return;
+      }
       case 'dis-iptal': {
         if(!confirm(_t('QR bağlantısı iptal edilsin mi? Müşteri artık belgeyi açamaz.'))) return;
         apiIstek('/dis-onay/'+encodeURIComponent(b.dataset.id)+'/iptal',{method:'POST', govde:{}}).then(()=>{ const x=(ui.dis?.[ui.form?.id]||[]).find(y=>y.id===b.dataset.id); if(x) x.durum='iptal'; formDomOku(); renderDrawer(); toast(_t('Bağlantı iptal edildi')); }).catch(e=>toast(e.message));
