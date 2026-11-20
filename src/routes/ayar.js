@@ -12,15 +12,24 @@ import { firmaEpostasiGonder } from './baglanti.js';
 
 const kacisH = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Geçici şifreyi kullanıcıya firma e-postasıyla iletir (ilk girişte değiştirmesi istenir)
+// Sistem e-postası metinleri: kullanıcının dili (tercih.dil), yoksa Türkçe
+const SIFRE_METIN = {
+  tr: { acildi: 'NetERP hesabınız açıldı', sifirlandi: 'NetERP şifreniz sıfırlandı', giris1: 'Sizin için bir NetERP hesabı açıldı.', giris2: 'NetERP şifreniz yönetici tarafından sıfırlandı.', merhaba: 'Merhaba', adres: 'Giriş adresi', eposta: 'E-posta', sifre: 'Geçici şifre', not: 'İlk girişte kendi şifrenizi belirlemeniz istenecek. Bu isteği siz beklemiyorsanız yöneticinize bildirin.' },
+  en: { acildi: 'Your NetERP account has been created', sifirlandi: 'Your NetERP password has been reset', giris1: 'A NetERP account has been created for you.', giris2: 'Your NetERP password was reset by an administrator.', merhaba: 'Hello', adres: 'Login address', eposta: 'E-mail', sifre: 'Temporary password', not: 'You will be asked to set your own password at first login. If you did not expect this, tell your administrator.' },
+  de: { acildi: 'Ihr NetERP-Konto wurde angelegt', sifirlandi: 'Ihr NetERP-Passwort wurde zurückgesetzt', giris1: 'Für Sie wurde ein NetERP-Konto angelegt.', giris2: 'Ihr NetERP-Passwort wurde von einem Administrator zurückgesetzt.', merhaba: 'Hallo', adres: 'Anmeldeadresse', eposta: 'E-Mail', sifre: 'Temporäres Passwort', not: 'Bei der ersten Anmeldung legen Sie ein eigenes Passwort fest. Falls Sie das nicht erwartet haben, informieren Sie Ihren Administrator.' },
+  es: { acildi: 'Se ha creado tu cuenta de NetERP', sifirlandi: 'Se ha restablecido tu contraseña de NetERP', giris1: 'Se ha creado una cuenta de NetERP para ti.', giris2: 'Un administrador ha restablecido tu contraseña de NetERP.', merhaba: 'Hola', adres: 'Dirección de acceso', eposta: 'Correo', sifre: 'Contraseña temporal', not: 'En el primer inicio de sesión se te pedirá definir tu propia contraseña. Si no esperabas esto, avisa a tu administrador.' },
+};
 async function sifreEpostasi(req, u, sifre, yeni) {
   if (!u.eposta) return { gonderildi: false, neden: 'Kullanıcının e-posta adresi yok' };
   const firma = json.oku((await req.db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
+  const dil = (typeof u.tercih === 'string' ? json.oku(u.tercih, {}) : u.tercih || {})?.dil;
+  const M = SIFRE_METIN[dil] || SIFRE_METIN.tr;
   const adres = `${req.protocol}://${req.get('host')}/`;
   const firmaAd = firma.ad || req.firma.ad || 'NetERP';
-  const konu = yeni ? `${firmaAd} · NetERP hesabınız açıldı` : `${firmaAd} · NetERP şifreniz sıfırlandı`;
-  const giris = yeni ? 'Sizin için bir NetERP hesabı açıldı.' : 'NetERP şifreniz yönetici tarafından sıfırlandı.';
-  const metin = `Merhaba ${u.ad},\n\n${giris}\n\nGiriş adresi: ${adres}\nE-posta: ${u.eposta}\nGeçici şifre: ${sifre}\n\nİlk girişte kendi şifrenizi belirlemeniz istenecek. Bu isteği siz beklemiyorsanız yöneticinize bildirin.\n\n${firmaAd}`;
-  const html = `<p>Merhaba ${kacisH(u.ad)},</p><p>${kacisH(giris)}</p><table cellpadding="6" style="border-collapse:collapse"><tr><td><b>Giriş adresi</b></td><td><a href="${kacisH(adres)}">${kacisH(adres)}</a></td></tr><tr><td><b>E-posta</b></td><td>${kacisH(u.eposta)}</td></tr><tr><td><b>Geçici şifre</b></td><td style="font-family:Consolas,monospace;font-size:16px"><b>${kacisH(sifre)}</b></td></tr></table><p>İlk girişte kendi şifrenizi belirlemeniz istenecek. Bu isteği siz beklemiyorsanız yöneticinize bildirin.</p><p>${kacisH(firmaAd)}</p>`;
+  const konu = `${firmaAd} · ${yeni ? M.acildi : M.sifirlandi}`;
+  const giris = yeni ? M.giris1 : M.giris2;
+  const metin = `${M.merhaba} ${u.ad},\n\n${giris}\n\n${M.adres}: ${adres}\n${M.eposta}: ${u.eposta}\n${M.sifre}: ${sifre}\n\n${M.not}\n\n${firmaAd}`;
+  const html = `<p>${kacisH(M.merhaba)} ${kacisH(u.ad)},</p><p>${kacisH(giris)}</p><table cellpadding="6" style="border-collapse:collapse"><tr><td><b>${kacisH(M.adres)}</b></td><td><a href="${kacisH(adres)}">${kacisH(adres)}</a></td></tr><tr><td><b>${kacisH(M.eposta)}</b></td><td>${kacisH(u.eposta)}</td></tr><tr><td><b>${kacisH(M.sifre)}</b></td><td style="font-family:Consolas,monospace;font-size:16px"><b>${kacisH(sifre)}</b></td></tr></table><p>${kacisH(M.not)}</p><p>${kacisH(firmaAd)}</p>`;
   return firmaEpostasiGonder(req, { kime: u.eposta, konu, metin, html });
 }
 
@@ -142,7 +151,7 @@ kullaniciRouter.post('/', async (req, res) => {
   if (await req.db('kullanicilar').where({ id }).first()) throw new HttpHata(409, 'Bu kimlikte kullanıcı var');
   const sifre = geciciSifre();
   await req.db('kullanicilar').insert({ id, ...v, foto: v.foto || null, rol: v.rol || 'personel', aktif: true, sifre_ozet: await sifreOzetle(sifre), sifre_degismeli: true, olusturan: req.kullanici.id, olusturma: new Date() });
-  const eposta = await sifreEpostasi(req, { ad: v.ad, eposta: v.eposta }, sifre, true);
+  const eposta = await sifreEpostasi(req, { ad: v.ad, eposta: v.eposta, tercih: req.kullanici.tercih }, sifre, true); // yeni kullanıcı: yöneticinin dili
   res.status(201).json({ id, geciciSifre: sifre, eposta }); // geçici şifre yalnız bir kez gösterilir
 });
 kullaniciRouter.put('/:id', async (req, res) => {

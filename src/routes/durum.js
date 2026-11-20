@@ -28,7 +28,7 @@ export function kullaniciS(k, yetkiSat, tam) {
     ...o, tel: k.tel || '',
     yetki: Object.fromEntries(y.map((x) => [x.modul_id, x.yetki])),
     ek: Object.fromEntries(y.filter((x) => x.onay || x.disa).map((x) => [x.modul_id, { onay: !!x.onay, disa: !!x.disa }])),
-    gorunum: tercih.gorunum || {}, acilis: tercih.acilis || 'pano', panoGizli: tercih.panoGizli || undefined, panoEk: tercih.panoEk || undefined,
+    gorunum: tercih.gorunum || {}, acilis: tercih.acilis || 'pano', panoGizli: tercih.panoGizli || undefined, panoEk: tercih.panoEk || undefined, dil: tercih.dil || '',
     epostaHesap: json.oku(k.eposta_hesap, { tur: 'yok' }),
     sifre: k.sifre_degismeli ? null : 'sunucuda', sifreTarih: k.sifre_tarih ? new Date(k.sifre_tarih).toISOString() : '',
     kilit: k.kilit ? new Date(k.kilit).toISOString() : '', sonGiris: k.son_giris ? new Date(k.son_giris).toISOString() : '',

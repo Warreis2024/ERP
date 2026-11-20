@@ -1,0 +1,442 @@
+{
+"1,5 MB üstü dosyalar varsayılan depoya ({0}) gider.": [
+"Files over 1.5 MB go to the default storage ({0}).",
+"Dateien über 1,5 MB gehen in den Standardspeicher ({0}).",
+"Los archivos de más de 1,5 MB van al almacenamiento predeterminado ({0})."
+],
+"Bildirim": [
+"Notification",
+"Benachrichtigung",
+"Notificación"
+],
+"Dosya yok": [
+"No files",
+"Keine Dateien",
+"Sin archivos"
+],
+"Dosyalar {0} deposuna yüklenir (NetERP/&lt;proje kodu&gt;).": [
+"Files are uploaded to {0} (NetERP/&lt;project code&gt;).",
+"Dateien werden in {0} hochgeladen (NetERP/&lt;Projektcode&gt;).",
+"Los archivos se suben a {0} (NetERP/&lt;código de proyecto&gt;)."
+],
+"Etiket yok": [
+"No tags",
+"Keine Tags",
+"Sin etiquetas"
+],
+"Firma ekle": [
+"Add company",
+"Firma hinzufügen",
+"Añadir empresa"
+],
+"Kiosk galerisine ekle": [
+"Add to kiosk gallery",
+"Zur Kiosk-Galerie hinzufügen",
+"Añadir a la galería del quiosco"
+],
+"Pano yok. Ayarlar → Panolar.": [
+"No dashboard. Settings → Dashboards.",
+"Kein Dashboard. Einstellungen → Dashboards.",
+"No hay panel. Ajustes → Paneles."
+],
+"Sana iş atandı": [
+"A task was assigned to you",
+"Ihnen wurde eine Aufgabe zugewiesen",
+"Se te ha asignado una tarea"
+],
+"Yeni geçici şifre {0} gönderilir; ilk girişte kendi şifresini belirler.": [
+"A new temporary password is sent to {0}; they set their own password at first login.",
+"Ein neues temporäres Passwort wird an {0} gesendet; bei der ersten Anmeldung wird ein eigenes festgelegt.",
+"Se envía una nueva contraseña temporal a {0}; en el primer inicio de sesión define la suya."
+],
+"Yeni grup": [
+"New group",
+"Neue Gruppe",
+"Nuevo grupo"
+],
+"Yeni kiosk": [
+"New kiosk",
+"Neuer Kiosk",
+"Nuevo quiosco"
+],
+"Yeni kişi": [
+"New person",
+"Neue Person",
+"Nueva persona"
+],
+"Yeni mesaj": [
+"New message",
+"Neue Nachricht",
+"Nuevo mensaje"
+],
+"Yeni modül": [
+"New module",
+"Neues Modul",
+"Nuevo módulo"
+],
+"Yeni pano": [
+"New dashboard",
+"Neues Dashboard",
+"Nuevo panel"
+],
+"Yeni çıktı formu": [
+"New output form",
+"Neues Ausgabeformular",
+"Nuevo formulario de salida"
+],
+"e-posta adresine": [
+"the e-mail address",
+"die E-Mail-Adresse",
+"la dirección de correo"
+],
+"{0} ekle": [
+"Add {0}",
+"{0} hinzufügen",
+"Añadir {0}"
+],
+"Geçersiz veri": [
+"Invalid data",
+"Ungültige Daten",
+"Datos no válidos"
+],
+"Sunucu hatası": [
+"Server error",
+"Serverfehler",
+"Error del servidor"
+],
+"İstek çok büyük": [
+"Request too large",
+"Anfrage zu groß",
+"Solicitud demasiado grande"
+],
+"Alıcı adresi geçersiz": [
+"Recipient address is invalid",
+"Empfängeradresse ungültig",
+"La dirección del destinatario no es válida"
+],
+"Bağlantı geçersiz": [
+"Invalid link",
+"Ungültiger Link",
+"Enlace no válido"
+],
+"Bilinmeyen ayar": [
+"Unknown setting",
+"Unbekannte Einstellung",
+"Ajuste desconocido"
+],
+"Boş parça": [
+"Empty chunk",
+"Leerer Teil",
+"Fragmento vacío"
+],
+"Bu Paylaşılan Drive görünmüyor. ERP adresini üye olarak eklediğinden emin ol.": [
+"This shared drive is not visible. Make sure you added the ERP address as a member.",
+"Diese geteilte Ablage ist nicht sichtbar. Prüfen Sie, ob die ERP-Adresse als Mitglied hinzugefügt wurde.",
+"Esta unidad compartida no es visible. Asegúrate de haber añadido la dirección del ERP como miembro."
+],
+"Bu alanda yazma yetkin yok": [
+"You have no write permission for this field",
+"Sie haben für dieses Feld keine Schreibberechtigung",
+"No tienes permiso de escritura en este campo"
+],
+"Bu bağlantı iptal edildi": [
+"This link was cancelled",
+"Dieser Link wurde widerrufen",
+"Este enlace fue cancelado"
+],
+"Bu bağlantının süresi doldu": [
+"This link has expired",
+"Dieser Link ist abgelaufen",
+"Este enlace ha caducado"
+],
+"Bu belge zaten yanıtlandı": [
+"This document has already been answered",
+"Dieses Dokument wurde bereits beantwortet",
+"Este documento ya fue respondido"
+],
+"Bu belge zaten yanıtlandı ya da süresi doldu": [
+"This document has already been answered or has expired",
+"Dieses Dokument wurde bereits beantwortet oder ist abgelaufen",
+"Este documento ya fue respondido o ha caducado"
+],
+"Bu e-posta kayıtlı": [
+"This e-mail is already registered",
+"Diese E-Mail ist bereits registriert",
+"Este correo ya está registrado"
+],
+"Bu işlem için yönetici yetkisi gerekir": [
+"This action requires administrator permission",
+"Für diese Aktion sind Administratorrechte nötig",
+"Esta acción requiere permiso de administrador"
+],
+"Bu kayda mesaj yazma yetkin yok": [
+"You have no permission to write messages on this record",
+"Sie dürfen zu diesem Datensatz keine Nachrichten schreiben",
+"No tienes permiso para escribir mensajes en este registro"
+],
+"Bu kayıt zaten var": [
+"This record already exists",
+"Dieser Datensatz existiert bereits",
+"Este registro ya existe"
+],
+"Bu kimlikte kayıt var": [
+"A record with this ID exists",
+"Ein Datensatz mit dieser ID existiert",
+"Ya existe un registro con este ID"
+],
+"Bu kimlikte kullanıcı var": [
+"A user with this ID exists",
+"Ein Benutzer mit dieser ID existiert",
+"Ya existe un usuario con este ID"
+],
+"Bu modüle dosya yükleme yetkin yok": [
+"You have no permission to upload files to this module",
+"Sie dürfen in dieses Modul keine Dateien hochladen",
+"No tienes permiso para subir archivos a este módulo"
+],
+"Bu modülü görme yetkin yok": [
+"You have no permission to view this module",
+"Sie dürfen dieses Modul nicht ansehen",
+"No tienes permiso para ver este módulo"
+],
+"Bulunamadı": [
+"Not found",
+"Nicht gefunden",
+"No encontrado"
+],
+"Durum bu modüle ait değil": [
+"The status does not belong to this module",
+"Der Status gehört nicht zu diesem Modul",
+"El estado no pertenece a este módulo"
+],
+"Firma SMTP şifresi kayıtlı değil (Ayarlar → Firma → E-posta → Test et ve kaydet)": [
+"The company SMTP password is not saved (Settings → Company → E-mail → Test and save)",
+"Das SMTP-Passwort der Firma ist nicht gespeichert (Einstellungen → Firma → E-Mail → Testen und speichern)",
+"La contraseña SMTP de la empresa no está guardada (Ajustes → Empresa → Correo → Probar y guardar)"
+],
+"Firma SMTP şifresi kayıtlı değil: Ayarlar → Firma → E-posta → \"Test et ve kaydet\"": [
+"The company SMTP password is not saved: Settings → Company → E-mail → \"Test and save\"",
+"Das SMTP-Passwort der Firma ist nicht gespeichert: Einstellungen → Firma → E-Mail → \"Testen und speichern\"",
+"La contraseña SMTP de la empresa no está guardada: Ajustes → Empresa → Correo → \"Probar y guardar\""
+],
+"Firma ayarı çok büyük (logo 300 KB altında olmalı)": [
+"Company settings too large (the logo must be under 300 KB)",
+"Firmeneinstellungen zu groß (Logo muss unter 300 KB sein)",
+"Ajustes de la empresa demasiado grandes (el logotipo debe pesar menos de 300 KB)"
+],
+"Firma bulunamadı": [
+"Company not found",
+"Firma nicht gefunden",
+"Empresa no encontrada"
+],
+"Firma e-posta hesabı ayarlı değil (Ayarlar → Firma → E-posta)": [
+"The company e-mail account is not set up (Settings → Company → E-mail)",
+"Das Firmen-E-Mail-Konto ist nicht eingerichtet (Einstellungen → Firma → E-Mail)",
+"La cuenta de correo de la empresa no está configurada (Ajustes → Empresa → Correo)"
+],
+"Firma e-posta hesabı ayarlı değil; Ayarlar → Firma → E-posta": [
+"The company e-mail account is not set up; Settings → Company → E-mail",
+"Das Firmen-E-Mail-Konto ist nicht eingerichtet; Einstellungen → Firma → E-Mail",
+"La cuenta de correo de la empresa no está configurada; Ajustes → Empresa → Correo"
+],
+"Firma veritabanı yapılandırılmamış": [
+"The company database is not configured",
+"Die Firmendatenbank ist nicht konfiguriert",
+"La base de datos de la empresa no está configurada"
+],
+"Geçersiz kaynak": [
+"Invalid source",
+"Ungültige Quelle",
+"Origen no válido"
+],
+"Google Drive bağlı değil. Ayarlar → Firma → Bulut depolar.": [
+"Google Drive is not connected. Settings → Company → Cloud storage.",
+"Google Drive ist nicht verbunden. Einstellungen → Firma → Cloud-Speicher.",
+"Google Drive no está conectado. Ajustes → Empresa → Almacenamiento en la nube."
+],
+"Google bağlantısında bu izin yok; bağlantıyı kesip yeniden bağla.": [
+"The Google connection lacks this permission; disconnect and connect again.",
+"Der Google-Verbindung fehlt diese Berechtigung; trennen und neu verbinden.",
+"La conexión de Google no tiene este permiso; desconéctala y vuelve a conectar."
+],
+"Google yenileme belirteci vermedi; bağlantıyı kesip yeniden dene": [
+"Google did not return a refresh token; disconnect and try again",
+"Google hat kein Aktualisierungstoken geliefert; trennen und erneut versuchen",
+"Google no devolvió un token de actualización; desconecta y vuelve a intentarlo"
+],
+"Google yükleme oturumu açılamadı": [
+"Could not start the Google upload session",
+"Google-Upload-Sitzung konnte nicht gestartet werden",
+"No se pudo iniciar la sesión de subida de Google"
+],
+"Güvenlik belirteci geçersiz, sayfayı yenile": [
+"Security token invalid, refresh the page",
+"Sicherheitstoken ungültig, Seite neu laden",
+"Token de seguridad no válido, recarga la página"
+],
+"Güvenlik türü geçersiz": [
+"Invalid security type",
+"Ungültiger Sicherheitstyp",
+"Tipo de seguridad no válido"
+],
+"Kendi şifreni Profilim → Güvenlik bölümünden değiştir": [
+"Change your own password in My profile → Security",
+"Ändern Sie Ihr eigenes Passwort unter Mein Profil → Sicherheit",
+"Cambia tu propia contraseña en Mi perfil → Seguridad"
+],
+"Kullanıcı bulunamadı": [
+"User not found",
+"Benutzer nicht gefunden",
+"Usuario no encontrado"
+],
+"Kullanıcının e-posta adresi yok": [
+"The user has no e-mail address",
+"Der Benutzer hat keine E-Mail-Adresse",
+"El usuario no tiene dirección de correo"
+],
+"Microsoft yenileme belirteci vermedi (offline_access izni eksik)": [
+"Microsoft did not return a refresh token (offline_access permission missing)",
+"Microsoft hat kein Aktualisierungstoken geliefert (Berechtigung offline_access fehlt)",
+"Microsoft no devolvió un token de actualización (falta el permiso offline_access)"
+],
+"Onay ya da red seçilmeli": [
+"Approve or reject must be chosen",
+"Freigabe oder Ablehnung muss gewählt werden",
+"Hay que elegir aprobar o rechazar"
+],
+"OneDrive bağlantısında dosya izni yok; bağlantıyı kesip yeniden bağla.": [
+"The OneDrive connection lacks file permission; disconnect and connect again.",
+"Der OneDrive-Verbindung fehlt die Dateiberechtigung; trennen und neu verbinden.",
+"La conexión de OneDrive no tiene permiso de archivos; desconéctala y vuelve a conectar."
+],
+"OneDrive yükleme oturumu açılamadı": [
+"Could not start the OneDrive upload session",
+"OneDrive-Upload-Sitzung konnte nicht gestartet werden",
+"No se pudo iniciar la sesión de subida de OneDrive"
+],
+"Oturum açılmamış": [
+"Not logged in",
+"Nicht angemeldet",
+"No has iniciado sesión"
+],
+"Parça aralığı geçersiz": [
+"Invalid chunk range",
+"Ungültiger Teilbereich",
+"Rango de fragmento no válido"
+],
+"Parça boyutu geçersiz": [
+"Invalid chunk size",
+"Ungültige Teilgröße",
+"Tamaño de fragmento no válido"
+],
+"Proje bulunamadı": [
+"Project not found",
+"Projekt nicht gefunden",
+"Proyecto no encontrado"
+],
+"Red için not yazılmalı": [
+"A note is required for rejection",
+"Für eine Ablehnung ist eine Notiz nötig",
+"Para rechazar hay que escribir una nota"
+],
+"SMTP port geçersiz": [
+"Invalid SMTP port",
+"Ungültiger SMTP-Port",
+"Puerto SMTP no válido"
+],
+"Sistem yöneticisinin şifresi buradan sıfırlanamaz": [
+"The system administrator's password cannot be reset here",
+"Das Passwort des Systemadministrators kann hier nicht zurückgesetzt werden",
+"La contraseña del administrador del sistema no se puede restablecer aquí"
+],
+"Son aktif yönetici pasife alınamaz ya da personele çevrilemez": [
+"The last active administrator cannot be deactivated or made staff",
+"Der letzte aktive Administrator kann nicht deaktiviert oder zum Mitarbeiter gemacht werden",
+"El último administrador activo no se puede desactivar ni convertir en personal"
+],
+"Tanımsız alan": [
+"Undefined field",
+"Undefiniertes Feld",
+"Campo no definido"
+],
+"Tercih verisi çok büyük": [
+"Preference data too large",
+"Einstellungsdaten zu groß",
+"Datos de preferencias demasiado grandes"
+],
+"Yetkin yok": [
+"You have no permission",
+"Keine Berechtigung",
+"No tienes permiso"
+],
+"Yönetici, kullanıcıların kendi e-posta hesabını bağlamasını kapattı": [
+"The administrator has disabled users connecting their own e-mail account",
+"Der Administrator hat das Verbinden eigener E-Mail-Konten deaktiviert",
+"El administrador ha desactivado que los usuarios conecten su propia cuenta de correo"
+],
+"Yükleme oturumu geçersiz; dosyayı yeniden yükle": [
+"Upload session invalid; upload the file again",
+"Upload-Sitzung ungültig; Datei erneut hochladen",
+"Sesión de subida no válida; vuelve a subir el archivo"
+],
+"Çok fazla deneme. Biraz sonra tekrar dene.": [
+"Too many attempts. Try again later.",
+"Zu viele Versuche. Später erneut versuchen.",
+"Demasiados intentos. Vuelve a intentarlo más tarde."
+],
+"Çok fazla istek; biraz sonra yeniden dene": [
+"Too many requests; try again later",
+"Zu viele Anfragen; später erneut versuchen",
+"Demasiadas solicitudes; vuelve a intentarlo más tarde"
+],
+"Önce şifreni değiştirmelisin": [
+"You must change your password first",
+"Sie müssen zuerst Ihr Passwort ändern",
+"Primero debes cambiar tu contraseña"
+],
+"Şablon alanı bulunamadı": [
+"Template field not found",
+"Vorlagenfeld nicht gefunden",
+"Campo de plantilla no encontrado"
+],
+"E-posta gönderilemedi: {0}": [
+"E-mail could not be sent: {0}",
+"E-Mail konnte nicht gesendet werden: {0}",
+"No se pudo enviar el correo: {0}"
+],
+"{0} zorunlu": [
+"{0} is required",
+"{0} ist Pflicht",
+"{0} es obligatorio"
+],
+"{0} gerekli": [
+"{0} is required",
+"{0} erforderlich",
+"{0} es obligatorio"
+],
+"{0} geçersiz": [
+"{0} is invalid",
+"{0} ungültig",
+"{0} no es válido"
+],
+"Acil": [
+"Urgent",
+"Dringend",
+"Urgente"
+],
+"Takvim": [
+"Calendar",
+"Kalender",
+"Calendario"
+],
+"{0} sorun": [
+"{0} issues",
+"{0} Probleme",
+"{0} problemas"
+],
+"Pano¦görünüm": [
+"Board",
+"Board",
+"Tablero"
+]
+}
