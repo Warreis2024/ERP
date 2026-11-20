@@ -310,6 +310,7 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .form .etiket-ekle input[type=color]{flex:none}
 .form .etiket-ekle .btn{flex:none;height:36px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pb-satir{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid transparent;border-radius:8px}.pb-satir:hover{border-color:var(--line)}.pb-satir .tut{cursor:grab;color:var(--mut,#888);font-size:16px;user-select:none}.pb-satir .pb-ad{flex:1;cursor:pointer;display:inline-flex;gap:6px;align-items:center;font-weight:600}.pb-satir.surukle{opacity:.4}
 .misafir-kutu{border:1px dashed var(--line);border-radius:10px;padding:10px;display:grid;gap:8px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .adres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -970,6 +971,7 @@ const ICONS={
   bulut:'<path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9z"/>',
   goz:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   kilit:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  dunya:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
   sur:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
   filtre:'<path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>',
   zip:'<path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>'
@@ -1062,7 +1064,7 @@ function fnKilit(f){
 // Formdaki durum seçeneğinin etiketi: kapatır / geçiş kilidi
 function durumEtiket(d){
   const kayit=ui.form&&!ui.form.yeni?(ui.form.tur==='proje'?S.projeler.find(p=>p.id===ui.form.id):S.kartlar.find(x=>x.id===ui.form.id)):null;
-  return d.ad+(d.kapat?_t(' (kapatır)'):'')+(kayit&&d.id!==kayit.durumId&&!durumGecebilir(d,kayit)?' 🔒':'');
+  return tAd(d.ad)+(d.kapat?_t(' (kapatır)'):'')+(kayit&&d.id!==kayit.durumId&&!durumGecebilir(d,kayit)?' 🔒':'');
 }
 // Durumun "kim geçirebilir" kuralı
 function durumGecebilir(d, kayit){
@@ -1679,7 +1681,7 @@ function projeTeslim(p){
 function sablonModSecim(s, ad){
   const L=S.moduller.filter(m=>(m.fn||[]).some(f=>f.tip==='sablon')||(s?.moduller||[]).includes(m.id));
   const liste=L.length?L:S.moduller;
-  return `<div class="lbl">${_t('Modüller')}<div class="secim">${liste.map(m=>`<label><input type="checkbox" ${s?`data-sablon-mod="${s.id}"`:`name="${ad}"`} value="${m.id}" ${(s?.moduller||[]).includes(m.id)?'checked':''}>${esc(m.ad)}</label>`).join('')}</div></div><p class="zaman">${_t('Şablon yalnız seçili modüllerin şablon alanında çıkar; modülde tek şablon varsa kullanıcıya sorulmadan gelir. Hiçbiri seçili değilse her modülde görünür.')}</p>`;
+  return `<div class="lbl">${_t('Modüller')}<div class="secim">${liste.map(m=>`<label><input type="checkbox" ${s?`data-sablon-mod="${s.id}"`:`name="${ad}"`} value="${m.id}" ${(s?.moduller||[]).includes(m.id)?'checked':''}>${esc(tAd(m.ad))}</label>`).join('')}</div></div><p class="zaman">${_t('Şablon yalnız seçili modüllerin şablon alanında çıkar; modülde tek şablon varsa kullanıcıya sorulmadan gelir. Hiçbiri seçili değilse her modülde görünür.')}</p>`;
 }
 function formModulId(){ return ui.form?.tur==='proje'?'ana':ui.form?.modulId; }
 // modüle bağlı şablonlar; modül seçilmemiş şablon her yerde görünür
@@ -1773,7 +1775,7 @@ function analizHTML(pid){
   });
   const gunler={}; ogeler.forEach(o=>{ (gunler[o.iso]=gunler[o.iso]||[]).push(o); });
   const sirali=Object.keys(gunler).sort();
-  const oge=o=>`<div class="ak-oge" style="--c:${o.m.renk||'#7482a8'}" data-act="${o.k?'ac-kart':'ac-proje'}" data-id="${o.k?o.k.id:pid}"><b>${esc(o.m.ad||'')} · ${esc(o.ad)}${o.sil?' <span class="pill p-yok">silindi</span>':''}</b><span>${o.k?esc(o.k.kod)+' · '+esc(kartBaslik(o.k))+' · ':''}${esc(ozet(o.d))}</span></div>`;
+  const oge=o=>`<div class="ak-oge" style="--c:${o.m.renk||'#7482a8'}" data-act="${o.k?'ac-kart':'ac-proje'}" data-id="${o.k?o.k.id:pid}"><b>${esc(o.m.ad||'')} · ${esc(tAd(o.ad))}${o.sil?' <span class="pill p-yok">silindi</span>':''}</b><span>${o.k?esc(o.k.kod)+' · '+esc(kartBaslik(o.k))+' · ':''}${esc(ozet(o.d))}</span></div>`;
   const akis=sirali.length?`<div class="akis">${sirali.map(g=>{ const fk=gunFark(g); const sinif=fk===0?'bugun':fk<0?'gecmis':''; return `<div class="ak-gun ${sinif}"><div class="ak-tarih">${trh(g)}<small>${fk===0?_t('bugün'):fk<0?_t('{0} gün önce', -fk):_t('{0} gün sonra', fk)}</small></div><div class="ak-cizgi"><i></i></div><div class="ak-ogeler">${gunler[g].map(oge).join('')}</div></div>`; }).join('')}</div>`:'<p class="empty">Tarih yok</p>';
   // kayıt ağacı: proje → modül → kayıt → açıklama
   const mods=S.moduller.filter(m=>m.tur!=='proje'&&yetki(m.id)!=='yok');
@@ -1782,7 +1784,7 @@ function analizHTML(pid){
   const dallar=mods.map(m=>{
     const ks=S.kartlar.filter(k=>k.projeId===pid&&k.modulId===m.id);
     if(!ks.length) return '';
-    return `<li><span class="dug mod" style="--c:${m.renk}">${ic(m.ikon)}${esc(m.ad)} <span class="zaman">${ks.length}</span></span><ul>${ks.map(k=>{ const dr=durum(k.durumId)||{}; return `<li><span class="dug kyt" data-act="ac-kart" data-id="${k.id}"><span class="code-tag">${esc(k.kod)}</span>${esc(kartBaslik(k))}<span class="badge-t" style="--c:${dr.renk||'#7482a8'}">${esc(dr.ad||'')}</span>${k.silindi?'<span class="pill p-yok">silindi</span>':''}</span>${notlar(acik(d=>d.kartId===k.id))}</li>`; }).join('')}</ul></li>`;
+    return `<li><span class="dug mod" style="--c:${m.renk}">${ic(m.ikon)}${esc(tAd(m.ad))} <span class="zaman">${ks.length}</span></span><ul>${ks.map(k=>{ const dr=durum(k.durumId)||{}; return `<li><span class="dug kyt" data-act="ac-kart" data-id="${k.id}"><span class="code-tag">${esc(k.kod)}</span>${esc(kartBaslik(k))}<span class="badge-t" style="--c:${dr.renk||'#7482a8'}">${esc(dr.ad||'')}</span>${k.silindi?'<span class="pill p-yok">silindi</span>':''}</span>${notlar(acik(d=>d.kartId===k.id))}</li>`; }).join('')}</ul></li>`;
   }).join('');
   const kok=`<ul class="kagac"><li><span class="dug kok">${ic('proje')}${esc(p?.kod||'')} · ${esc(p?.ad||'')}</span><ul>${acik(d=>d.projeId===pid&&!d.kartId).map(d=>`<li><span class="dug not">${esc(duz(d.metin).slice(0,220))}</span></li>`).join('')}${dallar||`<li><span class="zaman">${_t('Bağlı kayıt yok')}</span></li>`}</ul></li></ul>`;
   return `<div class="lbl">${_t('Zaman akışı')}${akis}</div><div class="lbl">${_t('Kayıt ağacı')}${kok}</div>`;
@@ -1818,14 +1820,14 @@ function alanGrup(grup, val, attr){
   const name='r'+attrTem.replace(/[^a-z0-9]/gi,'').slice(0,48);
   return `<div class="secim">${liste.map(o=>{
     const on=tur==='check'?secili.includes(o.ad):(val||varsayilan(grup))===o.ad;
-    return `<label><input type="${tip}" name="${name}" ${tur==='check'?'data-cok="1"':''} value="${esc(o.ad)}" ${on?'checked':''} ${attrTem}${dis}>${esc(o.ad)}</label>`;
+    return `<label><input type="${tip}" name="${name}" ${tur==='check'?'data-cok="1"':''} value="${esc(o.ad)}" ${on?'checked':''} ${attrTem}${dis}>${esc(tAd(o.ad))}</label>`;
   }).join('')||`<span class="zaman">${_t('Seçenek yok')}</span>`}</div>`;
 }
 function grupOnizle(g){
   const liste=ops(g), tur=grupTur(g);
   const govde=tur==='select'
     ? `<select tabindex="-1">${secGrup(g, varsayilan(g), _t('Seç…'))}</select>`
-    : `<div class="secim">${liste.map(o=>`<label><input type="${tur==='check'?'checkbox':'radio'}" tabindex="-1" ${o.varsayilan?'checked':''}>${esc(o.ad)}</label>`).join('')}</div>`;
+    : `<div class="secim">${liste.map(o=>`<label><input type="${tur==='check'?'checkbox':'radio'}" tabindex="-1" ${o.varsayilan?'checked':''}>${esc(tAd(o.ad))}</label>`).join('')}</div>`;
   return `<span class="sp"><b>${esc(g)}</b><span class="zaman">${liste.length} ${_t('seçenek ·')} ${TURAD[tur]}</span><span class="oniz">${govde}</span></span>`;
 }
 function yerAyir(d){
@@ -1898,7 +1900,7 @@ function kontrol(f, row, ck){
     case 'telefon': return ortak('metin',`<input type="tel" value="${esc(row.metin)}" placeholder="${_t('+90 5xx xxx xx xx')}">`);
     case 'imza': return `<div class="imza" data-imza="${f.uid}">${ortak('url',`<input type="hidden" value="${esc(row.url)}">`)}<canvas width="920" height="300" aria-label="${_t('İmza alanı')}"></canvas><div class="rowbtns">${ortak('kisi',`<input value="${esc(row.kisi)}" placeholder="${_t('İmzalayan adı')}" style="max-width:240px">`)}<button type="button" class="btn sm" data-act="imza-temizle" data-uid="${f.uid}">${_t('Temizle')}</button>${row.zaman?`<span class="zaman">${esc(trh(row.zaman))}</span>`:''}</div></div>`;
     case 'konum': { const l=konumLink(row.metin); return `<div class="konum">${ortak('metin',`<input value="${esc(row.metin)}" placeholder="${_t('Enlem, boylam')}">`)}<button type="button" class="btn sm" data-act="konum-al" data-uid="${f.uid}">${ic('konum')}${_t('Konumumu al')}</button>${l?`<a class="btn sm" href="${l}" target="_blank" rel="noopener">${_t('Haritada aç')}</a>`:''}</div>${ortak('not',`<input value="${esc(row.not||'')}" placeholder="${_t('Not (kapı, kat, tarif)')}">`)}`; }
-    case 'depo': return ortak('depo',`<select>${secOp(S.depolar.map(d=>[d.id,d.ad]), row.depo, _t('Depo seç…'))}</select>`);
+    case 'depo': return ortak('depo',`<select>${secOp(S.depolar.map(d=>[d.id,tAd(d.ad)]), row.depo, _t('Depo seç…'))}</select>`);
     case 'sablon': {
       const liste=sablonListe(formModulId());
       if(liste.length===1&&!liste.some(x=>x.id===row.tur)&&!duz(row.metin)) row.tur=liste[0].id;   // tek şablon: seçtirme
@@ -2133,7 +2135,7 @@ function cokluHTML(f){
       <td style="width:76px"><input data-ck="${f.uid}" data-i="${i}" data-k="birim" value="${esc(r.birim||mz?.birim||'')}" placeholder="adet"></td>
       <td class="zaman" style="white-space:nowrap">${mev===null?'':`<span class="${mz&&mz.kritik&&mev<sayiOku(mz.kritik)?'stok-uyari':''}">${String(mev).replace('.',',')}</span>`}</td>
       <td><button type="button" class="ibtn sm danger" data-act="satir-sil" data-uid="${f.uid}" data-i="${i}" aria-label="${_t('Sil')}">${ic('sil')}</button></td></tr>`; }).join('');
-    const depOp=v=>secOp(S.depolar.map(d=>[d.id,d.ad]), v, _t('Depo seç…'));
+    const depOp=v=>secOp(S.depolar.map(d=>[d.id,tAd(d.ad)]), v, _t('Depo seç…'));
     return `<div class="mali-bas">
       <div class="lbl">${_t('Tarih')}<input type="date" ${h} data-k="tarih" value="${esc(bas.tarih||bugun())}"></div>
       <div class="lbl">${_t('Hareket')}<select ${h} data-k="hareket">${secOp(['Giriş','Çıkış','Transfer'], bas.hareket||'Giriş')}</select></div>
@@ -2248,7 +2250,7 @@ const DIV_TIP=new Set(['imza','konum','yuzde','evet','yer','sablon','fiyatonay']
 /* --- Ticket: modüle bağlı e-posta kutusundan kayıt (sunucu modunda) --- */
 function ticketAyarHTML(f, m){
   const a=(f.ayar||{}).ticket||{}, sel=(k,ops,bos)=>`<select data-fn-ticket="${f.uid}:${k}">${secOp(ops, a[k]||'', bos)}</select>`;
-  const genel=`<div class="lbl">${_t('Ticket ayarı')}<div class="two"><label>${_t('Kayıtların açılacağı proje')}${sel('projeId', projelerA().filter(p=>!p.arsiv).map(p=>[p.id,p.kod+' · '+p.ad]), _t('Seç…'))}</label><label>${_t('İlk durum')}${sel('durumId', akis(m.id).map(d=>[d.id,d.ad]), _t('İlk durum'))}</label></div>
+  const genel=`<div class="lbl">${_t('Ticket ayarı')}<div class="two"><label>${_t('Kayıtların açılacağı proje')}${sel('projeId', projelerA().filter(p=>!p.arsiv).map(p=>[p.id,p.kod+' · '+p.ad]), _t('Seç…'))}</label><label>${_t('İlk durum')}${sel('durumId', akis(m.id).map(d=>[d.id,tAd(d.ad)]), _t('İlk durum'))}</label></div>
     <div class="two"><label>${_t('Konu yazılacak alan')}${sel('konuFn', m.fn.filter(x=>x.tip==='light').map(x=>[x.uid,x.ad]), _t('İlk kısa metin'))}</label><label>${_t('E-posta metni yazılacak alan')}${sel('govdeFn', m.fn.filter(x=>['aciklama','rich','zengin','light'].includes(x.tip)).map(x=>[x.uid,x.ad]), _t('İlk açıklama'))}</label></div>
     <p class="zaman">${_t('Okunmamış her e-posta bu modülde yeni kayıt açar. Konuda kayıt kodu varsa ([{0}-1001] gibi) e-posta o kayda mesaj olarak eklenir. Gönderen rehberdeki e-postasıyla firmaya bağlanır. Kutu, modül açıldığında en çok 2 dakikada bir kontrol edilir.', esc(m.onek||''))}</p></div>`;
   if(!API.acik) return genel+`<p class="zaman">${_t('E-posta kutusu sunucu modunda bağlanır.')}</p>`;
@@ -2282,6 +2284,59 @@ function ticketOto(m){
   if(Date.now()-(ui.ticketSon[m.id]||0)<120000) return;
   ui.ticketSon[m.id]=Date.now();
   setTimeout(()=>ticketKontrol(m.id), 50);
+}
+/* --- Yapı adlarının çevirisi (modül, durum, fonksiyon, seçenek, pano, şablon, çıktı) ---
+   Türkçe ad anahtardır; çeviriler firma ayarında tutulur (S.firma.ceviriler[dil][ad]).
+   Doldurma, Chrome'un cihaz üstü çevirmeniyle (Translator API) yapılır; yönetici elle düzeltebilir. */
+const CEV_DILLER=['en','de','es'];
+function tAd(s){
+  if(!s) return s||'';
+  const c=DIL!=='tr'&&S&&S.firma&&S.firma.ceviriler&&S.firma.ceviriler[DIL];
+  return (c&&c[s])||_t(s);
+}
+function ceviriAdlari(){
+  const L=new Map(), ekle=(ad,tur)=>{ ad=String(ad||'').trim(); if(ad&&!L.has(ad)) L.set(ad,tur); };
+  S.moduller.forEach(m=>{ ekle(m.ad,_t('Modül')); (m.durumlar||[]).forEach(d=>ekle(d.ad,_t('Durum'))); (m.fn||[]).forEach(f=>ekle(f.ad,_t('Fonksiyon'))); (m.aktarimlar||[]).forEach(a=>ekle(a.ad,_t('Aktarım'))); });
+  S.opsiyonlar.forEach(o=>ekle(o.ad,_t('Seçenek')));
+  S.panolar.forEach(p=>{ ekle(p.ad,_t('Pano')); (p.bilesen||[]).forEach(b=>ekle(b.ad,_t('Bileşen'))); });
+  S.sablonlar.forEach(x=>ekle(x.ad,_t('Şablon'))); S.ciktilar.forEach(x=>ekle(x.ad,_t('Çıktı')));
+  (S.departmanlar||[]).forEach(d=>ekle(d,_t('Departman'))); (S.yetkiGruplari||[]).forEach(g=>ekle(g.ad,_t('Yetki grubu')));
+  return [...L.entries()].map(([ad,tur])=>({ad,tur}));
+}
+function ceviriOzet(){
+  const L=ceviriAdlari(), c=S.firma.ceviriler||{};
+  return CEV_DILLER.map(d=>`${d.toUpperCase()} ${L.filter(x=>(c[d]||{})[x.ad]).length}/${L.length}`).join(' · ');
+}
+function ceviriHTML(bas){
+  const L=ceviriAdlari(), c=S.firma.ceviriler||{}, dil=ui.cevDil||'en', yon=ben().rol==='yonetici';
+  const destek='Translator' in self;
+  const eksik=L.filter(x=>!(c[dil]||{})[x.ad]).length;
+  return bas(_t('Ayar'),_t('Adların çevirileri'))+`<p class="zaman">${_t('Modül, durum, fonksiyon, seçenek, pano ve şablon adları kullanıcının dilinde görünür. Çeviri yoksa Türkçe ad görünür. Kayıtlara yazılan bilgiler (proje adı, açıklama…) çevrilmez.')}</p>
+    <div class="rowbtns">${CEV_DILLER.map(d=>`<button type="button" class="btn sm ${d===dil?'on':''}" data-act="cev-dil" data-v="${d}">${d.toUpperCase()}</button>`).join('')}<span class="sp"></span>${yon?`<button type="button" class="btn sm pri" data-act="cev-doldur" ${destek?'':'disabled'}>${ic('dunya')}${_t('Boşları otomatik çevir ({0})', eksik)}</button>`:''}</div>
+    <p class="zaman">${destek?_t('Çeviri Chrome\'un bu bilgisayardaki çevirmeniyle yapılır; ilk kullanımda dil paketi indirilir. Ad dışarıya gönderilmez.'):_t('Otomatik çeviri için masaüstü Chrome (138 ve üstü) gerekir. Çevirileri aşağıya elle de yazabilirsin.')}</p>
+    <div class="tbl"><table><thead><tr><th>${_t('Türkçe ad')}</th><th>${dil.toUpperCase()}</th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.ad)}<div class="zaman">${esc(x.tur)}</div></td><td><input data-cev="${dil}" data-ad="${esc(x.ad)}" value="${esc((c[dil]||{})[x.ad]||'')}" placeholder="${esc(_t(x.ad)!==x.ad?_t(x.ad):'')}" ${yon?'':'disabled'}></td></tr>`).join('')}</tbody></table></div>`;
+}
+async function ceviriDoldur(dugme){
+  const dil=ui.cevDil||'en';
+  if(!('Translator' in self)) return toast(_t('Bu tarayıcıda otomatik çeviri yok; masaüstü Chrome gerekir.'));
+  const ops={sourceLanguage:'tr', targetLanguage:dil};
+  try{
+    const durum=await Translator.availability(ops);
+    if(durum==='unavailable') return toast(_t('Bu cihazda Türkçe → {0} çevirisi kullanılamıyor.', dil.toUpperCase()), 6000);
+    dugme.disabled=true; dugme.textContent=_t('Dil paketi hazırlanıyor…');
+    const cev=await Translator.create({...ops, monitor(m){ m.addEventListener('downloadprogress', e=>{ dugme.textContent=_t('Dil paketi indiriliyor %{0}', Math.round(e.loaded*100)); }); }});
+    S.firma.ceviriler=S.firma.ceviriler||{}; const c=S.firma.ceviriler[dil]=S.firma.ceviriler[dil]||{};
+    const L=ceviriAdlari().filter(x=>!c[x.ad]);
+    let n=0;
+    for(const x of L){
+      dugme.textContent=_t('Çevriliyor {0}/{1}', ++n, L.length);
+      // arayüz sözlüğünde karşılığı varsa o kullanılır (tutarlılık için)
+      const hazir=dil===DIL&&_t(x.ad)!==x.ad?_t(x.ad):'';
+      try{ c[x.ad]=(hazir||String(await cev.translate(x.ad))).trim().slice(0,150); }catch(e){ /* tek ad çevrilemedi, geç */ }
+    }
+    cev.destroy&&cev.destroy();
+    persist(); toast(_t('{0} ad çevrildi. Gözden geçirip düzeltebilirsin.', n)); render();
+  }catch(e){ toast(_t('Çeviri yapılamadı: {0}', e.message||e), 6000); dugme.disabled=false; dugme.textContent=_t('Boşları otomatik çevir ({0})', ''); }
 }
 /* --- Misafir kullanıcı: tür, firma, görünürlük, giriş penceresi --- */
 function misafirAyarHTML(u){
@@ -2319,7 +2374,7 @@ function acikFormAyarHTML(m){
     return `<div class="akt-kart"><div class="rowbtns"><b>${esc(x.ad)}</b><span class="zaman">${x.aktif?_t('Açık'):_t('Kapalı')} · ${_t('{0} form geldi', x.sayac)}</span></div>
       ${url?`<div class="tel-qr"><div class="tel-qr-kod" style="width:130px;height:130px">${QR.svg(url,{kenar:4})}</div><div><input readonly value="${esc(url)}" onclick="this.select()"><div class="rowbtns"><button type="button" class="btn sm" data-act="dis-kopya" data-url="${esc(url)}">${ic('kopya')}${_t('Bağlantıyı kopyala')}</button><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">${_t('Aç')}</a></div></div></div>`:''}
       <div class="two"><label>${_t('Şablon')}<select data-af="${x.id}:sablonId">${secOp(sablonlar.map(y=>[y.id,y.ad]), x.sablonId)}</select></label><label>${_t('Proje')}<select data-af="${x.id}:projeId">${secOp(projelerA().map(p=>[p.id,p.kod+' · '+p.ad]), x.projeId)}</select></label></div>
-      <label>${_t('Açılacak kaydın durumu')}<select data-af="${x.id}:durumId">${secOp(akis(m.id).map(d=>[d.id,d.ad]), x.durumId, _t('İlk durum'))}</select></label>
+      <label>${_t('Açılacak kaydın durumu')}<select data-af="${x.id}:durumId">${secOp(akis(m.id).map(d=>[d.id,tAd(d.ad)]), x.durumId, _t('İlk durum'))}</select></label>
       ${es?`<div class="lbl">${_t('Alan eşleme')}<div class="tbl"><table><tbody>${es}</tbody></table></div></div>`:''}
       <div class="rowbtns"><button type="button" class="btn sm" data-act="af" data-id="${x.id}" data-eylem="yenile">${_t('Yeni bağlantı (eskisi geçersiz)')}</button><button type="button" class="btn sm" data-act="af" data-id="${x.id}" data-eylem="${x.aktif?'kapat':'ac'}">${x.aktif?_t('Kapat'):_t('Aç')}</button><button type="button" class="btn sm danger" data-act="af" data-id="${x.id}" data-eylem="sil">${ic('sil')}${_t('Sil')}</button></div></div>`;
   };
@@ -2404,10 +2459,10 @@ function aktarimAyarHTML(m){
   const kart=a=>{
     const hm=modul(a.hedef), es=hm?aktarimEsleme(a,m,hm):{}, sel=(k,v,ops,bos)=>`<select data-akt="${m.id}:${a.id}:${k}">${secOp(ops,v||'',bos)}</select>`;
     const kaynakOp=m.fn.filter(f=>!AKT_DISI.has(f.tip)).map(f=>[f.uid,f.ad+' · '+(FNAD[f.tip]||f.tip)]);
-    const tablo=hm?`<div class="tbl"><table><thead><tr><th>${esc(hm.ad)}</th><th>${esc(m.ad)}</th></tr></thead><tbody>${hm.fn.filter(f=>!AKT_DISI.has(f.tip)).map(f2=>{ const el=(a.eslesme||{})[f2.uid]||''; const oto=!el&&es[f2.uid]?m.fn.find(x=>x.uid===es[f2.uid]):null;
+    const tablo=hm?`<div class="tbl"><table><thead><tr><th>${esc(hm.ad)}</th><th>${esc(tAd(m.ad))}</th></tr></thead><tbody>${hm.fn.filter(f=>!AKT_DISI.has(f.tip)).map(f2=>{ const el=(a.eslesme||{})[f2.uid]||''; const oto=!el&&es[f2.uid]?m.fn.find(x=>x.uid===es[f2.uid]):null;
       return `<tr><td>${esc(f2.ad)}${f2.zorunlu?' *':''}</td><td><select data-akt-es="${m.id}:${a.id}:${f2.uid}">${secOp([['',oto?_t('Otomatik: {0}', oto.ad):_t('Otomatik (aynı ad)')],['-',_t('Taşıma')],...kaynakOp], el)}</select></td></tr>`; }).join('')}</tbody></table></div>`:'';
-    return `<div class="akt-kart"><div class="two"><label>${_t('Ad')}<input data-akt="${m.id}:${a.id}:ad" value="${esc(a.ad||'')}" placeholder="${esc(hm?hm.ad:'')}"></label><label>${_t('Hedef modül')}${sel('hedef',a.hedef,hedefler.map(x=>[x.id,x.ad]),_t('Seç…'))}</label></div>
-      <div class="two"><label>${_t('Tetikleyen durum')}${sel('durum',a.durum,akis(m.id).map(d=>[d.id,d.ad]),_t('Yok (yalnız düğmeyle)'))}</label><label>${_t('Hedef kaydın durumu')}${hm?sel('hedefDurum',a.hedefDurum,akis(hm.id).map(d=>[d.id,d.ad]),_t('İlk durum')):'<select disabled></select>'}</label></div>
+    return `<div class="akt-kart"><div class="two"><label>${_t('Ad')}<input data-akt="${m.id}:${a.id}:ad" value="${esc(a.ad||'')}" placeholder="${esc(hm?hm.ad:'')}"></label><label>${_t('Hedef modül')}${sel('hedef',a.hedef,hedefler.map(x=>[x.id,tAd(x.ad)]),_t('Seç…'))}</label></div>
+      <div class="two"><label>${_t('Tetikleyen durum')}${sel('durum',a.durum,akis(m.id).map(d=>[d.id,tAd(d.ad)]),_t('Yok (yalnız düğmeyle)'))}</label><label>${_t('Hedef kaydın durumu')}${hm?sel('hedefDurum',a.hedefDurum,akis(hm.id).map(d=>[d.id,tAd(d.ad)]),_t('İlk durum')):'<select disabled></select>'}</label></div>
       <div class="two"><label>${_t('Kime atansın')}${sel('ata',a.ata,[['aktaran',_t('Aktaran kişi')],...S.kullanicilar.filter(u=>u.aktif!==false).map(u=>[u.id,u.ad])],_t('Atama yok'))}</label><label>${_t('Atanacak kişi alanı')}${hm?sel('ataFn',a.ataFn,hm.fn.filter(f=>f.tip==='kisi'||f.tip==='ekip').map(f=>[f.uid,f.ad]),_t('Yok')):'<select disabled></select>'}</label></div>
       <label class="anahtar"><input type="checkbox" data-akt-satir="${m.id}:${a.id}" ${a.satir!==false?'checked':''}><span>${_t('Çok satırlı fonksiyonları da taşı (malzeme, efor, görevler…)')}</span></label>
       ${tablo?`<div class="lbl">${_t('Alan eşleme')}${tablo}</div>`:''}
@@ -2480,12 +2535,12 @@ function fnSatirHTML0(f){
   const salt=er==='gor';
   const kilit=salt?` <span class="zaman" title="${esc(fnKilit(f)||_t('Bu alan senin grubuna salt okunur'))}">${ic('kilit')}</span>`:'';
   const sar=ic2=>salt?`<fieldset class="salt" disabled>${ic2}</fieldset>`:ic2;
-  if(f.tip==='gecmis') return `<div class="lbl">${esc(f.ad)}${gecmisHTML(ui.form.tur==='proje' ? (l=>l.projeId===ui.form.id&&!l.kartId) : (l=>l.kartId===ui.form.id))}</div>`;
-  if(COKLU.has(f.tip)) return `<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(cokluHTML(f))}</div>`;
+  if(f.tip==='gecmis') return `<div class="lbl">${esc(tAd(f.ad))}${gecmisHTML(ui.form.tur==='proje' ? (l=>l.projeId===ui.form.id&&!l.kartId) : (l=>l.kartId===ui.form.id))}</div>`;
+  if(COKLU.has(f.tip)) return `<div class="lbl">${esc(tAd(f.ad))}${f.zorunlu?' *':''}${kilit}${sar(cokluHTML(f))}</div>`;
   const row=ui.form.skaler[f.uid];
   const div=salt||DIV_TIP.has(f.tip)||(f.tip==='tur'&&grupTur(fnGrup(f))!=='select');
-  if(f.tip==='fiyatonay') return `<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}${fiyatOnayHTML(f)}</div>`;
-  return div?`<div class="lbl">${esc(f.ad)}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}</div>`:`<label>${esc(f.ad)}${f.zorunlu?' *':''}${kontrol(f,row)}</label>`;
+  if(f.tip==='fiyatonay') return `<div class="lbl">${esc(tAd(f.ad))}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}${fiyatOnayHTML(f)}</div>`;
+  return div?`<div class="lbl">${esc(tAd(f.ad))}${f.zorunlu?' *':''}${kilit}${sar(kontrol(f,row))}</div>`:`<label>${esc(tAd(f.ad))}${f.zorunlu?' *':''}${kontrol(f,row)}</label>`;
 }
 function fonksiyonAlani(m){
   const sekmeler=modulSekmeler(m);
@@ -2529,7 +2584,7 @@ function kartFormHTML(){
   const f=ui.form, m=modul(f.modulId), yaz=yazabilir(m.id);
   const k=f.id&&S.kartlar.find(x=>x.id===f.id);
   const mail=ckKayitButon(m.id,k?.id)+(k?`<button class="ibtn" type="button" data-act="eposta-yaz" title="${_t('E-posta gönder')}" aria-label="${_t('E-posta gönder')}">${ic('mail')}</button>`:'');
-  return panelUst(m.ad+' · '+(k?k.kod:_t('Yeni')), k?kartBaslik(k):_t('Yeni kayıt'), mail)+`
+  return panelUst(tAd(m.ad)+' · '+(k?k.kod:_t('Yeni')), k?kartBaslik(k):_t('Yeni kayıt'), mail)+`
     <form id="kayitForm" class="form">
       <div class="two"><label>${_t('Proje *')}<select data-pf="projeId" required ${yaz?'':'disabled'}>${secOp(projelerA().filter(p=>!p.arsiv||p.id===f.projeId).map(p=>[p.id,p.kod+' · '+p.ad]), f.projeId, _t('Seç…'))}</select></label>
       <label>${_t('Durum')}<select data-pf="durumId" ${yaz?'':'disabled'}>${secOp(akis(f.modulId).map(d=>[d.id,durumEtiket(d)]), f.durumId)}</select></label></div>
@@ -2959,7 +3014,7 @@ function takvimHTML(){
   const hucre=Math.ceil((bos+adet)/7)*7;
   const ogeler=takvimOgeler();
   const hepsi=ui.takvim==='hepsi';
-  const cip=o=>`<button type="button" class="tk" style="--c:${o.renk}" data-act="${o.tur==='proje'?'ac-proje':'ac-kart'}" data-id="${o.id}" title="${esc(o.ad)}">${esc(o.kod)}${hepsi?' · '+esc(o.modul):''} ${esc(o.ad)}</button>`;
+  const cip=o=>`<button type="button" class="tk" style="--c:${o.renk}" data-act="${o.tur==='proje'?'ac-proje':'ac-kart'}" data-id="${o.id}" title="${esc(o.ad)}">${esc(o.kod)}${hepsi?' · '+esc(o.modul):''} ${esc(tAd(o.ad))}</button>`;
   const gunler=[...Array(hucre)].map((_,i)=>{
     const n=i-bos+1;
     const icinde=n>=1&&n<=adet;
@@ -2984,7 +3039,7 @@ function filtreBar(){
     <div class="seg">${gor('kanban',_t('Pano¦görünüm'),'kanban')}${gor('liste',_t('Liste'),'liste')}${gor('takvim',_t('Takvim'),'takvim')}</div>
     ${ui.gorunum==='takvim'?`<select id="takvimKapsam" class="sel" aria-label="${_t('Takvim kapsamı')}">${secOp([['modul',_t('Yalnız bu modül')],['hepsi',_t('Tüm sistem')]], ui.takvim||'modul')}</select>`:''}
     <select id="fProje" class="sel" aria-label="${_t('Proje')}">${secOp(pr.map(p=>[p.id,p.ad]), ui.proje, _t('Tüm projeler'))}</select>
-    <select id="fDurum" class="sel" aria-label="${_t('Durum')}">${secOp(akis(m.id).map(d=>[d.id,d.ad]), ui.durum, _t('Tüm durumlar'))}</select>
+    <select id="fDurum" class="sel" aria-label="${_t('Durum')}">${secOp(akis(m.id).map(d=>[d.id,tAd(d.ad)]), ui.durum, _t('Tüm durumlar'))}</select>
     <select id="fEkip" class="sel" aria-label="${_t('Ekip')}">${secOp(aktifKullanicilar().map(u=>[u.id,u.ad]), ui.ekip, _t('Tüm ekip'))}</select>
     ${tg(ui.benim,'benim',_t('Benimkiler'),'yildiz')}
     ${tg(ui.plan==='bugun','plan',_t('Bugün'),'','bugun')}
@@ -3001,7 +3056,7 @@ function kolonlar(mid, oge, durumOf, kartFn){
   const ds=akis(mid); if(!ds.length) return `<p class="empty">${_t('Bu modülde durum akışı yok.')}</p>`;
   const grup={}; ds.forEach(d=>grup[d.id]=[]);
   oge.forEach(o=>{ (grup[durumOf(o)]||grup[ds[0].id]).push(o); });
-  return `<div class="board">${ds.map(d=>`<section class="col" data-kolon="${d.id}" style="--c:${d.renk}"><div class="colh"><span>${esc(d.ad)}</span><span class="n">${(grup[d.id]||[]).length}</span>${d.kapat?`<span class="kp" title="${_t('Akışı kapatır')}">${ic('onay')}</span>`:''}</div>${(grup[d.id]||[]).map(kartFn).join('')||`<div class="empty">${_t('Boş')}</div>`}</section>`).join('')}</div>`;
+  return `<div class="board">${ds.map(d=>`<section class="col" data-kolon="${d.id}" style="--c:${d.renk}"><div class="colh"><span>${esc(tAd(d.ad))}</span><span class="n">${(grup[d.id]||[]).length}</span>${d.kapat?`<span class="kp" title="${_t('Akışı kapatır')}">${ic('onay')}</span>`:''}</div>${(grup[d.id]||[]).map(kartFn).join('')||`<div class="empty">${_t('Boş')}</div>`}</section>`).join('')}</div>`;
 }
 function listeHTML(){
   const {head, rows, ids, tur}=tabloVeri();
@@ -3019,7 +3074,7 @@ function listeHTML(){
 function printHTML(){
   const {head, rows}=tabloVeri();
   const m=modul(ui.modulId);
-  return `<div class="print-tablo"><h2>${esc(S.firma.ad)} · ${esc(m.ad)}</h2><table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  return `<div class="print-tablo"><h2>${esc(S.firma.ad)} · ${esc(tAd(m.ad))}</h2><table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function etiketHTML(m, pred){
   const uids=new Set((m?.fn||[]).filter(f=>f.tip==='etiket'&&gosterK(m,f.uid)).map(f=>f.uid));
@@ -3031,10 +3086,10 @@ function etiketHTML(m, pred){
 function kanbanEk(m, pred){
   const ozel=new Set(['etiket','kisi','gecmis']);
   return (m?.fn||[]).filter(f=>gosterK(m,f.uid) && !ozel.has(f.tip) && f.grup!=='aciliyet').map(f=>{
-    if(f.tip==='kontrol'){ const o=ktOzet(S.degerler.filter(d=>pred(d)&&d.fnUid===f.uid)); if(!o.top) return ''; return `<div class="sub"><b>${esc(f.ad)}:</b> ${o.bit}/${o.top}${o.sorun?` · <span style="color:var(--bad);font-weight:700">${_t('{0} sorun', o.sorun)}</span>`:''}</div>`; }
+    if(f.tip==='kontrol'){ const o=ktOzet(S.degerler.filter(d=>pred(d)&&d.fnUid===f.uid)); if(!o.top) return ''; return `<div class="sub"><b>${esc(tAd(f.ad))}:</b> ${o.bit}/${o.top}${o.sorun?` · <span style="color:var(--bad);font-weight:700">${_t('{0} sorun', o.sorun)}</span>`:''}</div>`; }
     if(f.tip==='yuzde'){ const d=S.degerler.find(x=>pred(x)&&x.fnUid===f.uid); if(!d) return ''; const v=Math.min(100,sayiOku(d.adet)); return `<div class="yuzde"><span class="bar ${v>=100?'ok':''}"><i style="width:${v}%"></i></span><span class="zaman">%${v}</span></div>`; }
     const v=S.degerler.filter(d=>pred(d)&&d.fnUid===f.uid).map(ozet).filter(Boolean).join(' · ');
-    return v?`<div class="sub"><b>${esc(f.ad)}:</b> ${esc(v)}</div>`:'';
+    return v?`<div class="sub"><b>${esc(tAd(f.ad))}:</b> ${esc(v)}</div>`:'';
   }).join('');
 }
 function sistemKanban(m,o){
@@ -3051,7 +3106,7 @@ function modulHTML(){
   const m=modul(ui.modulId);
   if(!m||yetki(m.id)==='yok') return `<p class="empty">${_t('Bu ekran için yetkin yok.')}</p>`;
   const yaz=yazabilir(m.id);
-  const bas=`<div class="phead"><span class="pic" style="--c:${m.renk}">${ic(m.ikon)}</span><div><h3>${esc(m.ad)}</h3><p>${m.tur==='proje'?_t('Durum omurgası. Diğer modüllerdeki kayıtlar bu projelere bağlanır.'):_t('Kayıt seçili projeye yazılır. Açıklama ve tarih ortak tabloda toplanır.')}</p></div>${yaz?'':'<span class="pill p-yok">'+ic('goz')+'Salt okunur</span>'}</div>${filtreBar()}`;
+  const bas=`<div class="phead"><span class="pic" style="--c:${m.renk}">${ic(m.ikon)}</span><div><h3>${esc(tAd(m.ad))}</h3><p>${m.tur==='proje'?_t('Durum omurgası. Diğer modüllerdeki kayıtlar bu projelere bağlanır.'):_t('Kayıt seçili projeye yazılır. Açıklama ve tarih ortak tabloda toplanır.')}</p></div>${yaz?'':'<span class="pill p-yok">'+ic('goz')+'Salt okunur</span>'}</div>${filtreBar()}`;
   if(m.tur==='proje'){
     const liste=gorProjeler();
     const kart=p=>{
@@ -3263,7 +3318,7 @@ function grafikHTML(b){
 function grAyarHTML(b, k){
   const m=b.kaynak&&b.kaynak!=='*'?modul(b.kaynak):null;
   const s=(alan, ad, L, v)=>`<label>${ad}<select data-bl="${k}" data-alan="${alan}">${secOp(L, v)}</select></label>`;
-  const kaynak=[['*','Tüm iş modülleri'], ...S.moduller.filter(x=>x.acik).map(x=>[x.id,x.ad])];
+  const kaynak=[['*','Tüm iş modülleri'], ...S.moduller.filter(x=>x.acik).map(x=>[x.id,tAd(x.ad)])];
   if(b.tip==='kpi') return `<div class="two">${s('kaynak','Kaynak',kaynak,b.kaynak||'*')}${s('donem',_t('Dönem (tamamlama ve süre için)'),GR_DONEM,b.donem||'3')}</div><p class="zaman">${_t('Zamanında tamamlama: kapanış tarihi termin/teslim tarihini geçmeyen kayıtların oranı. Ortalama kapanma: açılıştan kapatan duruma kadar geçen gün.')}</p>`;
   const fnler=m?.fn||[];
   const grup=[['durum',_t('Durum')],...(b.kaynak==='*'?[['modul',_t('Modül')]]:[]),['proje',_t('Proje')],['kategori',_t('Proje kategorisi')],['kisi',_t('Kişi (atanan / efor giren)')],['olusturan',_t('Kaydı açan')],['ay',_t('Ay')],
@@ -3290,7 +3345,7 @@ function blBul(anahtar){
 function bilesenHTML(b, pid){
   const u=ben();
   const duzen=pid&&(b._kisisel||u.rol==='yonetici')&&['grafik','kpi'].includes(b.tip)?`<button type="button" class="ibtn bl-duzen" data-act="bl-duzen" data-id="${esc(pid+':'+b.uid)}" title="${_t('Grafiği ayarla')}" aria-label="${_t('Grafiği ayarla')}">${ic('ayar')}</button>`:'';
-  const bas=`<h4>${ic(BLIK[b.tip])}${esc(b.ad?_t(b.ad):BLAD[b.tip])}${b._kisisel?`${_t('<small class="bl-kis">kişisel</small>')}`:''}${duzen}</h4>`;
+  const bas=`<h4>${ic(BLIK[b.tip])}${esc(b.ad?tAd(b.ad):BLAD[b.tip])}${b._kisisel?`${_t('<small class="bl-kis">kişisel</small>')}`:''}${duzen}</h4>`;
   let g='';
   switch(b.tip){
     case 'grafik': case 'kpi': g=grafikHTML(b); break;
@@ -3358,7 +3413,7 @@ function bilesenHTML(b, pid){
       g=`<div class="dag">${mods.map(m=>{
         const L=m.tur==='proje'?pPro().filter(p=>!p.arsiv):S.kartlar.filter(k=>k.modulId===m.id&&gorunurKart(k)&&PF(k.projeId));
         const ds=akis(m.id); const n=L.length||1;
-        return `<div class="dag-sat"><span><b>${esc(m.ad)}</b></span><span class="dag-bar">${ds.map(d=>{ const c=L.filter(o=>o.durumId===d.id).length; return c?`<i style="--c:${d.renk};width:${c/n*100}%" title="${esc(d.ad)}: ${c}"></i>`:''; }).join('')}</span><span class="zaman sag">${L.length}</span></div>`;
+        return `<div class="dag-sat"><span><b>${esc(tAd(m.ad))}</b></span><span class="dag-bar">${ds.map(d=>{ const c=L.filter(o=>o.durumId===d.id).length; return c?`<i style="--c:${d.renk};width:${c/n*100}%" title="${esc(d.ad)}: ${c}"></i>`:''; }).join('')}</span><span class="zaman sag">${L.length}</span></div>`;
       }).join('')}</div><p class="zaman">${_t('Çubuğun üstüne gelince durum adı ve sayısı görünür.')}</p>`;
       break;
     }
@@ -3382,11 +3437,19 @@ function bilesenHTML(b, pid){
     case 'stok': {
       const ds=S.depolar;
       const sat=S.malzemeler.map(mz=>{ const t=stokMiktar(mz.ad); const kr=mz.kritik&&t<sayiOku(mz.kritik); return `<tr><td><span class="code-tag">${esc(mz.kod)}</span></td><td><b>${esc(mz.ad)}</b></td>${ds.map(d=>`<td class="sag">${String(stokMiktar(mz.ad,d.id)).replace('.',',')}</td>`).join('')}<td class="sag"><b class="${kr?'stok-uyari':''}">${String(t).replace('.',',')} ${esc(mz.birim)}</b>${kr?`<div class="zaman">${_t('kritik altı')}</div>`:''}</td></tr>`; });
-      g=`<p class="zaman">${_t('Stok Hareketi fonksiyonlarından hesaplanır (tüm projeler)')}</p>`+(sat.length?`<div class="tbl"><table><thead><tr><th>${_t('Kod')}</th><th>${_t('Malzeme')}</th>${ds.map(d=>`<th class="sag">${esc(d.ad)}</th>`).join('')}<th class="sag">${_t('Toplam')}</th></tr></thead><tbody>${sat.join('')}</tbody></table></div>`:'<p class="empty">Malzeme yok</p>');
+      g=`<p class="zaman">${_t('Stok Hareketi fonksiyonlarından hesaplanır (tüm projeler)')}</p>`+(sat.length?`<div class="tbl"><table><thead><tr><th>${_t('Kod')}</th><th>${_t('Malzeme')}</th>${ds.map(d=>`<th class="sag">${esc(tAd(d.ad))}</th>`).join('')}<th class="sag">${_t('Toplam')}</th></tr></thead><tbody>${sat.join('')}</tbody></table></div>`:'<p class="empty">Malzeme yok</p>');
       break;
     }
   }
   return `<section class="bl ${b.genis==='tam'?'tam':''}">${bas}${g}</section>`;
+}
+// Panodaki bileşenler kullanıcının sırasıyla: hazır bileşenler ('b:uid') ve kendi grafikleri ('k:uid') tek listede.
+// Sırada olmayan (yeni eklenen) bileşenler sona eklenir.
+function panoSirali(p,u){
+  const L=[...(p.bilesen||[]).map(b=>({key:'b:'+b.uid, b, kisisel:false})), ...((u.panoEk||{})[p.id]||[]).map(b=>({key:'k:'+b.uid, b, kisisel:true}))];
+  const sira=(u.panoSira||{})[p.id]||[];
+  const yer=k=>{ const i=sira.indexOf(k); return i<0?1e6:i; };
+  return L.map((x,i)=>({...x, i})).sort((a,b)=>yer(a.key)-yer(b.key)||a.i-b.i);
 }
 function panoHTML(){
   const p=S.panolar.find(x=>x.id===ui.panoId)||S.panolar.find(x=>x.acik);
@@ -3396,8 +3459,8 @@ function panoHTML(){
   const tarih=new Date().toLocaleDateString(LOKAL,{day:'2-digit',month:'2-digit',year:'numeric',weekday:'long'});
   const gizli=(u.panoGizli||{})[p.id]||[];
   const pr=projelerA().filter(x=>!x.arsiv||x.id===ui.panoProje);
-  const bl=[...(p.bilesen||[]).filter(b=>!gizli.includes(b.uid)), ...((u.panoEk||{})[p.id]||[]).map(b=>({...b, _kisisel:true}))];
-  return `<div class="phead"><span class="pic">${ic(p.ikon)}</span><div><h3>${esc(_t(p.ad))}</h3><p>${_t('Merhaba {0}. Bugün {1}.', esc(u.ad.split(' ')[0]), esc(tarih))}</p></div><div class="tools"><select id="panoProje" class="sel" aria-label="${_t('Proje filtresi')}">${secOp(pr.map(x=>[x.id,x.kod+' · '+x.ad]), ui.panoProje, _t('Tüm projeler'))}</select><button type="button" class="btn" data-act="pano-ozel" data-id="${p.id}" title="${_t('Bu panoda neyi göreceğini seç')}">${ic('katman')}${_t('Özelleştir')}</button>${u.rol==='yonetici'?`<button type="button" class="btn" data-act="pano-ayar" data-id="${p.id}">${ic('ayar')}${_t('Panoyu düzenle')}</button>`:''}</div></div>
+  const bl=panoSirali(p,u).filter(x=>x.kisisel||!gizli.includes(x.b.uid)).map(x=>x.kisisel?{...x.b, _kisisel:true}:x.b);
+  return `<div class="phead"><span class="pic">${ic(p.ikon)}</span><div><h3>${esc(tAd(p.ad))}</h3><p>${_t('Merhaba {0}. Bugün {1}.', esc(u.ad.split(' ')[0]), esc(tarih))}</p></div><div class="tools"><select id="panoProje" class="sel" aria-label="${_t('Proje filtresi')}">${secOp(pr.map(x=>[x.id,x.kod+' · '+x.ad]), ui.panoProje, _t('Tüm projeler'))}</select><button type="button" class="btn" data-act="pano-ozel" data-id="${p.id}" title="${_t('Bu panoda neyi göreceğini seç')}">${ic('katman')}${_t('Özelleştir')}</button>${u.rol==='yonetici'?`<button type="button" class="btn" data-act="pano-ayar" data-id="${p.id}">${ic('ayar')}${_t('Panoyu düzenle')}</button>`:''}</div></div>
     ${ui.panoProje?`<div class="note">${ic('filtre')} ${_t('Yalnız <b>{0}</b> projesinin verisi gösteriliyor.', esc(proje(ui.panoProje)?.ad||''))}</div>`:''}
     <div class="pano-grid">${bl.map(b=>bilesenHTML(b, p.id)).join('')||`<p class="empty">${_t('Bu panoda gösterilecek bileşen yok. Özelleştir ile aç.')}</p>`}</div>`;
 }
@@ -3515,16 +3578,16 @@ function ayarHTML(){
   const tab=(id,ad)=>`<button type="button" class="btn ${ui.ayar===id?'on':''}" data-act="ayar-sek" data-v="${id}">${ad}</button>`;
   const bas=`<div class="phead"><span class="pic">${ic('ayar')}</span><div><h3>${_t('Ayarlar')}</h3></div></div><div class="tabs2">${tab('firma','Firma')}${tab('kullanici',_t('Kullanıcılar'))}${tab('yetki','Yetkiler')}${tab('durum','Durumlar')}${tab('modul',_t('Modüller'))}${tab('fonksiyon','Fonksiyonlar')}${tab('opsiyon','Opsiyonlar')}${tab('sablon',_t('Şablonlar'))}${tab('rehber','Rehber')}${tab('stok','Depo ve Stok')}${tab('pano','Panolar')}${tab('kiosk','Kiosklar')}${tab('cikti',_t('Çıktı formları'))}${tab('sema',_t('Şema'))}</div>`;
   const ipucu=`<p class="zaman">${_t('Sırayı sürükleyerek değiştir. Düzenlemek için satıra tıkla.')}</p>`;
-  if(ui.ayar==='firma') return bas+`<div class="liste">${secSatir('firma','firma',`<span class="harf" style="--c:var(--brand)">${ic('bina')}</span><span class="sp"><b>${esc(S.firma.ad)}</b><span class="zaman">${esc(S.firma.sub)}${_t('.iq-sense.com.tr · dosya deposu:')} ${esc(DEPO[S.firma.depo]||'Sunucu')}</span></span>`)}</div>`;
+  if(ui.ayar==='firma') return bas+`<div class="liste">${secSatir('firma','firma',`<span class="harf" style="--c:var(--brand)">${ic('bina')}</span><span class="sp"><b>${esc(S.firma.ad)}</b><span class="zaman">${esc(S.firma.sub)}${_t('.iq-sense.com.tr · dosya deposu:')} ${esc(DEPO[S.firma.depo]||'Sunucu')}</span></span>`)}${secSatir('ceviri','adlar',`<span class="harf" style="--c:#6b5bd6">${ic('dunya')}</span><span class="sp"><b>${_t('Adların çevirileri')}</b><span class="zaman">${esc(ceviriOzet())}</span></span>`)}</div>`;
   if(ui.ayar==='kullanici') return bas+`<div class="panel dep-panel"><h4>${_t('Departmanlar')}</h4><p class="zaman">${_t('Kullanıcının bölümü (Servis, Üretim, Satış…). Kiosklar ve ekip panoları bu alana göre süzülür.')}</p><div class="dep-cipler">${S.departmanlar.map(d=>`<span class="dep-cip">${esc(d)}<em>${S.kullanicilar.filter(u=>u.departman===d).length}</em><button type="button" data-act="dep-sil" data-v="${esc(d)}" aria-label="${esc(d)} ${_t('kaldır')}">${ic('x')}</button></span>`).join('')}<input id="depYeni" class="mini" placeholder="${_t('Yeni departman')}" aria-label="${_t('Yeni departman')}"><button type="button" class="btn sm" data-act="dep-ekle">${ic('arti')}${_t('Ekle')}</button></div></div><div class="kutular"><button type="button" class="btn pri" data-act="yeni-ayar" data-tur="kullanici">${ic('arti')}${_t('Kullanıcı ekle')}</button>${S.kullanicilar.map(u=>secSatir('kullanici',u.id,`${av(u.ad)}<span class="sp"><b>${esc(u.ad)}</b><span class="zaman">${esc(u.unvan)}${u.departman?' · '+esc(u.departman):''} · ${u.rol==='yonetici'?_t('Yönetici'):'Personel'}${u.aktif===false?' · Pasif':''}</span></span>`,false,u.aktif===false?'pasif':'')).join('')}</div>`;
   if(ui.ayar==='yetki') return bas+`<div class="two" style="align-items:start"><div class="panel"><h4>${_t('Kullanıcı yetkileri')}</h4><p class="zaman">${_t('Modül başına Yok / Gör / Yaz; ayrıca onay ve dışa aktarma.')}</p><div class="liste">${S.kullanicilar.map(u=>secSatir('yetki',u.id,`${av(u.ad)}<span class="sp"><b>${esc(u.ad)}</b><span class="zaman">${u.rol==='yonetici'?_t('Tüm modüller'):esc(S.yetkiGruplari.find(g=>g.id===u.grup)?.ad||'Grupsuz')}</span></span>`,false,u.aktif===false?'pasif':'')).join('')}</div></div>
     <div class="panel"><h4>${_t('Yetki grupları')}</h4><p class="zaman">${_t('Fonksiyon düzeyinde Düzenle / Gör / Görme bu gruplara verilir (Modüller → fonksiyon satırı).')}</p><button type="button" class="btn sm" style="justify-self:start" data-act="yeni-ayar" data-tur="ygrup">${ic('arti')}${_t('Grup ekle')}</button><div class="liste">${S.yetkiGruplari.map(g=>secSatir('ygrup',g.id,`<span class="harf">${ic('ekip')}</span><span class="sp"><b>${esc(g.ad)}</b><span class="zaman">${S.kullanicilar.filter(u=>u.grup===g.id).length} ${_t('kişi')}</span></span>`)).join('')}</div></div></div>`;
   if(ui.ayar==='durum'){
     if(!S.moduller.some(m=>m.id===ui.durumModul)) ui.durumModul=S.moduller[0]?.id||'';
     const ds=akis(ui.durumModul);
-    return bas+`<div class="fn-ekle"><select id="durumModul" aria-label="${_t('Modül')}">${S.moduller.map(m=>`<option value="${m.id}" ${m.id===ui.durumModul?'selected':''}>${esc(m.ad)}</option>`).join('')}</select><button type="button" class="btn pri" data-act="yeni-ayar" data-tur="durum">${ic('arti')}${_t('Durum ekle')}</button></div><p class="zaman">${_t('Bu akış yalnız seçili modüle aittir. İlk sıradaki ilk durumdur (silme kuralı buna bakar). "Akışı kapatır" işaretli durumlar kayıt kapanmış sayılır; gecikme ve açık iş hesaplarına girmez, bu duruma geçmek onay yetkisi ister.')}</p><div class="liste">${ds.map((d,i)=>secSatir('durum',d.id,`<i class="nokta" style="--c:${d.renk}"></i><span class="sp"><b>${esc(d.ad)}</b><span class="zaman">${i===0?_t('İlk durum'):i===ds.length-1?'Son durum':(i+1)+_t('. sıra')}</span></span>${d.kapat?'<span class="pill p-ok">'+ic('onay')+`${_t('Akışı kapatır')}</span>`:''}`,true)).join('')||'<p class="zaman">Durum yok</p>'}</div>`;
+    return bas+`<div class="fn-ekle"><select id="durumModul" aria-label="${_t('Modül')}">${S.moduller.map(m=>`<option value="${m.id}" ${m.id===ui.durumModul?'selected':''}>${esc(tAd(m.ad))}</option>`).join('')}</select><button type="button" class="btn pri" data-act="yeni-ayar" data-tur="durum">${ic('arti')}${_t('Durum ekle')}</button></div><p class="zaman">${_t('Bu akış yalnız seçili modüle aittir. İlk sıradaki ilk durumdur (silme kuralı buna bakar). "Akışı kapatır" işaretli durumlar kayıt kapanmış sayılır; gecikme ve açık iş hesaplarına girmez, bu duruma geçmek onay yetkisi ister.')}</p><div class="liste">${ds.map((d,i)=>secSatir('durum',d.id,`<i class="nokta" style="--c:${d.renk}"></i><span class="sp"><b>${esc(tAd(d.ad))}</b><span class="zaman">${i===0?_t('İlk durum'):i===ds.length-1?'Son durum':(i+1)+_t('. sıra')}</span></span>${d.kapat?'<span class="pill p-ok">'+ic('onay')+`${_t('Akışı kapatır')}</span>`:''}`,true)).join('')||'<p class="zaman">Durum yok</p>'}</div>`;
   }
-  if(ui.ayar==='modul') return bas+`<button type="button" class="btn pri" style="justify-self:start" data-act="modul-ekle">${ic('arti')}${_t('Modül aç')}</button>${ipucu}<div class="liste">${S.moduller.map(m=>{ const n=modulSekmeler(m).length; return secSatir('modul',m.id,`<i class="harf" style="--c:${m.renk}">${ic(m.ikon)}</i><span class="sp"><b>${esc(m.ad)}</b><span class="zaman">${esc(m.onek)}${_t('-#### · {0} fonksiyon{1} ·', m.fn.length, n>1?' · '+n+' sekme':'')} ${m.acik?_t('Sol menüde'):'Gizli'}</span></span>`,true); }).join('')}</div>`;
+  if(ui.ayar==='modul') return bas+`<button type="button" class="btn pri" style="justify-self:start" data-act="modul-ekle">${ic('arti')}${_t('Modül aç')}</button>${ipucu}<div class="liste">${S.moduller.map(m=>{ const n=modulSekmeler(m).length; return secSatir('modul',m.id,`<i class="harf" style="--c:${m.renk}">${ic(m.ikon)}</i><span class="sp"><b>${esc(tAd(m.ad))}</b><span class="zaman">${esc(m.onek)}${_t('-#### · {0} fonksiyon{1} ·', m.fn.length, n>1?' · '+n+' sekme':'')} ${m.acik?_t('Sol menüde'):'Gizli'}</span></span>`,true); }).join('')}</div>`;
   if(ui.ayar==='fonksiyon') return bas+fnOrnekHTML();
   if(ui.ayar==='opsiyon') return bas+`<button type="button" class="btn pri" style="justify-self:start" data-act="yeni-ayar" data-tur="grup">${ic('arti')}${_t('Grup ekle')}</button><div class="liste">${gruplar().map(g=>secSatir('grup',g,grupOnizle(g))).join('')}</div>`;
   if(ui.ayar==='sablon') return bas+`<button type="button" class="btn pri" style="justify-self:start" data-act="yeni-ayar" data-tur="sablon">${ic('arti')}${_t('Şablon ekle')}</button><div class="liste">${S.sablonlar.map(s=>secSatir('sablon',s.id,`<span class="harf">${ic('sablon')}</span><span class="sp"><b>${esc(s.ad)}</b><span class="zaman">${(s.moduller||[]).length?esc(s.moduller.map(id=>modul(id)?.ad).filter(Boolean).join(', '))+' · ':_t('Tüm modüller · ')}${esc(duz(s.metin).replace(/\s+/g,' ').slice(0,70))}</span></span>`)).join('')}</div>`;
@@ -3533,14 +3596,14 @@ function ayarHTML(){
     const sek=`<div class="seg"><button type="button" class="${fi?'on':''}" data-act="rehber-sek" data-v="firma">${ic('bina')}${_t('Firmalar ({0})', S.firmalar.length)}</button><button type="button" class="${fi?'':'on'}" data-act="rehber-sek" data-v="kisi">${ic('kisi')}${_t('Kişiler ({0})', S.kisiler.length)}</button></div>`;
     const not=`<p class="zaman">${_t('Kayıtlarda firma ve kişi serbest yazılır; yeni ad kaydedilince rehbere kendiliğinden eklenir, sonra her yerde listeden seçilir. Burada ad değişirse bağlı tüm kayıtlarda değişir.')}</p>`;
     const liste=fi
-      ? S.firmalar.slice().sort((a,b)=>a.ad.localeCompare(b.ad,'tr')).map(f=>secSatir('rfirma',f.id,`<span class="harf" style="--c:#4a6fd6">${ic('bina')}</span><span class="sp"><b>${esc(f.ad)}</b><span class="zaman">${[f.tel,f.eposta].filter(Boolean).map(esc).join(' · ')||_t('İletişim yok')} ${_t('· {0} kişi', S.kisiler.filter(k=>k.firmaId===f.id).length)}</span></span>`)).join('')
+      ? S.firmalar.slice().sort((a,b)=>a.ad.localeCompare(b.ad,'tr')).map(f=>secSatir('rfirma',f.id,`<span class="harf" style="--c:#4a6fd6">${ic('bina')}</span><span class="sp"><b>${esc(tAd(f.ad))}</b><span class="zaman">${[f.tel,f.eposta].filter(Boolean).map(esc).join(' · ')||_t('İletişim yok')} ${_t('· {0} kişi', S.kisiler.filter(k=>k.firmaId===f.id).length)}</span></span>`)).join('')
       : S.kisiler.slice().sort((a,b)=>a.ad.localeCompare(b.ad,'tr')).map(k=>secSatir('rkisi',k.id,`${av(k.ad)}<span class="sp"><b>${esc(k.ad)}</b><span class="zaman">${esc(S.firmalar.find(f=>f.id===k.firmaId)?.ad||_t('Firmasız'))}${k.unvan?' · '+esc(k.unvan):''}</span></span>`)).join('');
     return bas+`<div class="filters">${sek}<span class="sp"></span><button type="button" class="btn pri" data-act="yeni-ayar" data-tur="${fi?'rfirma':'rkisi'}">${ic('arti')}${fi?_t('Firma ekle'):_t('Kişi ekle')}</button></div>${not}<div class="liste">${liste||`<p class="empty">${_t('Kayıt yok')}</p>`}</div>`;
   }
   if(ui.ayar==='stok'){
     const ds=S.depolar;
     const mal=S.malzemeler.map(mz=>{ const t=stokMiktar(mz.ad); const kr=mz.kritik&&t<sayiOku(mz.kritik); return secSatir('malz',mz.id,`<span class="harf" style="--c:#c98a12">${ic('kutu')}</span><span class="sp"><b>${esc(mz.ad)}</b><span class="zaman">${esc(mz.kod||'kodsuz')} · ${ds.map(d=>esc(d.ad)+': '+String(stokMiktar(mz.ad,d.id)).replace('.',',')).join(' · ')}</span></span><span class="pill ${kr?'p-bad':'p-ok'}">${String(t).replace('.',',')} ${esc(mz.birim)}</span>`); }).join('');
-    return bas+`<div class="two" style="align-items:start"><div class="panel"><h4>${_t('Depolar')}</h4><button type="button" class="btn sm" style="justify-self:start" data-act="yeni-ayar" data-tur="depo">${ic('arti')}${_t('Depo ekle')}</button><div class="liste">${ds.map(d=>secSatir('depo',d.id,`<span class="harf" style="--c:#1497a8">${ic('kamyon')}</span><span class="sp"><b>${esc(d.ad)}</b><span class="zaman">${S.malzemeler.filter(mz=>stokMiktar(mz.ad,d.id)).length} malzeme</span></span>`)).join('')||'<p class="zaman">Depo yok</p>'}</div></div>
+    return bas+`<div class="two" style="align-items:start"><div class="panel"><h4>${_t('Depolar')}</h4><button type="button" class="btn sm" style="justify-self:start" data-act="yeni-ayar" data-tur="depo">${ic('arti')}${_t('Depo ekle')}</button><div class="liste">${ds.map(d=>secSatir('depo',d.id,`<span class="harf" style="--c:#1497a8">${ic('kamyon')}</span><span class="sp"><b>${esc(tAd(d.ad))}</b><span class="zaman">${S.malzemeler.filter(mz=>stokMiktar(mz.ad,d.id)).length} malzeme</span></span>`)).join('')||'<p class="zaman">Depo yok</p>'}</div></div>
       <div class="panel"><h4>${_t('Malzemeler (stok kartları)')}</h4><p class="zaman">${_t('Stok Hareketi fonksiyonunda yeni yazılan malzeme buraya kendiliğinden eklenir. Mevcut miktar hareketlerden hesaplanır.')}</p><button type="button" class="btn sm" style="justify-self:start" data-act="yeni-ayar" data-tur="malz">${ic('arti')}${_t('Malzeme ekle')}</button><div class="liste">${mal||'<p class="zaman">Malzeme yok</p>'}</div></div></div>`;
   }
   if(ui.ayar==='pano') return bas+`<button type="button" class="btn pri" style="justify-self:start" data-act="pano-ekle">${ic('arti')}${_t('Pano aç')}</button><p class="zaman">${_t('Pano, fonksiyonlar gibi bileşenlerden kurulur: özet sayılar, yaklaşan teslimler, bütçe, gecikmeler, firma görüşme analizi… Her kullanıcı yalnız yetkili olduğu modüllerin verisini görür.')}</p><div class="liste">${S.panolar.slice().sort((a,b)=>a.sira-b.sira).map(p=>secSatir('pano',p.id,`<i class="harf">${ic(p.ikon)}</i><span class="sp"><b>${esc(p.ad)}</b><span class="zaman">${(p.bilesen||[]).length} ${_t('bileşen ·')} ${p.acik?_t('Sol menüde'):'Gizli'}</span></span>`,true)).join('')}</div>`;
@@ -3570,13 +3633,18 @@ function cekmeceHTML(){
     const fns=m.fn.filter(f=>f.tip!=='gecmis'&&fnGorunur(f)&&!['mesaj','dokuman','imza'].includes(f.tip));
     return bas(_t('Görünümüm'),m.ad)+`<p class="zaman">${_t('Bu seçimler yalnız senin ekranını etkiler. Kapalı alan kanban kartında ya da liste/Excel sütunlarında çıkmaz.')}</p><label class="lbl">${_t('Kayıt paneli açılışı')}<select data-panel-gen="${m.id}">${secOp([['yarim',_t('Yarım (sağda)')],['tam',_t('Tam ekran')]], panelTam(m.id)?'tam':'yarim')}</select><span class="zaman">${_t('Bu modülde kayıt açılınca sağ panelin genişliği. Paneldeki genişlet düğmesi yalnız o kayıt için değiştirir.')}</span></label><div class="tbl gorunum-tbl"><table><thead><tr><th>${_t('Alan')}</th><th>${_t('Kanban')}</th><th>${_t('Liste')}</th></tr></thead><tbody>${fns.map(f=>sat(f.uid,f.ad,FNIK[f.tip])).join('')}<tr><th colspan="3">${_t('Sistem alanları')}</th></tr>${SISTEM.map(x=>sat(x[0],x[1],x[2])).join('')}</tbody></table></div><button type="button" class="btn" data-act="gorunum-sifirla" data-id="${m.id}">${_t('Varsayılana dön')}</button>`;
   }
+  if(c.tur==='ceviri') return ceviriHTML(bas);
   if(c.tur==='panoKisi'){
     const p=S.panolar.find(x=>x.id===c.id); if(!p) return '';
     const g=(ben().panoGizli||{})[p.id]||[];
     const kb=(ben().panoEk||{})[p.id]||[];
-    return bas(_t('Panom'),p.ad)+`<p class="zaman">${_t('Bu panoda göreceğin bileşenleri seç. Yalnız senin ekranını etkiler.')}</p><div class="liste">${(p.bilesen||[]).map(b=>`<label class="anahtar" style="width:auto"><input type="checkbox" data-pano-gizle="${p.id}:${b.uid}" ${g.includes(b.uid)?'':'checked'}><span>${ic(BLIK[b.tip])} ${esc(b.ad||BLAD[b.tip])}</span></label>`).join('')}</div>
-      <h4 style="margin:14px 0 6px">${_t('Kendi grafiklerim')}</h4><p class="zaman">${_t('Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin.')}</p>
-      <div class="liste">${kb.map(b=>`<div class="fn-satir" data-act="bl-duzen" data-id="${esc(p.id+':'+b.uid)}" tabindex="0">${ic(BLIK[b.tip])}<div><span>${esc(b.ad||BLAD[b.tip])}</span></div></div>`).join('')||`<span class="zaman">${_t('Henüz yok')}</span>`}</div>
+    void kb;
+    const sat=x=>x.kisisel
+      ? `<div class="pb-satir" draggable="true" data-sirala="pb" data-id="${esc(x.key)}"><span class="tut" title="${_t('Sürükleyerek sırala')}">⠿</span><span class="pb-ad" data-act="bl-duzen" data-id="${esc(p.id+':'+x.b.uid)}" tabindex="0">${ic(BLIK[x.b.tip])} ${esc(x.b.ad||BLAD[x.b.tip])}</span><span class="pill">${_t('Kendi')}</span></div>`
+      : `<div class="pb-satir" draggable="true" data-sirala="pb" data-id="${esc(x.key)}"><span class="tut" title="${_t('Sürükleyerek sırala')}">⠿</span><label class="anahtar" style="width:auto"><input type="checkbox" data-pano-gizle="${p.id}:${x.b.uid}" ${g.includes(x.b.uid)?'':'checked'}><span>${ic(BLIK[x.b.tip])} ${esc(tAd(x.b.ad)||BLAD[x.b.tip])}</span></label></div>`;
+    return bas(_t('Panom'),tAd(p.ad))+`<p class="zaman">${_t('Göreceğin bileşenleri aç / kapat, tutamaktan sürükleyerek sırala. Kendi grafiklerine tıklayınca düzenlenir. Yalnız senin ekranını etkiler.')}</p>
+      <div class="liste pb-liste">${panoSirali(p,ben()).map(sat).join('')}</div>
+      <h4 style="margin:14px 0 6px">${_t('Kendi grafiğini ekle')}</h4><p class="zaman">${_t('Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.')}</p>
       <div class="fn-ekle"><select id="blKisiSec" aria-label="${_t('Grafik')}"><optgroup label="Hazır raporlar">${grHazir().map(h=>`<option value="hazir:${h.k}">${esc(h.ad)}</option>`).join('')}</optgroup><optgroup label="Boş"><option value="grafik">${_t('Grafik rapor (kendim ayarlarım)')}</option><option value="kpi">${_t('KPI göstergeleri')}</option></optgroup></select><button type="button" class="btn pri" data-act="bl-kisi-ekle" data-id="${p.id}">${ic('arti')}${_t('Ekle')}</button></div>`;
   }
   if(c.tur==='depo' && c.id==='yeni') return bas(_t('Depo'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Depo adı')}<input name="ad" required></label>${onay}</form>`;
@@ -3590,7 +3658,7 @@ function cekmeceHTML(){
     const mz=S.malzemeler.find(x=>x.id===c.id); if(!mz) return bas(_t('Malzeme'),'');
     const a=(k,ad)=>`<label>${ad}<input data-malz="${mz.id}" data-alan="${k}" value="${esc(mz[k]||'')}"></label>`;
     const har=S.degerler.filter(d=>d.fnTip==='stok'&&nrm(d.malzeme)===nrm(mz.ad)).sort((x,y)=>String(y.tarih).localeCompare(String(x.tarih)));
-    return bas(_t('Malzeme'),mz.ad)+`<form class="form"><div class="two">${a('kod','Kod')}${a('birim','Birim')}</div>${a('ad','Ad')}${a('kritik','Kritik seviye')}<div class="lbl">${_t('Depolara göre')}<div class="tbl"><table><tbody>${S.depolar.map(d=>`<tr><td>${esc(d.ad)}</td><td class="sag">${String(stokMiktar(mz.ad,d.id)).replace('.',',')} ${esc(mz.birim)}</td></tr>`).join('')}</tbody></table></div></div><div class="lbl">${_t('Hareketler')}<div class="tbl"><table><tbody>${har.map(d=>{ const k=d.kartId&&S.kartlar.find(x=>x.id===d.kartId); return `<tr class="clk" data-act="ac-kart" data-id="${d.kartId||''}"><td>${trh(d.tarih)}</td><td>${esc(d.hareket)}</td><td>${esc(depoAd(d.depo))}${d.hareket==='Transfer'?' → '+esc(depoAd(d.hedef)):''}</td><td class="sag">${esc(d.adet)}</td><td><span class="code-tag">${esc(k?.kod||'')}</span></td></tr>`; }).join('')||'<tr><td class="zaman">Hareket yok</td></tr>'}</tbody></table></div></div></form>`;
+    return bas(_t('Malzeme'),mz.ad)+`<form class="form"><div class="two">${a('kod','Kod')}${a('birim','Birim')}</div>${a('ad','Ad')}${a('kritik','Kritik seviye')}<div class="lbl">${_t('Depolara göre')}<div class="tbl"><table><tbody>${S.depolar.map(d=>`<tr><td>${esc(tAd(d.ad))}</td><td class="sag">${String(stokMiktar(mz.ad,d.id)).replace('.',',')} ${esc(mz.birim)}</td></tr>`).join('')}</tbody></table></div></div><div class="lbl">${_t('Hareketler')}<div class="tbl"><table><tbody>${har.map(d=>{ const k=d.kartId&&S.kartlar.find(x=>x.id===d.kartId); return `<tr class="clk" data-act="ac-kart" data-id="${d.kartId||''}"><td>${trh(d.tarih)}</td><td>${esc(d.hareket)}</td><td>${esc(depoAd(d.depo))}${d.hareket==='Transfer'?' → '+esc(depoAd(d.hedef)):''}</td><td class="sag">${esc(d.adet)}</td><td><span class="code-tag">${esc(k?.kod||'')}</span></td></tr>`; }).join('')||'<tr><td class="zaman">Hareket yok</td></tr>'}</tbody></table></div></div></form>`;
   }
   if(c.tur==='firma') return bas(_t('Ayarlar'),'Firma')+`<form class="form"><label>${_t('Firma adı')}<input id="firmaAd" value="${esc(S.firma.ad)}"></label><p class="zaman">${esc(S.firma.sub)}.iq-sense.com.tr</p><label>${_t('Logo')}<input id="logoIn" type="file" accept="image/png,image/jpeg,image/webp"></label>${S.firma.logo?`<img alt="" src="${S.firma.logo}" style="height:56px;width:max-content;border-radius:8px;background:#fff">`:''}
     <label>${_t('Varsayılan dosya deposu')}<select id="firmaDepo">${secOp(Object.entries(DEPO), S.firma.depo||'yerel')}</select></label>
@@ -3607,7 +3675,7 @@ function cekmeceHTML(){
       <label>${_t('Ad')}<input data-user="${u.id}" data-alan="ad" value="${esc(u.ad)}"></label><label>${_t('Ünvan')}<input data-user="${u.id}" data-alan="unvan" value="${esc(u.unvan)}"></label><label>${_t('E-posta (giriş)')}<input type="email" data-user="${u.id}" data-alan="eposta" value="${esc(u.eposta||'')}"></label>
       <div class="two"><label>${_t('Rol')}<select data-user="${u.id}" data-alan="rol" ${u.tur==='misafir'?'disabled':''}>${secOp([['personel',_t('Personel')],['yonetici',_t('Yönetici')]], u.rol)}</select></label><label>${_t('Yetki grubu')}<select data-user="${u.id}" data-alan="grup">${secOp(S.yetkiGruplari.map(g=>[g.id,g.ad]), u.grup)}</select></label></div><label>${_t('Departman')}<select data-user="${u.id}" data-alan="departman">${secOp(S.departmanlar, u.departman||'', _t('Departmansız'))}</select></label>
       ${misafirAyarHTML(u)}
-      <div class="lbl">${_t('Fiyat onayı')}<label>${_t('Yöneticisi')}<select data-user="${u.id}" data-alan="ust">${secOp(S.kullanicilar.filter(x=>x.id!==u.id&&x.aktif!==false&&x.tur!=='misafir').map(x=>[x.id,x.ad]), u.ust||'', _t('Yok'))}</select></label>
+      <div class="lbl">${_t('Fiyat onayı')}<label>${_t('Yöneticisi')}<select data-user="${u.id}" data-alan="ust">${secOp(S.kullanicilar.filter(x=>x.id!==u.id&&x.aktif!==false&&x.tur!=='misafir').map(x=>[x.id,tAd(x.ad)]), u.ust||'', _t('Yok'))}</select></label>
         <div class="three">${['TL','USD','EUR'].map(pb=>`<label>${_t('Onay limiti')} (${pb})<input inputmode="decimal" data-ulimit="${u.id}:${pb}" value="${esc((u.onayLimit||{})[pb]??'')}" placeholder="0"></label>`).join('')}</div>
         <p class="zaman">${u.rol==='yonetici'?_t('Yönetim rolündeki kullanıcı limitsizdir.'):_t('Kaydettiği fiyat bu limiti aşarsa onay yöneticisine gider. Boş limit 0 sayılır.')}</p></div>
       <label class="anahtar"><input type="checkbox" data-user="${u.id}" data-alan="aktif" ${u.aktif!==false?'checked':''}><span>${_t('Aktif')}</span></label><p class="zaman">${_t('Kullanıcı silinmez. Pasif kullanıcı giriş yapamaz, seçim listelerinde çıkmaz; geçmişteki kayıtları ve logları durur.')}</p>
@@ -3616,13 +3684,13 @@ function cekmeceHTML(){
   if(c.tur==='yetki'){
     const u=S.kullanicilar.find(x=>x.id===c.id); if(!u) return bas(_t('Yetki'),'');
     const cb=(m,t)=>`<input type="checkbox" data-yetki-ek="${u.id}:${m.id}:${t}" ${u.ek?.[m.id]?.[t]?'checked':''} aria-label="${t}">`;
-    const govde=u.rol==='yonetici'?`<p class="zaman">${_t('Yönetici her modülde yazar, onaylar ve dışa aktarır.')}</p>`:`<div class="tbl"><table><thead><tr><th>${_t('Modül')}</th><th>${_t('Yetki')}</th><th>${_t('Onay')}</th><th>${_t('Dışa aktar')}</th></tr></thead><tbody>${S.moduller.map(m=>`<tr><td>${esc(m.ad)}</td><td><select data-yetki="${u.id}:${m.id}" aria-label="${esc(m.ad)}">${secOp([['yok',_t('Yok')],['oku',_t('Gör')],['yaz',_t('Yaz')]], u.yetki[m.id]||'yok')}</select></td><td>${cb(m,'onay')}</td><td>${cb(m,'disa')}</td></tr>`).join('')}</tbody></table></div><p class="zaman">Onay: "akışı kapatır" durumuna geçirme ve dosya onaylama. Dışa aktar: Excel ve yazdır. Silme ayrı yetki değildir; README kuralı uygulanır.</p>`;
+    const govde=u.rol==='yonetici'?`<p class="zaman">${_t('Yönetici her modülde yazar, onaylar ve dışa aktarır.')}</p>`:`<div class="tbl"><table><thead><tr><th>${_t('Modül')}</th><th>${_t('Yetki')}</th><th>${_t('Onay')}</th><th>${_t('Dışa aktar')}</th></tr></thead><tbody>${S.moduller.map(m=>`<tr><td>${esc(tAd(m.ad))}</td><td><select data-yetki="${u.id}:${m.id}" aria-label="${esc(m.ad)}">${secOp([['yok',_t('Yok')],['oku',_t('Gör')],['yaz',_t('Yaz')]], u.yetki[m.id]||'yok')}</select></td><td>${cb(m,'onay')}</td><td>${cb(m,'disa')}</td></tr>`).join('')}</tbody></table></div><p class="zaman">Onay: "akışı kapatır" durumuna geçirme ve dosya onaylama. Dışa aktar: Excel ve yazdır. Silme ayrı yetki değildir; README kuralı uygulanır.</p>`;
     return bas(_t('Yetki'),u.ad)+govde;
   }
   if(c.tur==='ygrup' && c.id==='yeni') return bas(_t('Yetki grubu'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Ad')}<input name="ad" required></label>${onay}</form>`;
   if(c.tur==='ygrup'){
     const g=S.yetkiGruplari.find(x=>x.id===c.id); if(!g) return bas(_t('Yetki grubu'),'');
-    const kural=S.moduller.flatMap(m=>m.fn.filter(f=>f.yetki&&f.yetki[g.id]&&f.yetki[g.id]!=='duzenle').map(f=>`<tr><td>${esc(m.ad)}</td><td>${esc(f.ad)}</td><td>${f.yetki[g.id]==='gizli'?`<span class="pill p-bad">${_t('Görmez')}</span>`:`<span class="pill p-warn">${_t('Görür')}</span>`}</td></tr>`));
+    const kural=S.moduller.flatMap(m=>m.fn.filter(f=>f.yetki&&f.yetki[g.id]&&f.yetki[g.id]!=='duzenle').map(f=>`<tr><td>${esc(tAd(m.ad))}</td><td>${esc(tAd(f.ad))}</td><td>${f.yetki[g.id]==='gizli'?`<span class="pill p-bad">${_t('Görmez')}</span>`:`<span class="pill p-warn">${_t('Görür')}</span>`}</td></tr>`));
     return bas(_t('Yetki grubu'),g.ad)+`<form class="form"><label>${_t('Ad')}<input data-ygrup="${g.id}" value="${esc(g.ad)}"></label><div class="lbl">${_t('Üyeler')}<div class="etiketler">${S.kullanicilar.filter(u=>u.grup===g.id).map(u=>`<span class="kisi-cip">${av(u.ad)}${esc(u.ad)}</span>`).join('')||`<span class="zaman">${_t('Üye yok')}</span>`}</div></div><div class="lbl">${_t('Kısıtlı fonksiyonlar')}<div class="tbl"><table><tbody>${kural.join('')||`<tr><td class="zaman">${_t('Tüm fonksiyonları düzenler')}</td></tr>`}</tbody></table></div></div></form>`;
   }
   if(c.tur==='durum' && c.id==='yeni') return bas(_t('Durum'),_t('Yeni'))+`<form class="form" id="ayarForm"><label>${_t('Ad')}<input name="ad" required></label><label>${_t('Renk')}<input name="renk" type="color" value="#2b62e3"></label><label><input type="checkbox" name="kapat"> ${_t('Akışı kapatır')}</label>${onay}</form>`;
@@ -3636,7 +3704,7 @@ function cekmeceHTML(){
       const on=ui.cekmece&&ui.cekmece.tur==='fn'&&ui.cekmece.id===f.uid;
       const kis=Object.values(f.yetki||{}).filter(v=>v!=='duzenle').length;
       const bilgi=[sekmeAd(f), FNAD[f.tip]||f.tip, f.kanban?'kanban':'', f.zorunlu?'zorunlu':'', f.tip==='tarih'&&f.tarihVarsayilan==='bugun'?'bugün':'', kis?kis+' grup kısıtlı':''].filter(Boolean).join(' · ');
-      return `<div class="fn-satir ${on?'on':''}" draggable="true" data-sirala="fn" data-id="${esc(f.uid)}" data-act="sec" data-tur="fn" tabindex="0">${ic(FNIK[f.tip])}<div><span>${esc(f.ad)}</span><b>${esc(bilgi)}</b></div></div>`;
+      return `<div class="fn-satir ${on?'on':''}" draggable="true" data-sirala="fn" data-id="${esc(f.uid)}" data-act="sec" data-tur="fn" tabindex="0">${ic(FNIK[f.tip])}<div><span>${esc(tAd(f.ad))}</span><b>${esc(bilgi)}</b></div></div>`;
     }).join('');
     const fnSec=`<div class="fn-ekle"><select id="fnTipSec" aria-label="${_t('Fonksiyon')}">${FN.map(([tip,ad])=>`<option value="${tip}">${esc(ad)}</option>`).join('')}</select><button type="button" class="btn pri" data-act="fn-bagla">${ic('arti')}${_t('Bağla')}</button></div>`;
     return bas(_t('Modül'),m.ad)+`<form class="form"><label>${_t('Ad')}<input data-modul="${m.id}" data-alan="ad" value="${esc(m.ad)}"></label><div class="two"><label>${_t('Renk')}<input data-modul="${m.id}" data-alan="renk" type="color" value="${m.renk}"></label><label>${_t('Kod öneki')}<input data-modul="${m.id}" data-alan="onek" value="${esc(m.onek)}" maxlength="6" style="text-transform:uppercase"></label></div><p class="zaman">${_t('Yeni kayıtlar {0}-1001, {1}-1002… diye numaralanır. Mevcut kodlar değişmez.', esc(m.onek), esc(m.onek))}</p>${ikonSecici('modul',m.id,m.ikon)}<label><input type="checkbox" data-modul-ac="${m.id}" ${m.acik?'checked':''}> ${_t('Sol menüde açık')}</label>${fnSec}<div class="lbl">${_t('Fonksiyonlar')}<p class="zaman">${_t('Sırayı sürükle. Satıra tıklayınca ayrıntı ve grup yetkisi açılır.')}</p><div class="fn-form">${fnler||`<p class="zaman">${_t('Henüz yok.')}</p>`}</div></div>
@@ -3650,11 +3718,11 @@ function cekmeceHTML(){
     const tarihDef=f.tip==='tarih'?`<label>${_t('Varsayılan')}<select data-fn-tarih="${f.uid}"><option value="" ${f.tarihVarsayilan==='bugun'?'':'selected'}>${_t('Boş')}</option><option value="bugun" ${f.tarihVarsayilan==='bugun'?'selected':''}>${_t('Günün tarihi')}</option></select></label>`:'';
     const sekmeSec=`<label>${_t('Sekme')}<input data-fn-sekme="${f.uid}" list="sekmeDL" value="${esc(f.sekme||'')}" placeholder="${_t('Genel')}"></label><datalist id="sekmeDL">${modulSekmeler(m).map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;
     const yt=`<div class="lbl">${_t('Grup yetkisi')}<div class="tbl"><table><thead><tr><th>${_t('Grup')}</th><th>${_t('Erişim')}</th></tr></thead><tbody>${S.yetkiGruplari.map(g=>`<tr><td>${esc(g.ad)}</td><td><select data-fn-yetki="${f.uid}:${g.id}">${secOp([['duzenle',_t('Düzenle')],['gor',_t('Gör')],['gizli',_t('Görme')]], (f.yetki||{})[g.id]||'duzenle')}</select></td></tr>`).join('')}</tbody></table></div><p class="zaman">Görme: alan formda, kanbanda, listede, Excel'de ve aramada çıkmaz. Gör: salt okunur. Yöneticiler her alanı düzenler.</p></div>`;
-    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}${_t('Modüle dön')}</button><form class="form"><label>${_t('Ad')}<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'?`<label>${_t('Opsiyon grubu')}<select data-fn-grup="${f.uid}">${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>`:''}${f.tip==='kontrol'?`<div class="lbl">${_t('Madde listeleri (opsiyon grupları)')}<div class="secim">${gruplar().map(g=>`<label><input type="checkbox" data-fn-kgrup="${f.uid}" value="${esc(g)}" ${ktGruplar(f).includes(g)?'checked':''}>${esc(g)}</label>`).join('')}</div></div><p class="zaman">${_t('Birden çok liste seçersen kullanıcı kayıtta uygun olanı seçer; tek liste seçiliyse maddeler kendiliğinden gelir. Listeler Ayarlar → Opsiyonlar\'da tanımlanır. Kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.')}</p>`:''}${tarihDef}${puanDef}${f.tip==='ticket'?ticketAyarHTML(f,m):''}${f.tip==='fiyatonay'?`<div class="lbl">${_t('Onay beklerken geçilemeyen durumlar')}<div class="ck-sec">${akis(m.id).map(d=>`<label class="anahtar"><input type="checkbox" data-fn-engel="${f.uid}:${d.id}" ${((f.ayar||{}).engel||[]).includes(d.id)?'checked':''}><span>${esc(d.ad)}</span></label>`).join('')}</div><p class="zaman">${_t('Hiçbiri seçilmezse "akışı kapatır" durumları engellenir. Tutar, kaydedenin limitini (kullanıcı kartında TL / USD / EUR) aşarsa onay yöneticisine gider; onun limiti de yetmezse bir üste çıkar. Yönetim limitsizdir.')}</p></div>`:''}${zorunlu}${f.tip==='gecmis'?'':`<label>${_t('Değiştirebilir')}<select data-fn-degistir="${f.uid}">${secOp([['',_t('Yetki grubuna göre')],['acan',_t('Kaydı açan ve yönetim')],['yonetim',_t('Yalnız yönetim')],['kilit',_t('Kaydedildikten sonra kilitli')]], (f.ayar||{}).degistir||'')}</select></label><p class="zaman">${_t('Grup yetkisinin üstüne ikinci kuraldır. Yönetim her zaman değiştirir. "Kilitli" seçilirse alan bir kez doldurulur, sonra değiştirilemez.')}</p>`}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">${_t('Bağlantıyı çöz')}</button></form>`;
+    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}${_t('Modüle dön')}</button><form class="form"><label>${_t('Ad')}<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'?`<label>${_t('Opsiyon grubu')}<select data-fn-grup="${f.uid}">${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>`:''}${f.tip==='kontrol'?`<div class="lbl">${_t('Madde listeleri (opsiyon grupları)')}<div class="secim">${gruplar().map(g=>`<label><input type="checkbox" data-fn-kgrup="${f.uid}" value="${esc(g)}" ${ktGruplar(f).includes(g)?'checked':''}>${esc(g)}</label>`).join('')}</div></div><p class="zaman">${_t('Birden çok liste seçersen kullanıcı kayıtta uygun olanı seçer; tek liste seçiliyse maddeler kendiliğinden gelir. Listeler Ayarlar → Opsiyonlar\'da tanımlanır. Kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.')}</p>`:''}${tarihDef}${puanDef}${f.tip==='ticket'?ticketAyarHTML(f,m):''}${f.tip==='fiyatonay'?`<div class="lbl">${_t('Onay beklerken geçilemeyen durumlar')}<div class="ck-sec">${akis(m.id).map(d=>`<label class="anahtar"><input type="checkbox" data-fn-engel="${f.uid}:${d.id}" ${((f.ayar||{}).engel||[]).includes(d.id)?'checked':''}><span>${esc(tAd(d.ad))}</span></label>`).join('')}</div><p class="zaman">${_t('Hiçbiri seçilmezse "akışı kapatır" durumları engellenir. Tutar, kaydedenin limitini (kullanıcı kartında TL / USD / EUR) aşarsa onay yöneticisine gider; onun limiti de yetmezse bir üste çıkar. Yönetim limitsizdir.')}</p></div>`:''}${zorunlu}${f.tip==='gecmis'?'':`<label>${_t('Değiştirebilir')}<select data-fn-degistir="${f.uid}">${secOp([['',_t('Yetki grubuna göre')],['acan',_t('Kaydı açan ve yönetim')],['yonetim',_t('Yalnız yönetim')],['kilit',_t('Kaydedildikten sonra kilitli')]], (f.ayar||{}).degistir||'')}</select></label><p class="zaman">${_t('Grup yetkisinin üstüne ikinci kuraldır. Yönetim her zaman değiştirir. "Kilitli" seçilirse alan bir kez doldurulur, sonra değiştirilemez.')}</p>`}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">${_t('Bağlantıyı çöz')}</button></form>`;
   }
   if(c.tur==='grup' && c.id==='yeni') return bas(_t('Opsiyon'),_t('Yeni grup'))+`<form class="form" id="ayarForm"><label>${_t('Grup')}<input name="grup" required placeholder="odeme"></label><label>${_t('Tür')}<select name="tur">${secOp([['select',_t('Selectbox')],['radio',_t('Radio')],['check',_t('Check Box')]], 'select')}</select></label><label>${_t('İlk seçenek')}<input name="ad" required placeholder="${_t('Nakit')}"></label>${onay}</form>`;
   if(c.tur==='grup'){
-    const oz=ops(c.id).map(o=>secSatir('op',o.id,`<span class="sp"><b>${esc(o.ad)}</b>${o.varsayilan?`<span class="zaman">${_t('Varsayılan')}</span>`:''}</span>`)).join('');
+    const oz=ops(c.id).map(o=>secSatir('op',o.id,`<span class="sp"><b>${esc(tAd(o.ad))}</b>${o.varsayilan?`<span class="zaman">${_t('Varsayılan')}</span>`:''}</span>`)).join('');
     return bas(_t('Opsiyon grubu'),c.id)+`<div class="lbl">${_t('Tür')}<select data-grup-tur="${esc(c.id)}">${secOp([['select',_t('Selectbox')],['radio',_t('Radio')],['check',_t('Check Box')]], grupTur(c.id))}</select></div><div class="liste">${oz||`<p class="zaman">${_t('Seçenek yok')}</p>`}</div><form class="form" id="ayarForm"><label>${_t('Yeni seçenek')}<input name="ad" required></label><label><input type="checkbox" name="varsayilan"> ${_t('Varsayılan')}</label><button class="btn pri" type="submit">${ic('arti')}${_t('Ekle')}</button></form>`;
   }
   if(c.tur==='op'){
@@ -3718,12 +3786,12 @@ function cekmeceHTML(){
     const n=(x,ad,v)=>`<label>${ad}<input type="number" min="1" data-ks="${key}" data-alan="${x}" value="${esc(p[x]??v)}" style="max-width:120px"></label>`;
     const sl=(x,ad,ops,bos)=>`<label>${ad}<select data-ks="${key}" data-alan="${x}">${secOp(ops, p[x]||'', bos)}</select></label>`;
     const cb=(x,ad)=>`<label class="anahtar" style="width:auto"><input type="checkbox" data-ks="${key}" data-alan="${x}" ${p[x]?'checked':''}><span>${ad}</span></label>`;
-    const kartMod=S.moduller.filter(m=>m.tur!=='proje').map(m=>[m.id,m.ad]);
+    const kartMod=S.moduller.filter(m=>m.tur!=='proje').map(m=>[m.id,tAd(m.ad)]);
     let ozel='';
     if(p.tip==='geri') ozel=sl('kaynak',_t('Ne sayılsın'),[['proje',_t('Projeler (teslim tarihi)')],...kartMod.map(([id,ad])=>[id,ad+' (kayıt tarihi)'])])+`<div class="two">${n('yesil','Yeşil: kaç günden fazla',14)}${n('sari','Kırmızı: kaç günden az',7)}</div>`+n('adet',_t('Sayfa başına kart'),8)+`<p class="zaman">${_t('Arada kalan günler sarı olur. Geciken kart kırmızı yanıp söner. Kart sayısı fazlaysa sayfa kendiliğinden bölünür.')}</p>`;
     if(p.tip==='ekip') ozel=sl('modul',_t('Modül'),kartMod)+`<p class="zaman">${_t('Kiosk departmanı seçiliyse yalnız o departmandaki kişilerin açtığı ya da atandığı kayıtlar gelir.')}</p>`;
     if(p.tip==='proje') ozel=n('adet',_t('Sayfa başına proje'),7);
-    if(p.tip==='stok') ozel=sl('depo',_t('Depo'),S.depolar.map(d=>[d.id,d.ad]),_t('Tüm depolar'))+cb('hepsi',_t('Normal seviyedekileri de göster'));
+    if(p.tip==='stok') ozel=sl('depo',_t('Depo'),S.depolar.map(d=>[d.id,tAd(d.ad)]),_t('Tüm depolar'))+cb('hepsi',_t('Normal seviyedekileri de göster'));
     if(p.tip==='mesaj') ozel=n('adet',_t('Gösterilecek mesaj'),6);
     if(p.tip==='durgun') ozel=n('gun',_t('Kaç gündür işlem görmeyen'),10);
     if(p.tip==='departman') ozel=sl('modul',_t('Modül'),kartMod,_t('Tüm modüller'))+`<p class="zaman">${_t('İş, atanmış kişinin (yoksa açanın) departmanına sayılır. Bu hafta: bugünden pazara kadar terminli işler.')}</p>`;
@@ -3738,7 +3806,7 @@ function cekmeceHTML(){
     const k=p.id+':'+b.uid;
     const grAlan=['grafik','kpi'].includes(b.tip)?grAyarHTML(b,k):'';
     const gunAlan=['teslim','islem'].includes(b.tip)?`<label>${b.tip==='teslim'?_t('Kaç gün içinde teslim'):_t('Kaç gündür hareketsiz')}<input type="number" min="1" data-bl="${k}" data-alan="gun" value="${esc(b.gun||(b.tip==='teslim'?30:14))}" style="max-width:120px"></label>`:'';
-    const modAlan=b.tip==='firma'?`<div class="lbl">${_t('Görüşme sayılan modüller')}<div class="secim">${S.moduller.filter(m=>m.tur!=='proje').map(m=>`<label><input type="checkbox" data-bl-mod="${k}" value="${m.id}" ${(b.moduller||['crm','toplanti']).includes(m.id)?'checked':''}>${esc(m.ad)}</label>`).join('')}</div></div>`:'';
+    const modAlan=b.tip==='firma'?`<div class="lbl">${_t('Görüşme sayılan modüller')}<div class="secim">${S.moduller.filter(m=>m.tur!=='proje').map(m=>`<label><input type="checkbox" data-bl-mod="${k}" value="${m.id}" ${(b.moduller||['crm','toplanti']).includes(m.id)?'checked':''}>${esc(tAd(m.ad))}</label>`).join('')}</div></div>`:'';
     return bas(p.ad+' · Bileşen',b.ad||BLAD[b.tip])+`${bb.kisisel?`<button type="button" class="btn sm" style="justify-self:start" data-act="pano-ozel" data-id="${p.id}">${ic('sol')}${_t('Panoma dön')}</button>`:`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="pano" data-id="${p.id}">${ic('sol')}${_t('Panoya dön')}</button>`}<form class="form"><p class="zaman">${ic(BLIK[b.tip])} ${esc(BLAD[b.tip])}${bb.kisisel?_t(' · yalnız senin panonda'):''}</p><label>${_t('Başlık')}<input data-bl="${k}" data-alan="ad" value="${esc(b.ad||'')}" placeholder="${esc(BLAD[b.tip])}"></label><label>${_t('Genişlik')}<select data-bl="${k}" data-alan="genis">${secOp([['yarim',_t('Yarım')],['tam',_t('Tam')]], b.genis||'yarim')}</select></label>${gunAlan}${modAlan}${grAlan}${grAlan?`<div class="bl gr-onizle">${grafikHTML(b)}</div>`:''}<button type="button" class="btn danger" style="justify-self:start" data-act="bl-sil" data-id="${k}">${ic('sil')}${_t('Bileşeni kaldır')}</button></form>`;
   }
   return '';
@@ -3796,6 +3864,12 @@ function siralaBirak(tur, from, to){
   if(tur==='modul') arr=S.moduller;
   else if(tur==='durum') arr=(modul(ui.durumModul)||{}).durumlar;
   else if(tur==='pano') arr=S.panolar;
+  else if(tur==='pb'){
+    const p=S.panolar.find(x=>x.id===(ui.cekmece&&ui.cekmece.id)), u=ben(); if(!p) return;
+    const L=panoSirali(p,u).map(x=>x.key), i=L.indexOf(from), j=L.indexOf(to); if(i<0||j<0) return;
+    L.splice(j,0,L.splice(i,1)[0]); u.panoSira={...(u.panoSira||{}), [p.id]:L};
+    persist(); render(); return;
+  }
   else if(tur==='bl'){ const p=S.panolar.find(x=>x.id===(ui.cekmece&&(ui.cekmece.pano||ui.cekmece.id))); arr=p&&p.bilesen; key='uid'; }
   else if(tur==='ks' && ui.cekmece){ const k=S.kiosklar.find(x=>x.id===(ui.cekmece.tur==='kiosk'?ui.cekmece.id:ui.cekmece.ki)); arr=k&&k.sayfalar; key='uid'; }
   else if(tur==='fn' && ui.cekmece){ const m=modul(ui.cekmece.tur==='fn'?ui.cekmece.modul:ui.cekmece.id); arr=m&&m.fn; key='uid'; }
@@ -3815,9 +3889,9 @@ function renderSide(){
   const ok=okunmamis().length;
   const nav=(on,act,id,ik,ad,ek,renk)=>`<button type="button" class="nav ${on?'on':''}" data-act="${act}" ${id?`data-id="${id}"`:''}>${renk?`<i class="harf" style="--c:${renk}">${ic(ik)}</i>`:ic(ik)}${esc(ad)}${ek||''}</button>`;
   $('#side').innerHTML=`<div class="logo">${logo}<span>${esc(S.firma.ad)}<small>${esc(S.firma.sub)}.iq-sense.com.tr</small></span></div>
-    ${panos.length?`<div class="grp">${_t('Panolar')}</div>${panos.map(p=>nav(ui.ekran==='pano'&&ui.panoId===p.id,'pano',p.id,p.ikon,_t(p.ad))).join('')}`:''}
+    ${panos.length?`<div class="grp">${_t('Panolar')}</div>${panos.map(p=>nav(ui.ekran==='pano'&&ui.panoId===p.id,'pano',p.id,p.ikon,tAd(p.ad))).join('')}`:''}
     <div class="grp">${_t('Modüller')}</div>
-    ${mods.map(m=>nav(ui.ekran==='modul'&&ui.modulId===m.id,'git',m.id,m.ikon,m.ad,'',m.renk)).join('')||`<p class="zaman" style="padding:8px 12px">${_t('Açık modül yok')}</p>`}
+    ${mods.map(m=>nav(ui.ekran==='modul'&&ui.modulId===m.id,'git',m.id,m.ikon,tAd(m.ad),'',m.renk)).join('')||`<p class="zaman" style="padding:8px 12px">${_t('Açık modül yok')}</p>`}
     <div class="grp">${_t('Sistem')}</div>
     ${nav(ui.ekran==='dosya','dosyalar','','dosya',_t('Dosyalar'))}
     ${S.ciktilar.some(F=>ckYetki(F).ok)?nav(ui.ekran==='cikti','cikti','','yazdir',_t('Çıktılar')):''}
@@ -4335,7 +4409,7 @@ function kGeri(s){
   const kart=x=>{
     const c=x.g<0?'gec':x.g<sari?'kir':x.g<=yesil?'sar':'yes';
     const d=durum(x.durumId);
-    return `<div class="kg ${c}"><div class="kg-ust"><span class="mono">${esc(x.kod)}</span><span>${esc(trh(x.t))}</span></div><div class="kg-n">${x.g===0?_t('BUGÜN'):Math.abs(x.g)}</div><div class="kg-e">${x.g<0?_t('GÜN GECİKTİ'):x.g===0?_t('TESLİM GÜNÜ'):_t('GÜN KALDI')}</div><b class="kg-ad">${esc(x.ad)}</b><span class="kg-alt">${esc(x.alt||'')}</span><div class="kg-alt2">${d?`<span class="kg-d" style="--c:${d.renk}">${esc(d.ad)}</span>`:''}${x.yuzde!=null?`<span class="kg-bar"><i style="width:${x.yuzde}%"></i></span><span class="mono">%${x.yuzde}</span>`:''}</div></div>`;
+    return `<div class="kg ${c}"><div class="kg-ust"><span class="mono">${esc(x.kod)}</span><span>${esc(trh(x.t))}</span></div><div class="kg-n">${x.g===0?_t('BUGÜN'):Math.abs(x.g)}</div><div class="kg-e">${x.g<0?_t('GÜN GECİKTİ'):x.g===0?_t('TESLİM GÜNÜ'):_t('GÜN KALDI')}</div><b class="kg-ad">${esc(x.ad)}</b><span class="kg-alt">${esc(x.alt||'')}</span><div class="kg-alt2">${d?`<span class="kg-d" style="--c:${d.renk}">${esc(tAd(d.ad))}</span>`:''}${x.yuzde!=null?`<span class="kg-bar"><i style="width:${x.yuzde}%"></i></span><span class="mono">%${x.yuzde}</span>`:''}</div></div>`;
   };
   return {kritik:L.some(x=>x.g<sari), sayfalar:parcala(L,adet).map(p=>`<div class="kg-izgara n${Math.min(p.length,adet)}">${p.map(kart).join('')}</div>`)};
 }
@@ -4347,7 +4421,7 @@ function kEkip(s){
   const kapanan=S.log.filter(l=>l.modulId===m.id&&String(l.zaman).startsWith(bugun())&&kapanisLogu(l)&&logDepte(l)).length;
   const gec=ks.filter(k=>gunFark(k.tarih)<0).length;
   const kart=k=>{ const g=gunFark(k.tarih), kisi=kartKisi(k)||kisiAd(k.olusturan); return `<div class="ke-kart ${g!==null&&g<0?'gec':''}"><div class="ke-t">${kartAcil(k)?`<span class="ke-acil">${_t('ACİL')}</span>`:''}<b>${esc(kartBaslik(k))}</b></div><div class="ke-alt">${kisi?av(kisi):''}<span>${esc(kisi)}</span><span class="sp"></span>${k.tarih?`<span class="ke-trh">${g<0?'⚠ ':''}${esc(trh(k.tarih).slice(0,5))}</span>`:''}</div></div>`; };
-  const kolon=d=>{ const L=ks.filter(k=>k.durumId===d.id).sort((a,b)=>String(a.tarih||'9').localeCompare(String(b.tarih||'9'))); return `<div class="ke-kol"><div class="ke-bas" style="--c:${d.renk}"><span>${esc(d.ad)}</span><b>${L.length}</b></div>${L.slice(0,5).map(kart).join('')}${L.length>5?`<div class="ke-daha">${_t('+{0} kayıt daha', L.length-5)}</div>`:''}</div>`; };
+  const kolon=d=>{ const L=ks.filter(k=>k.durumId===d.id).sort((a,b)=>String(a.tarih||'9').localeCompare(String(b.tarih||'9'))); return `<div class="ke-kol"><div class="ke-bas" style="--c:${d.renk}"><span>${esc(tAd(d.ad))}</span><b>${L.length}</b></div>${L.slice(0,5).map(kart).join('')}${L.length>5?`<div class="ke-daha">${_t('+{0} kayıt daha', L.length-5)}</div>`:''}</div>`; };
   const ust=`<div class="ke-ozet"><span>${_t('<b>{0}</b> açık', ks.length)}</span><span class="${gec?'bad':''}">${_t('<b>{0}</b> gecikmiş', gec)}</span><span class="ok">${_t('<b>{0}</b> bugün tamamlandı', kapanan)}</span></div>`;
   return {kritik:gec>0, bos:!ks.length, sayfalar:[ust+`<div class="ke-kolonlar" style="--n:${cols.length}">${cols.map(kolon).join('')}</div>`]};
 }
@@ -4359,7 +4433,7 @@ function kProje(s){
     const ci=a.findIndex(d=>d.id===p.durumId), y=projeYuzde(p);
     const kartlar=S.kartlar.filter(k=>k.projeId===p.id&&!k.silindi&&!kapali(k.durumId));
     const gk=kartlar.filter(k=>gunFark(k.tarih)<0).length;
-    const adim=a.map((d,i)=>`<span class="kp-adim ${i<ci?'gecti':i===ci?'su':''}" style="--c:${d.renk}" title="${esc(d.ad)}"><i></i>${i===ci?`<em>${esc(d.ad)}</em>`:''}</span>`).join('');
+    const adim=a.map((d,i)=>`<span class="kp-adim ${i<ci?'gecti':i===ci?'su':''}" style="--c:${d.renk}" title="${esc(d.ad)}"><i></i>${i===ci?`<em>${esc(tAd(d.ad))}</em>`:''}</span>`).join('');
     return `<div class="kp-satir"><div class="kp-ad"><span class="mono">${esc(p.kod)}</span><b>${esc(p.ad)}</b><small>${esc(projeFirma(p)||'')}</small></div><div class="kp-akis">${adim}</div><div class="kp-y">${y!=null?`<span class="kg-bar"><i style="width:${y}%"></i></span><b>%${y}</b>`:'<small>—</small>'}</div><div class="kp-n">${_t('<b>{0}</b><small>açık kayıt</small>', kartlar.length)}</div><div class="kp-n ${gk?'bad':''}">${_t('<b>{0}</b><small>gecikmiş</small>', gk)}</div><div class="kp-n ${g!==null&&g<0?'bad':g!==null&&g<7?'warn':''}"><b>${g===null?'—':g<0?'+'+(-g):g}</b><small>${g===null?'teslim yok':g<0?_t('gün gecikti'):_t('gün kaldı')}</small></div></div>`;
   };
   return {kritik:L.some(x=>x.g!==null&&x.g<0), sayfalar:parcala(L,adet).map(p=>`<div class="kp-liste">${p.map(satir).join('')}</div>`)};
@@ -5015,7 +5089,7 @@ function ckKayitButon(mid, id){
   if(!sab.length&&L.length===1) return `<button class="ibtn" type="button" data-act="ck-kayit" data-form="${L[0].id}" data-id="${id}" title="${_t('Çıktı al:')} ${esc(L[0].ad)}" aria-label="${_t('Çıktı al')}">${ic('yazdir')}</button>`;
   let antet=true; try{ antet=localStorage.getItem('yerp-antet')!=='0'; }catch(e){}
   return `<span class="yaz-menu"><button class="ibtn" type="button" data-act="yaz-ac" title="${_t('Yazdır')}" aria-label="${_t('Yazdır')}" aria-haspopup="true">${ic('yazdir')}</button><div class="yaz-pop" hidden>
-    ${sab.length?`<div class="yp-baslik">${_t('Şablon')}</div>${sab.map(f=>`<button type="button" data-act="sablon-yazdir" data-uid="${f.uid}">${ic('sablon')}${esc(f.ad)}</button>`).join('')}<label class="yp-antet"><input type="checkbox" data-yaz-antet ${antet?'checked':''}>${_t('Antetli (logo ve firma başlığı)')}</label>`:''}
+    ${sab.length?`<div class="yp-baslik">${_t('Şablon')}</div>${sab.map(f=>`<button type="button" data-act="sablon-yazdir" data-uid="${f.uid}">${ic('sablon')}${esc(tAd(f.ad))}</button>`).join('')}<label class="yp-antet"><input type="checkbox" data-yaz-antet ${antet?'checked':''}>${_t('Antetli (logo ve firma başlığı)')}</label>`:''}
     ${L.length?`<div class="yp-baslik">${_t('Sistem çıktıları')}</div>${L.map(F=>`<button type="button" data-act="ck-kayit" data-form="${F.id}" data-id="${id}">${ic('yazdir')}${esc(F.ad)}</button>`).join('')}`:''}
   </div></span>`;
 }
@@ -5073,13 +5147,13 @@ function ckSorguKart(F,q){
   const m=modul(q.modulId), kat=m?ckKatalog(m,q.satir):[], key=F.id+':'+q.id;
   const s=(x,ad,ops,bos)=>`<label>${ad}<select data-cks="${key}" data-alan="${x}">${secOp(ops, q[x]??'', bos)}</select></label>`;
   const coklu=m?(m.fn||[]).filter(f=>(COKLU.has(f.tip)||f.tip==='kontrol')&&f.tip!=='mesaj'):[];
-  const ustler=[['ana',_t('satirlar (ana sorgu)')],...(F.ekSorgular||[]).filter(x=>x.id!==q.id&&x.ust!==q.id).map(x=>[x.id,x.ad])];
+  const ustler=[['ana',_t('satirlar (ana sorgu)')],...(F.ekSorgular||[]).filter(x=>x.id!==q.id&&x.ust!==q.id).map(x=>[x.id,tAd(x.ad)])];
   const ustDs=q.ust==='ana'?{m:modul(F.modulId),satir:F.satir}:(()=>{ const u=(F.ekSorgular||[]).find(x=>x.id===q.ust); return u?{m:modul(u.modulId),satir:u.satir}:null; })();
   const ustKat=ustDs&&ustDs.m?ckKatalog(ustDs.m,ustDs.satir):[];
   const kos=(q.kosullar||[]).map((k,i)=>`<div class="ck-kos"><select data-cksq="${key}:${i}" data-alan="alan" aria-label="${_t('Alan')}">${secOp(kat.map(a=>a.k), k.alan, _t('Alan…'))}</select><select data-cksq="${key}:${i}" data-alan="op" aria-label="${_t('Koşul')}">${secOp([['=','eşittir'],['!=','eşit değil'],['icerir',_t('içerir')]], k.op||'=')}</select><input data-cksq="${key}:${i}" data-alan="deger" value="${esc(k.deger||'')}" placeholder="${_t('Değer')}" aria-label="${_t('Değer')}"><button type="button" class="ibtn" data-act="cksq-sil" data-id="${key}:${i}" aria-label="${_t('Koşulu kaldır')}">${ic('x')}</button></div>`).join('');
   const alanlar=kat.map(a=>`<span class="ck-alan"><input type="checkbox" data-cks-alan="${key}" value="${esc(a.k)}" ${(q.alanlar||[]).includes(a.k)?'checked':''} aria-label="${esc(a.k)} tabloda" title="${_t('||tablo|| hazır tablosuna sütun olarak ekle')}"><button type="button" class="ck-cip" draggable="true" data-act="ck-kopya" data-v="${esc(a.k)}" data-on="${esc(q.ad)}">${esc(a.k)}</button></span>`).join('');
   return `<div class="ck-sorgu"><div class="ck-sorgu-bas"><span class="harf" style="--c:${m?.renk||'#7482a8'}">${ic(m?.ikon||'grid')}</span><input data-cks="${key}" data-alan="ad" value="${esc(q.ad)}" aria-label="${_t('Sorgu adı')}" title="${_t('Şablonda bu adla kullanılır')}"><button type="button" class="ibtn danger" data-act="cks-sil" data-id="${key}" title="${_t('Sorguyu kaldır')}" aria-label="${_t('Sorguyu kaldır')}">${ic('sil')}</button></div>
-    <div class="two">${s('modulId',_t('Modül'),S.moduller.map(x=>[x.id,x.ad]))}${s('satir',_t('Satır kaynağı'),[['kayit',_t('Her kayıt bir satır')],...coklu.map(f=>[f.uid,'Her "'+f.ad+'" satırı'])])}</div>
+    <div class="two">${s('modulId',_t('Modül'),S.moduller.map(x=>[x.id,tAd(x.ad)]))}${s('satir',_t('Satır kaynağı'),[['kayit',_t('Her kayıt bir satır')],...coklu.map(f=>[f.uid,'Her "'+f.ad+'" satırı'])])}</div>
     ${s('ust',_t('Bağlantı'),ustler,_t('Bağımsız (tek başına liste)'))}
     ${q.ust?`<div class="ck-bag">${`<label>${_t('Üst alan')}<select data-cks="${key}" data-alan="ustAlan">${secOp(ustKat.map(a=>a.k), q.ustAlan||'', _t('Seç…'))}</select></label>`}<span>=</span>${`<label>${_t('Bu sorgudaki alan')}<select data-cks="${key}" data-alan="bagAlan">${secOp(kat.map(a=>a.k), q.bagAlan||'', _t('Seç…'))}</select></label>`}</div>`:''}
     <div class="two">${s('tarihAlan',_t('Dönem süzgeci'),kat.filter(a=>a.tip==='tarih').map(a=>a.k),'Yok')}${s('sirala',_t('Sıralama'),kat.map(a=>a.k),_t('Sırasız'))}</div>
@@ -5098,7 +5172,7 @@ function ckCekmece(c){
   const ekler=(F.ekSorgular||[]).map(q=>ckSorguKart(F,q)).join('');
   return panelUst('Çıktı formu',F.ad)+`<form class="form">
     <label>${_t('Ad')}<input data-ckf="${F.id}" data-alan="ad" value="${esc(F.ad)}"></label>
-    <div class="two">${s('modulId',_t('Modül'),S.moduller.map(x=>[x.id,x.ad]))}${s('kapsam','Kapsam',[['liste',_t('Liste / dönem raporu')],['kayit',_t('Tek kayıt (kaydın içinden basılır)')]])}</div>
+    <div class="two">${s('modulId',_t('Modül'),S.moduller.map(x=>[x.id,tAd(x.ad)]))}${s('kapsam','Kapsam',[['liste',_t('Liste / dönem raporu')],['kayit',_t('Tek kayıt (kaydın içinden basılır)')]])}</div>
     <div class="two">${s('satir',_t('Satır kaynağı'),[['kayit',_t('Her kayıt bir satır')],...coklu.map(f=>[f.uid,'Her "'+f.ad+'" satırı'])])}${s('kagit',_t('Kağıt'),[['dikey',_t('A4 dikey')],['yatay',_t('A4 yatay')]])}</div>
     ${F.kapsam==='liste'?`<div class="two">${s('tarihAlan',_t('Dönem süzgeci alanı'),kat.filter(a=>a.tip==='tarih').map(a=>a.k),_t('Dönem süzgeci yok'))}${s('donem',_t('Varsayılan dönem'),CK_DONEM)}</div>
     <div class="two">${s('kisi',_t('Kişi süzgeci'),CK_KISI)}${s('sirala',_t('Sıralama'),kat.map(a=>a.k),_t('Sırasız'))}</div>
@@ -5431,7 +5505,7 @@ const AYAR_TABLO=[
 const limitNum=v=>v===null||v===undefined||String(v).trim()===''?null:sayiOku(v);
 const KUL_ALAN=u=>({tur:u.tur==='misafir'?'misafir':'kullanici', ...(u.tur==='misafir'?{firma:u.firma||null, gecerli_bas:u.gecerliBas||null, gecerli_bit:u.gecerliBit||null, saat_bas:u.saatBas||null, saat_bit:u.saatBit||null, gunler:u.gunler||null, gorunum:u.gorunum==='firma'?'firma':'kendi'}:{}), ust_id:u.ust||null, onay_limit:{TL:limitNum((u.onayLimit||{}).TL), USD:limitNum((u.onayLimit||{}).USD), EUR:limitNum((u.onayLimit||{}).EUR)}, ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false, foto:/^data:image\/(png|jpeg|webp);base64,/.test(u.foto||'')?u.foto:''});
 const KUL_YETKI=u=>{ const o={}; new Set([...Object.keys(u.yetki||{}), ...Object.keys(u.ek||{})]).forEach(m=>{ const y=(u.yetki||{})[m]||'yok', e=(u.ek||{})[m]||{}; if(y!=='yok') o[m]={yetki:y, onay:!!e.onay, disa:!!e.disa}; }); return o; };
-const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}, panoEk:u.panoEk||{}, dil:u.dil||''}});
+const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}, panoEk:u.panoEk||{}, panoSira:u.panoSira||{}, dil:u.dil||''}});
 const EPOSTA=u=>{ const h={...(u.epostaHesap||{tur:'yok'})}; ['bagli','zaman','sifre','sifreKayitli'].forEach(k=>delete h[k]); Object.keys(h).forEach(k=>{ if(k!=='tur'&&(h[k]===''||h[k]==null)) delete h[k]; }); h.tur=h.tur||'yok'; return h; };
 function iz(s){
   const dP=ayir(s.degerler.filter(d=>!d.kartId), d=>d.projeId), dK=ayir(s.degerler.filter(d=>d.kartId), d=>d.kartId);
@@ -5998,6 +6072,7 @@ function bagla(){
     if(t.dataset.akt){ const [mid,aid,k]=t.dataset.akt.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a[k]=t.value; if(k==='hedef'){ a.eslesme={}; a.hedefDurum=''; a.ataFn=''; } persist(); if(k!=='ad') renderMain(); } return; }
     if(t.dataset.aktEs){ const [mid,aid,uid]=t.dataset.aktEs.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a.eslesme={...(a.eslesme||{})}; if(t.value) a.eslesme[uid]=t.value; else delete a.eslesme[uid]; persist(); renderMain(); } return; }
     if(t.dataset.aktSatir){ const [mid,aid]=t.dataset.aktSatir.split(':'); const a=(modul(mid)?.aktarimlar||[]).find(x=>x.id===aid); if(a){ a.satir=t.checked; persist(); } return; }
+    if(t.dataset.cev){ S.firma.ceviriler=S.firma.ceviriler||{}; const c=S.firma.ceviriler[t.dataset.cev]=S.firma.ceviriler[t.dataset.cev]||{}; const v=t.value.trim().slice(0,150); if(v) c[t.dataset.ad]=v; else delete c[t.dataset.ad]; persist(); return; }
     if(t.dataset.fnTicket){ const [uid,k]=t.dataset.fnTicket.split(':'); const f=fnBul(uid); if(f){ f.ayar={...(f.ayar||{}), ticket:{...((f.ayar||{}).ticket||{}), [k]:t.value||null}}; persist(); } return; }
     if(t.dataset.fnEngel){ const [uid,did]=t.dataset.fnEngel.split(':'); const f=fnBul(uid); if(f){ const L=new Set((f.ayar||{}).engel||[]); t.checked?L.add(did):L.delete(did); f.ayar={...(f.ayar||{}), engel:[...L]}; persist(); } return; }
     if(t.dataset.ugun){ const [uid,g]=t.dataset.ugun.split(':'); const u=S.kullanicilar.find(x=>x.id===uid); if(u){ const L=new Set(String(u.gunler||'').split('').filter(Boolean)); t.checked?L.add(g):L.delete(g); u.gunler=[...L].sort().join(''); persist(); } return; }
@@ -6201,6 +6276,8 @@ function bagla(){
       case 'bag-ac': { b.dataset.tur==='proje'?projeAc(b.dataset.id):kartAc(b.dataset.id); return; }
       case 'akt-ekle': { const m=modul(b.dataset.mid); if(!m) return; m.aktarimlar=m.aktarimlar||[]; m.aktarimlar.push({id:nid('akt'), ad:'', hedef:'', durum:'', hedefDurum:'', eslesme:{}, satir:true, ata:'', ataFn:''}); persist(); renderMain(); return; }
       case 'akt-sil': { const m=modul(b.dataset.mid); if(!m||!confirm(_t('Aktarım silinsin mi? Daha önce açılmış bağlı kayıtlar kalır.'))) return; m.aktarimlar=(m.aktarimlar||[]).filter(a=>a.id!==b.dataset.aid); persist(); renderMain(); return; }
+      case 'cev-dil': { ui.cevDil=b.dataset.v; renderMain(); return; }
+      case 'cev-doldur': { ceviriDoldur(b); return; }
       case 'fiyat-onay': {
         if(!ui.form||!ui.form.id) return;
         const red=b.dataset.karar==='red';

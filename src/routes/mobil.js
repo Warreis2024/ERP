@@ -179,7 +179,12 @@ mobil.get('/mobil/ozet', async (req, res) => {
   const foSat = await db('degerler').where({ fn_tip: 'fiyatonay', onay: 'bekliyor', kisi: u.id }).limit(50);
   const onaylar = gorunurDegerler(u, t, foSat.filter((d) => !d.kart_id || kartIds.has(d.kart_id)), kisiler)
     .map((d) => ({ projeId: d.projeId, kartId: d.kartId || null, fnUid: d.fnUid, ad: (t.modul(d.modulId)?.fn.find((f) => f.uid === d.fnUid) || {}).ad || '', tutar: d.tutar, para: d.para || 'TRY', talep: d.talep || '' }));
+  // yapı adlarının çevirisi (kullanıcının dili)
+  const dil = (u.tercih && u.tercih.dil) || '';
+  const firmaAyar = json.oku((await db('ayarlar').where({ anahtar: 'firma' }).first())?.deger, {});
+  const ceviri = dil && dil !== 'tr' ? (firmaAyar.ceviriler || {})[dil] || {} : {};
   res.json({
+    ceviri,
     depo: await bulutDepo(db),
     onaylar,
     ben: { id: u.id, ad: u.ad, foto: u.foto || '' },

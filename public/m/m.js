@@ -43,7 +43,9 @@
   // Mesajın yazarı kullanıcı kimliği ya da (eski kayıtlarda) adı olabilir
   const kisi = (v) => (D.ozet && D.ozet.kullanicilar.find((k) => k.id === v || k.ad === v)) || { id: v, ad: v || '?', foto: '' };
   const benMi = (v) => !!D.ozet && (v === D.ozet.ben.id || v === D.ozet.ben.ad);
-  const modul = (id) => (D.ozet && D.ozet.moduller.find((m) => m.id === id)) || null;
+  // yapı adı (modül, fonksiyon…) kullanıcının dilinde: firma çevirisi, yoksa arayüz sözlüğü
+  const tAd = (s) => (s && D.ozet && D.ozet.ceviri && D.ozet.ceviri[s]) || _t(s || '');
+  const modul = (id) => { const m = D.ozet && D.ozet.moduller.find((x) => x.id === id); return m ? { ...m, ad: tAd(m.ad) } : null; };
   const kayitBul = (tur, id) => (D.ozet ? D.ozet.kayitlar.find((k) => k.id === id && (!tur || k.tur === tur)) : null);
   const kayitAd = (k) => (k ? (k.kod || '') + (k.baslik ? ' · ' + k.baslik : '') : '');
   function avatar(u) {
@@ -176,7 +178,7 @@
     if (!L.length) return '';
     return `<div class="kucuk" style="margin:2px 0 6px">${kac(_t('Onayını bekleyenler'))}</div><div class="liste" style="margin-bottom:14px">${L.map((o, i) => {
       const k = o.kartId ? kayitBul('kart', o.kartId) : kayitBul('proje', o.projeId);
-      return `<div class="oge onay-oge"><div class="ic"><div class="ust-satir"><b>${kac(o.ad)}</b><span class="zaman">${kac(kisi(o.talep).ad)}</span></div>
+      return `<div class="oge onay-oge"><div class="ic"><div class="ust-satir"><b>${kac(tAd(o.ad))}</b><span class="zaman">${kac(kisi(o.talep).ad)}</span></div>
         <div class="baslik">${kac(o.tutar)} ${kac(o.para)}</div><div class="metin">${kac(kayitAd(k) || '')}</div>
         <div class="alt-dugmeler"><button class="dugme" data-fo="${i}" data-karar="onay">${kac(_t('Onayla'))}</button><button class="dugme tehlike" data-fo="${i}" data-karar="red">${kac(_t('Reddet'))}</button></div></div></div>`;
     }).join('')}</div>`;
@@ -290,7 +292,7 @@
       const AD = { yok: _t('Başlamadın'), calisiyor: _t('Çalışıyorsun'), molada: _t('Moladasın'), durdu: _t('Durduruldu'), bitti: _t('Bitirdin') };
       const dk = (d) => (d >= 60 ? _t('{0} sa {1} dk', Math.floor(d / 60), d % 60) : _t('{0} dk', d));
       const b = (f, e, ad, cls) => `<button class="dugme ${cls || ''}" data-efor="${kac(f.fnUid)}" data-eylem="${e}">${kac(ad)}</button>`;
-      kutu.innerHTML = L.map((f) => `<div class="efor-kutu ${f.durum}"><div><b>${kac(f.ad)}</b><span class="kucuk">${kac(AD[f.durum] || '')} · ${kac(dk(f.calisma))}${f.mola ? ' · ' + kac(_t('Mola')) + ' ' + kac(dk(f.mola)) : ''}</span></div>
+      kutu.innerHTML = L.map((f) => `<div class="efor-kutu ${f.durum}"><div><b>${kac(tAd(f.ad))}</b><span class="kucuk">${kac(AD[f.durum] || '')} · ${kac(dk(f.calisma))}${f.mola ? ' · ' + kac(_t('Mola')) + ' ' + kac(dk(f.mola)) : ''}</span></div>
         <div class="alt-dugmeler">${f.durum === 'calisiyor' ? b(f, 'mola', _t('Mola'), 'ikincil') + b(f, 'bitir', _t('Bitir'), 'tehlike') : f.durum === 'molada' ? b(f, 'devam', _t('Devam')) + b(f, 'bitir', _t('Bitir'), 'tehlike') : b(f, 'basla', f.durum === 'durdu' ? _t('Devam') : _t('Başla'))}</div></div>`).join('');
       kutu.querySelectorAll('[data-efor]').forEach((x) => { x.onclick = async () => {
         x.disabled = true;
