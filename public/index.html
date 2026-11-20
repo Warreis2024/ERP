@@ -779,6 +779,7 @@ table.ck-sayfa{width:100%;table-layout:fixed}
 .ck-grup>div{display:flex;flex-wrap:wrap;gap:4px 8px}
 .ck-alan{display:inline-flex;align-items:center;gap:3px}
 .ck-alan input{display:none}
+.kt-liste{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;margin-bottom:6px}.kt-liste select{max-width:320px}
 .ck-cip{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:2px 7px;font-size:12px;cursor:grab;display:inline-flex;gap:5px;align-items:center}
 .ck-cip:hover{border-color:var(--accent);color:var(--accent)}
 .ck-cip em{font-style:normal;color:var(--muted);font-size:10px}
@@ -1068,6 +1069,10 @@ function ops(g){ return S.opsiyonlar.filter(o=>o.grup===g); }
 function grupTur(g){ const o=S.opsiyonlar.find(x=>x.grup===g); return o&&(o.tur==='radio'||o.tur==='check')?o.tur:'select'; }
 const TURAD={select:'Selectbox',radio:'Radio',check:'Check Box'};
 function fnGrup(f){ return f.grup || (f.tip==='tur'?'crm':''); }
+// Kontrol listesi fonksiyonu birden çok madde listesi (opsiyon grubu) taşıyabilir: grup "a|b|c"
+const ktGruplar=f=>String(f.grup||'').split('|').map(x=>x.trim()).filter(Boolean);
+// kayıttaki maddeler hangi listeden: maddelerin hepsi o grupta olan ilk liste
+const ktHangi=(f, rows)=>{ const M=rows.map(r=>String(r.metin||'').trim()).filter(Boolean); if(!M.length) return ''; return ktGruplar(f).find(g=>{ const A=new Set(ops(g).map(o=>o.ad)); return M.filter(x=>A.has(x)).length>=Math.ceil(M.length/2); })||''; };
 function ktOzet(rows){ const L=rows.filter(r=>String(r.metin||'').trim()); return {top:L.length, bit:L.filter(r=>r.tur).length, sorun:L.filter(r=>r.tur==='sorun').length}; }
 function varsayilan(g){ const o=ops(g).find(x=>x.varsayilan); return o?o.ad:''; }
 
@@ -2011,13 +2016,14 @@ function cokluHTML(f){
     return `<div class="etiketler">${chipler||'<span class="zaman">Etiket yok</span>'}</div><div class="fn-ekle etiket-ekle"><button type="button" class="renk-sec" data-act="renk-ac" style="--c:${(ui.etiketRenk||{})[f.uid]||PALET16[9]}" title="Etiket rengi" aria-label="Etiket rengi seç" aria-haspopup="true"></button><input placeholder="Etiket adı" aria-label="Etiket tanımı"><button type="button" class="btn" data-act="etiket-ekle" data-uid="${f.uid}">${ic('arti')}Ekle</button><div class="palet palet-pop" role="radiogroup" aria-label="Etiket rengi" hidden>${PALET16.map((c,j)=>`<label style="--c:${c}" title="${c}"><input type="radio" name="pal-${f.uid}" value="${c}" ${c===((ui.etiketRenk||{})[f.uid]||PALET16[9])?'checked':''}></label>`).join('')}</div></div>`;
   }
   if(f.tip==='kontrol'){
-    const g=fnGrup(f);
+    const GL=ktGruplar(f), g=GL.length===1?GL[0]:'';
     if(!rows.length && g && !(ui.form.ktDolu||{})[f.uid]){ ui.form.ktDolu=ui.form.ktDolu||{}; ui.form.ktDolu[f.uid]=1; ops(g).forEach((o,i)=>rows.push({...bosSatir(f), metin:o.ad, tur:'', not:'', sira:i})); }
     const yaz=fnErisim(f)==='duzenle';
     const o=ktOzet(rows), y=o.top?Math.round(o.bit/o.top*100):0;
     const sec=(r,i,v,ad,ik)=>`<label class="kt-s kt-${v}" title="${ad}"><input type="radio" name="kt-${f.uid}-${i}" data-ck="${f.uid}" data-i="${i}" data-k="tur" value="${v}" ${r.tur===v?'checked':''}><span>${ik}</span></label>`;
     const sat=rows.map((r,i)=>`<div class="kt-sat ${r.tur?'kt-'+r.tur+'-on':''}"><input class="kt-m" data-ck="${f.uid}" data-i="${i}" data-k="metin" value="${esc(r.metin)}" placeholder="Madde" aria-label="Madde"><span class="kt-sec" role="radiogroup" aria-label="Sonuç">${sec(r,i,'uygun','Uygun','✓')}${sec(r,i,'sorun','Uygun değil','✗')}${sec(r,i,'yok','Uygulanmaz','–')}</span><input class="kt-y" data-ck="${f.uid}" data-i="${i}" data-k="not" value="${esc(r.not||'')}" placeholder="${r.tur==='sorun'?'Sorunu yaz (zorunlu)':'Yorum'}" aria-label="Yorum" ${r.tur==='sorun'&&!String(r.not||'').trim()?'style="border-color:var(--bad)"':''}><button type="button" class="ibtn sm danger" data-act="satir-sil" data-uid="${f.uid}" data-i="${i}" title="Kaldır" aria-label="Kaldır">${ic('x')}</button></div>`).join('');
-    return `<div class="kt">${o.top?`<div class="ag-ozet"><span>${o.bit}/${o.top} kontrol${o.sorun?` · <b style="color:var(--bad)">${o.sorun} sorun</b>`:''}</span><span class="bar ${o.sorun?'':'ok'}"><i style="width:${y}%"></i></span></div>`:''}${sat||`<p class="zaman">${g?'Madde yok':'Ayarlar → Modüller → bu fonksiyonda bir opsiyon grubu seç; maddeler oradan gelir.'}</p>`}${yaz?`<button type="button" class="btn sm" style="justify-self:start;margin-top:4px" data-act="satir-ekle" data-uid="${f.uid}">${ic('arti')}Madde ekle</button>`:''}</div>`;
+    const secim=GL.length>1&&yaz?`<label class="kt-liste">Kontrol listesi <select data-kt-grup="${f.uid}">${secOp(GL, ktHangi(f,rows), 'Liste seç…')}</select></label>`:'';
+    return `<div class="kt">${secim}${o.top?`<div class="ag-ozet"><span>${o.bit}/${o.top} kontrol${o.sorun?` · <b style="color:var(--bad)">${o.sorun} sorun</b>`:''}</span><span class="bar ${o.sorun?'':'ok'}"><i style="width:${y}%"></i></span></div>`:''}${sat||`<p class="zaman">${GL.length>1?'Yukarıdan bu kayda uygun kontrol listesini seç.':g?'Madde yok':'Ayarlar → Modüller → bu fonksiyonda en az bir madde listesi seç; maddeler oradan gelir.'}</p>`}${yaz?`<button type="button" class="btn sm" style="justify-self:start;margin-top:4px" data-act="satir-ekle" data-uid="${f.uid}">${ic('arti')}Madde ekle</button>`:''}</div>`;
   }
   if(f.tip==='karar'){
     const ciz=ust=>rows.filter(r=>(r.ustId||null)===(ust||null)).sort((a,b)=>a.sira-b.sira).map(r=>{
@@ -3139,7 +3145,7 @@ function cekmeceHTML(){
     const tarihDef=f.tip==='tarih'?`<label>Varsayılan<select data-fn-tarih="${f.uid}"><option value="" ${f.tarihVarsayilan==='bugun'?'':'selected'}>Boş</option><option value="bugun" ${f.tarihVarsayilan==='bugun'?'selected':''}>Günün tarihi</option></select></label>`:'';
     const sekmeSec=`<label>Sekme<input data-fn-sekme="${f.uid}" list="sekmeDL" value="${esc(f.sekme||'')}" placeholder="Genel"></label><datalist id="sekmeDL">${modulSekmeler(m).map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;
     const yt=`<div class="lbl">Grup yetkisi<div class="tbl"><table><thead><tr><th>Grup</th><th>Erişim</th></tr></thead><tbody>${S.yetkiGruplari.map(g=>`<tr><td>${esc(g.ad)}</td><td><select data-fn-yetki="${f.uid}:${g.id}">${secOp([['duzenle','Düzenle'],['gor','Gör'],['gizli','Görme']], (f.yetki||{})[g.id]||'duzenle')}</select></td></tr>`).join('')}</tbody></table></div><p class="zaman">Görme: alan formda, kanbanda, listede, Excel'de ve aramada çıkmaz. Gör: salt okunur. Yöneticiler her alanı düzenler.</p></div>`;
-    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}Modüle dön</button><form class="form"><label>Ad<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'||f.tip==='kontrol'?`<label>${f.tip==='kontrol'?'Madde listesi (opsiyon grubu)':'Opsiyon grubu'}<select data-fn-grup="${f.uid}">${f.tip==='kontrol'&&!f.grup?'<option value="">Seç…</option>':''}${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>${f.tip==='kontrol'?'<p class="zaman">Yeni kayıtta maddeler bu gruptan gelir; kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.</p>':''}`:''}${tarihDef}${puanDef}${zorunlu}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">Bağlantıyı çöz</button></form>`;
+    return bas(m?.ad||'Modül',f.ad)+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="modul" data-id="${m.id}">${ic('sol')}Modüle dön</button><form class="form"><label>Ad<input data-fn-ad="${f.uid}" value="${esc(f.ad)}"></label><p class="zaman">${ic(FNIK[f.tip])} ${esc(FNAD[f.tip]||f.tip)}</p>${sekmeSec}${f.tip==='tur'?`<label>Opsiyon grubu<select data-fn-grup="${f.uid}">${gruplar().map(g=>`<option ${g===(f.grup||fnGrup(f))?'selected':''}>${esc(g)}</option>`).join('')}</select></label>`:''}${f.tip==='kontrol'?`<div class="lbl">Madde listeleri (opsiyon grupları)<div class="secim">${gruplar().map(g=>`<label><input type="checkbox" data-fn-kgrup="${f.uid}" value="${esc(g)}" ${ktGruplar(f).includes(g)?'checked':''}>${esc(g)}</label>`).join('')}</div></div><p class="zaman">Birden çok liste seçersen kullanıcı kayıtta uygun olanı seçer; tek liste seçiliyse maddeler kendiliğinden gelir. Listeler Ayarlar → Opsiyonlar'da tanımlanır. Kullanıcı kayıtta madde ekleyebilir. Her madde Uygun / Uygun değil / Uygulanmaz işaretlenir; Uygun değil açıklama ister. Zorunluysa bütün maddeler işaretlenmeden kayıt kaydedilmez.</p>`:''}${tarihDef}${puanDef}${zorunlu}${yt}<button type="button" class="btn danger" style="justify-self:start" data-act="fn-sil" data-uid="${f.uid}">Bağlantıyı çöz</button></form>`;
   }
   if(c.tur==='grup' && c.id==='yeni') return bas('Opsiyon','Yeni grup')+`<form class="form" id="ayarForm"><label>Grup<input name="grup" required placeholder="odeme"></label><label>Tür<select name="tur">${secOp([['select','Selectbox'],['radio','Radio'],['check','Check Box']], 'select')}</select></label><label>İlk seçenek<input name="ad" required placeholder="Nakit"></label>${onay}</form>`;
   if(c.tur==='grup'){
@@ -5362,6 +5368,15 @@ function bagla(){
     if(t.dataset.fnSekme){ const f=fnBul(t.dataset.fnSekme); if(f){ f.sekme=t.value.trim(); persist(); render(); } return; }
     if(t.dataset.fnYetki){ const [uid,g]=t.dataset.fnYetki.split(':'); const f=fnBul(uid); if(f){ f.yetki=f.yetki||{}; f.yetki[g]=t.value; persist(); render(); } return; }
     if(t.dataset.grupTur){ const tur=t.value==='radio'||t.value==='check'?t.value:'select'; S.opsiyonlar.forEach(o=>{ if(o.grup===t.dataset.grupTur) o.tur=tur; }); persist(); render(); return; }
+    if(t.dataset.fnKgrup){ const f=fnBul(t.dataset.fnKgrup); if(f){ const L=[...document.querySelectorAll(`[data-fn-kgrup="${f.uid}"]:checked`)].map(x=>x.value); const v=L.join('|'); if(v.length>250){ t.checked=false; toast('En fazla birkaç liste seçilebilir'); return; } f.grup=v||null; persist(); } return; }
+    if(t.dataset.ktGrup){
+      formDomOku();
+      const f=fnBul(t.dataset.ktGrup), rows=ui.form.coklu[f.uid]=ui.form.coklu[f.uid]||[];
+      const dolu=rows.some(r=>r.tur||String(r.not||'').trim());
+      if(dolu&&!confirm('Mevcut maddeler ve işaretler silinip "'+t.value+'" listesi yüklensin mi?')){ renderDrawer(); return; }
+      ui.form.coklu[f.uid]=t.value?ops(t.value).map((o,i)=>({...bosSatir(f), metin:o.ad, tur:'', not:'', sira:i})):[];
+      renderDrawer(); return;
+    }
     if(t.dataset.fnGrup){ const f=fnBul(t.dataset.fnGrup); if(f){ f.grup=t.value; persist(); } return; }
     if(t.dataset.fnZor){ const f=fnBul(t.dataset.fnZor); if(f && f.tip!=='gecmis'){ f.zorunlu=t.checked; persist(); render(); } return; }
     if(t.dataset.fnKanban){ const f=fnBul(t.dataset.fnKanban); if(f && f.tip!=='gecmis'){ f.kanban=t.checked; persist(); render(); } return; }
