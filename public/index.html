@@ -4550,7 +4550,7 @@ function ckCekmece(c){
     ${F.kapsam==='liste'?`<div class="two">${s('tarihAlan','Dönem süzgeci alanı',kat.filter(a=>a.tip==='tarih').map(a=>a.k),'Dönem süzgeci yok')}${s('donem','Varsayılan dönem',CK_DONEM)}</div>
     <div class="two">${s('kisi','Kişi süzgeci',CK_KISI)}${s('sirala','Sıralama',kat.map(a=>a.k),'Sırasız')}</div>
     <div class="lbl">Koşullar<div class="ck-koslar">${kos||'<span class="zaman">Koşul yok</span>'}</div><button type="button" class="btn sm" style="justify-self:start" data-act="ckq-ekle" data-id="${F.id}">${ic('arti')}Koşul ekle</button></div>`:''}
-    <div class="lbl">Alanlar<p class="zaman">Kutucuk: <span class="mono">||tablo||</span> sütunlarına girer. Ada tıkla kopyala, ya da şablona sürükle.</p><div class="ck-alanlar">${alanlar||'<span class="zaman">Modül seç</span>'}</div></div>
+    <div class="lbl">Alanlar<p class="zaman"><b>☑ İşaretli alanlar</b> şablondaki hazır tabloya (<span class="mono">||tablo||</span>) sütun olarak girer; tablo kullanmıyorsan işaretlemen gerekmez. <b>Alan adına</b> tıklarsan <span class="mono">{{Alan}}</span> kopyalanır; ya da adı şablona sürükle.</p><div class="ck-alanlar">${alanlar||'<span class="zaman">Modül seç</span>'}</div></div>
     <div class="lbl">Ek sorgular<p class="zaman">Ana sorgunun (satirlar) yanına başka modüllerden sorgu ekle. Bağımsız sorgu tek başına listelenir; iç içe sorgu her üst satıra bağlı alt liste olur (örn. her projenin masrafları). Alt sorgunun da alt sorgusu olabilir.</p>${ekler}<button type="button" class="btn sm" style="justify-self:start" data-act="cks-ekle" data-id="${F.id}">${ic('arti')}Sorgu ekle</button></div>
     <label class="anahtar" style="width:auto"><input type="checkbox" data-ckf="${F.id}" data-alan="ustAlt" ${F.ustAlt===false?'':'checked'}><span>Kurumsal üst ve alt bilgi (logo, firma adı, çıktı tarihi; her sayfada tekrar eder)</span></label>
     <label>Şablon<textarea class="zk-src" data-zmod="tam" data-ckf="${F.id}" data-alan="sablon" placeholder="{{Kod}} · {{bugun}}">${esc(F.sablon||'')}</textarea></label>
@@ -4568,7 +4568,6 @@ function ckCekmece(c){
       <tr><td class="mono">{{Masraflar.adet}} {{Masraflar.toplam.Tutar}} {{Masraflar.tablo}}</td><td>Sorgunun tamamı (genel toplam).</td></tr>
       <tr><td class="mono">{% if Alan %}…{% endif %}</td><td>Alan doluysa göster.</td></tr>
     </tbody></table></details>
-    <details class="ck-yardim"><summary>Veri sorgusu (SQL)</summary><pre class="ck-sql">${esc(ckSql(F))}</pre><p class="zaman">Sunucu aşamasında bu sorgu kullanıcı yetki tablosuyla birleştirilerek çalışır. Gizli (Görme) fonksiyonlar sorguya hiç eklenmez.</p></details>
     <div class="rowbtns"><button type="button" class="btn pri" data-act="ck-onizle" data-id="${F.id}">${ic('goz')}Çıktıyı aç</button><button type="button" class="btn danger" data-act="ck-sil" data-id="${F.id}">${ic('sil')}Sil</button></div></form>`;
 }
 /* ---------- giriş (oturum) ve Profilim ---------- */
