@@ -808,5 +808,35 @@
   "Install",
   "Installieren",
   "Instalar"
+ ],
+ "Dosya": [
+  "File",
+  "Datei",
+  "Archivo"
+ ],
+ "Yükleniyor {0}/{1} · %{2}": [
+  "Uploading {0}/{1} · {2}%",
+  "Wird hochgeladen {0}/{1} · {2} %",
+  "Subiendo {0}/{1} · {2} %"
+ ],
+ "{0} ek · büyük dosyalar {1} deposuna yüklenir": [
+  "{0} attachments · large files are uploaded to {1}",
+  "{0} Anhänge · große Dateien werden in {1} hochgeladen",
+  "{0} adjuntos · los archivos grandes se suben a {1}"
+ ],
+ "\"{0}\" çok büyük ({1} MB).": [
+  "\"{0}\" is too large ({1} MB).",
+  "„{0}“ ist zu groß ({1} MB).",
+  "\"{0}\" es demasiado grande ({1} MB)."
+ ],
+ "Yükleme hatası": [
+  "Upload error",
+  "Upload-Fehler",
+  "Error de subida"
+ ],
+ "Yükleme tamamlanmadı": [
+  "Upload not completed",
+  "Upload nicht abgeschlossen",
+  "La subida no se completó"
  ]
 }

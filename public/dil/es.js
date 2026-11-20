@@ -1295,5 +1295,9 @@ window.SOZLUK={
 "Ekler çok büyük (toplam 3 MB)": "Adjuntos demasiado grandes (3 MB en total)",
 "Uygulama yüklendi": "App instalada",
 "NetERP'yi telefonuna uygulama olarak yükle.": "Instala NetERP en tu teléfono como app.",
-"Yükle": "Instalar"
+"Yükle": "Instalar",
+"Yükleniyor {0}/{1} · %{2}": "Subiendo {0}/{1} · {2} %",
+"{0} ek · büyük dosyalar {1} deposuna yüklenir": "{0} adjuntos · los archivos grandes se suben a {1}",
+"\"{0}\" çok büyük ({1} MB).": "\"{0}\" es demasiado grande ({1} MB).",
+"Yükleme hatası": "Error de subida"
 };

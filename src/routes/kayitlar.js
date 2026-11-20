@@ -8,10 +8,7 @@ import { tanimlar, yeniId } from '../veri.js';
 import { kaydet, durumDegistir, sil, kayitLog, projeKisileri, gorunurDegerler, projeApi, kartApi, aliciTemizle } from '../kayitServis.js';
 import { mesajBildir } from '../bildirimServis.js';
 
-// Mesaj ekleri: küçük resim / ses / video (data URL). Toplam ~3,4 MB (Vercel istek sınırı 4,5 MB).
-const EK_RE = /^data:(image\/(png|jpeg|webp)|audio\/(webm|ogg|mp4|mpeg|aac|x-m4a)|video\/(webm|mp4|quicktime))(;codecs=[\w.,]+)?;base64,[A-Za-z0-9+/]+=*$/;
-const EkSema = z.array(z.object({ ad: z.string().trim().max(120).default(''), url: z.string().max(3_600_000).regex(EK_RE, 'Desteklenmeyen dosya') })).max(6).default([])
-  .refine((L) => L.reduce((t, e) => t + e.url.length, 0) <= 4_500_000, 'Ekler çok büyük (toplam 3 MB)');
+import { EkSema } from '../kurallar/ekler.js';
 
 const r = Router();
 const Sayfa = z.object({ sayfa: z.coerce.number().int().min(1).default(1), adet: z.coerce.number().int().min(1).max(1000).default(500) });

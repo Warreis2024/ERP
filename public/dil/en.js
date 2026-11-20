@@ -922,7 +922,7 @@ window.SOZLUK={
 "Yönetici kullanıcı hesabı bağlamayı kapattı. E-postaların {0} gider, cevap adresi {1} olur.": "The administrator has disabled connecting user accounts. Your e-mails are sent {0}, the reply address is {1}.",
 "Yönetim": "Management",
 "Yükleme hatası (": "Upload error (",
-"Yükleme tamamlanmadı": "Upload did not complete",
+"Yükleme tamamlanmadı": "Upload not completed",
 "Yükleniyor…": "Loading…",
 "Yükleyen": "Uploaded by",
 "Yürüyen proje": "Ongoing project",
@@ -1295,5 +1295,9 @@ window.SOZLUK={
 "Ekler çok büyük (toplam 3 MB)": "Attachments too large (3 MB total)",
 "Uygulama yüklendi": "App installed",
 "NetERP'yi telefonuna uygulama olarak yükle.": "Install NetERP on your phone as an app.",
-"Yükle": "Install"
+"Yükle": "Install",
+"Yükleniyor {0}/{1} · %{2}": "Uploading {0}/{1} · {2}%",
+"{0} ek · büyük dosyalar {1} deposuna yüklenir": "{0} attachments · large files are uploaded to {1}",
+"\"{0}\" çok büyük ({1} MB).": "\"{0}\" is too large ({1} MB).",
+"Yükleme hatası": "Upload error"
 };

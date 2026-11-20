@@ -8,7 +8,12 @@
   const KOK = $('#uygulama');
   const EN_COK_EK = 6;
   const TOPLAM_SINIR = 4_400_000; // data URL karakteri (≈3,2 MB) — sunucu sınırının biraz altı
-  const VIDEO_SN = 30;
+  const BULUT_ESIK = 900_000;            // bu boyuttan büyük ses/video, bulut deposu bağlıysa oraya yüklenir
+  const BULUT_AZAMI = 1024 * 1048576;    // tek dosya en çok 1 GB
+  const bulutVar = () => !!(D.ozet && D.ozet.depo);
+  const videoSn = () => (bulutVar() ? 180 : 30);
+  const DEPO_AD = { gdrive: 'Google Drive', onedrive: 'OneDrive' };
+  const bulutAdresi = (u) => { try { const x = new URL(u); return x.protocol === 'https:' && /^(drive\.google\.com|docs\.google\.com|onedrive\.live\.com|1drv\.ms|[a-z0-9-]+(-my)?\.sharepoint\.com)$/i.test(x.hostname); } catch (e) { return false; } };
 
   const D = { ozet: null, sekme: 'gelen', ara: '', notlar: [], kayit: null, mesajlar: [], son: null, push: 'bilinmiyor' };
   const taslak = { hedef: null, metin: '', ekler: [] };
@@ -46,6 +51,7 @@
     const h = String(u.ad || '?').split(/\s+/).map((x) => x[0] || '').join('').slice(0, 2).toUpperCase();
     return `<span class="avatar">${kac(h)}</span>`;
   }
+  const sure = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   const guvenliEk = (u) => /^data:(image|audio|video)\/[\w.+-]+(;codecs=[\w.,]+)?;base64,/.test(String(u || ''));
 
   // ---------- başlangıç ----------
@@ -191,7 +197,11 @@
       <div class="alt-dugmeler"><button class="dugme" data-not-tasi="${kac(n.id)}">${kac(_t('Kayda taşı'))}</button><button class="dugme ikincil" data-not-sil="${kac(n.id)}">${kac(_t('Sil'))}</button></div></div></div>`).join('')}</div>`;
   }
   function eklerHTML(L) {
-    return (L || []).filter((e) => guvenliEk(e.url)).map((e) => {
+    const bulut = (L || []).filter((e) => e.depo && bulutAdresi(e.url)).map((e) => {
+      const ik = /^video\//.test(e.tip || '') ? '🎬' : /^audio\//.test(e.tip || '') ? '🎙' : /^image\//.test(e.tip || '') ? '🖼' : '📎';
+      return `<a class="bulut-ek" href="${kac(e.url)}" target="_blank" rel="noopener noreferrer"><b>${ik}</b><span>${kac(e.ad || _t('Dosya'))}<small>${kac(DEPO_AD[e.depo] || '')}${e.boyut ? ' · ' + (e.boyut / 1048576).toFixed(1) + ' MB' : ''}</small></span></a>`;
+    }).join('');
+    return bulut + (L || []).filter((e) => !e.depo && guvenliEk(e.url)).map((e) => {
       const u = kac(e.url);
       if (e.url.startsWith('data:image/')) return `<img src="${u}" alt="${kac(e.ad)}" loading="lazy">`;
       if (e.url.startsWith('data:audio/')) return `<audio controls preload="none" src="${u}"></audio>`;
@@ -259,13 +269,38 @@
   }
 
   // ---------- gönderme ----------
-  function toplamBoyut() { return taslak.ekler.reduce((t, e) => t + e.url.length, 0); }
+  function toplamBoyut() { return taslak.ekler.reduce((t, e) => t + (e.blob ? 0 : e.url.length), 0); }
+  // Büyük dosyayı firmanın bulut deposuna parça parça yükler (masaüstündeki gibi, sunucu üzerinden 3,75 MB'lık parçalar)
+  async function bulutaYukle(e, hedef, ilerle) {
+    const o = await api('/dosya/yukle/basla', { method: 'POST', govde: { depo: D.ozet.depo, ad: e.ad, tip: e.tip || '', boyut: e.blob.size, projeId: hedef ? hedef.projeId : null, modulId: hedef ? hedef.modulId || null : null } });
+    let bas = 0, son = o.dosya || null;
+    while (!son) {
+      const parca = e.blob.slice(bas, Math.min(bas + o.parca, e.blob.size));
+      const r = await fetch('/api/dosya/yukle/parca?bas=' + bas, { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/octet-stream', 'x-csrf-token': csrf(), 'x-yukleme-oturum': o.oturum }, body: parca });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(_t(j.hata || 'Yükleme hatası'));
+      if (j.bitti) { son = j.dosya; break; }
+      bas = j.alinan || bas + parca.size; ilerle(bas / e.blob.size);
+      if (bas >= e.blob.size) break;
+    }
+    if (!son) throw new Error(_t('Yükleme tamamlanmadı'));
+    return { ad: e.ad, url: son.url, depo: D.ozet.depo, dosyaId: son.id || '', boyut: Number(son.boyut || e.blob.size), tip: e.tip || '' };
+  }
   async function gonder(btn) {
     const metin = (taslak.metin || '').trim();
     if (!metin && !taslak.ekler.length) return toast(_t('Mesaj boş'));
     btn.disabled = true;
-    const ekler = taslak.ekler.map((e) => ({ ad: e.ad, url: e.url }));
+    const yazi = btn.textContent;
     try {
+      const ekler = [];
+      const buyuk = taslak.ekler.filter((e) => e.blob);
+      for (const e of taslak.ekler) {
+        if (!e.blob) { ekler.push({ ad: e.ad, url: e.url }); continue; }
+        const n = buyuk.indexOf(e) + 1;
+        ekler.push(await bulutaYukle(e, taslak.hedef, (x) => { btn.textContent = _t('Yükleniyor {0}/{1} · %{2}', n, buyuk.length, Math.round(x * 100)); }));
+        e.blob = null; Object.assign(e, ekler[ekler.length - 1]); // yeniden denemede tekrar yüklenmesin
+      }
+      btn.textContent = yazi;
       if (taslak.hedef) {
         const k = taslak.hedef;
         await api('/mesaj', { method: 'POST', govde: { projeId: k.projeId, kartId: k.tur === 'kart' ? k.id : null, metin, ekler } });
@@ -277,8 +312,8 @@
       taslak.metin = ''; taslak.ekler = [];
       const p = $('.perde'); if (p) p.remove();
       if (D.kayit) { const y = $('#yaz'); if (y) y.value = ''; ekListeCiz(); await mesajlariYukle(); } else ciz();
-    } catch (e) { toast(e.message, 4000); }
-    btn.disabled = false;
+    } catch (e) { toast(e.message, 5000); }
+    btn.textContent = yazi; btn.disabled = false;
   }
 
   // ---------- oluşturucu (hızlı not / mesaj) ----------
@@ -314,7 +349,7 @@
     p.querySelector('[data-arac="ses"]').onclick = (e) => sesKaydi(e.currentTarget);
     p.querySelector('[data-arac="foto"]').onclick = () => dosyaSec('image/*', 'environment');
     p.querySelector('[data-arac="video"]').onclick = () => videoKaydi();
-    p.querySelector('[data-arac="dosya"]').onclick = () => dosyaSec('image/*,video/*,audio/*');
+    p.querySelector('[data-arac="dosya"]').onclick = () => dosyaSec(bulutVar() ? '*/*' : 'image/*,video/*,audio/*');
     ekListeCiz();
     setTimeout(() => metin.focus(), 50);
   }
@@ -322,18 +357,29 @@
   function ekListeCiz() {
     const kutular = [$('#ekListe2'), $('#ekListe')].filter(Boolean);
     const html = taslak.ekler.map((e, i) => {
-      const u = kac(e.url);
-      const ic = e.url.startsWith('data:image/') ? `<img src="${u}" alt="">` : e.url.startsWith('data:video/') ? `<video src="${u}" muted playsinline></video>` : `<audio controls src="${u}"></audio>`;
-      return `<div class="ek">${ic}<button class="x" data-ek-sil="${i}" aria-label="${kac(_t('Kaldır'))}">×</button></div>`;
+      const u = kac(e.onizleme || e.url), tur = e.tip || e.url.slice(5, e.url.indexOf('/'));
+      const ic = e.depo && !e.blob ? `<span class="bulut-ad">☁ ${kac(e.ad)}</span>` : /^image/.test(tur) ? `<img src="${u}" alt="">` : /^video/.test(tur) ? `<video src="${u}" muted playsinline></video>` : `<audio controls src="${u}"></audio>`;
+      const etiket = e.blob ? `<span class="bulut-rozet">☁ ${(e.blob.size / 1048576).toFixed(1)} MB</span>` : '';
+      return `<div class="ek">${ic}${etiket}<button class="x" data-ek-sil="${i}" aria-label="${kac(_t('Kaldır'))}">×</button></div>`;
     }).join('');
     kutular.forEach((k) => { k.innerHTML = html; k.querySelectorAll('[data-ek-sil]').forEach((b) => { b.onclick = () => { taslak.ekler.splice(+b.dataset.ekSil, 1); ekListeCiz(); }; }); });
     const b = $('#boyut');
-    if (b) b.textContent = taslak.ekler.length ? _t('{0} ek · {1} MB / {2} MB', taslak.ekler.length, (toplamBoyut() * 0.75 / 1048576).toFixed(1), (TOPLAM_SINIR * 0.75 / 1048576).toFixed(1)) : '';
+    if (b) b.textContent = !taslak.ekler.length ? '' : bulutVar() ? _t('{0} ek · büyük dosyalar {1} deposuna yüklenir', taslak.ekler.length, DEPO_AD[D.ozet.depo]) : _t('{0} ek · {1} MB / {2} MB', taslak.ekler.length, (toplamBoyut() * 0.75 / 1048576).toFixed(1), (TOPLAM_SINIR * 0.75 / 1048576).toFixed(1));
   }
   function ekEkle(ad, url) {
     if (taslak.ekler.length >= EN_COK_EK) { toast(_t('En çok {0} ek eklenebilir', EN_COK_EK)); return false; }
     if (toplamBoyut() + url.length > TOPLAM_SINIR) { toast(_t('Ek çok büyük. Toplam sınır yaklaşık {0} MB; daha kısa bir kayıt dene.', (TOPLAM_SINIR * 0.75 / 1048576).toFixed(1)), 4500); return false; }
     taslak.ekler.push({ ad, url }); ekListeCiz(); return true;
+  }
+  // Ses / video: küçükse gömülü, büyükse (bulut bağlıysa) gönderirken buluta yüklenir
+  async function blobEkle(ad, blob) {
+    if (bulutVar() && blob.size > BULUT_ESIK) {
+      if (blob.size > BULUT_AZAMI) { toast(_t('"{0}" çok büyük ({1} MB).', ad, (blob.size / 1048576).toFixed(0)), 4500); return false; }
+      if (taslak.ekler.length >= EN_COK_EK) { toast(_t('En çok {0} ek eklenebilir', EN_COK_EK)); return false; }
+      taslak.ekler.push({ ad, blob, tip: (blob.type || '').split(';')[0], onizleme: URL.createObjectURL(blob), url: '' }); ekListeCiz(); return true;
+    }
+    if (blob.size * 1.37 + toplamBoyut() > TOPLAM_SINIR) { toast(_t('"{0}" çok büyük ({1} MB). Uygulama içinden kısa video çek.', ad, (blob.size / 1048576).toFixed(1)), 5000); return false; }
+    return ekEkle(ad, await blobUrl(blob));
   }
   const blobUrl = (b) => new Promise((ok, red) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = red; r.readAsDataURL(b); });
   // Fotoğraf: en uzun kenar 1600 px, JPEG %80
@@ -359,10 +405,8 @@
       for (const f of [...g.files]) {
         try {
           if (f.type.startsWith('image/')) { ekEkle(f.name || 'foto.jpg', await resimKucult(f)); continue; }
-          if (SES_TUR.test(f.type) || VIDEO_TUR.test(f.type)) {
-            if (f.size * 1.37 + toplamBoyut() > TOPLAM_SINIR) { toast(_t('"{0}" çok büyük ({1} MB). Uygulama içinden kısa video çek.', f.name, (f.size / 1048576).toFixed(1)), 5000); continue; }
-            ekEkle(f.name, await blobUrl(f)); continue;
-          }
+          if (SES_TUR.test(f.type) || VIDEO_TUR.test(f.type)) { await blobEkle(f.name, f); continue; }
+          if (bulutVar() && f.size) { await blobEkle(f.name, f); continue; } // diğer dosyalar yalnız buluta
           toast(_t('Desteklenmeyen dosya: {0}', f.name));
         } catch (e) { toast(e.message); }
       }
@@ -407,7 +451,7 @@
     r.onstop = async () => {
       clearInterval(sayac); akis.getTracks().forEach((t) => t.stop()); btn.classList.remove('aktif'); etiket.textContent = _t('Sesli not');
       const b = new Blob(parca, { type: (r.mimeType || 'audio/webm').split(';')[0] });
-      if (b.size) ekEkle(_t('Sesli not') + '.' + (b.type.split('/')[1] || 'webm'), await blobUrl(b));
+      if (b.size) await blobEkle(_t('Sesli not') + '.' + (b.type.split('/')[1] || 'webm'), b);
       sesKayit = null;
     };
     r.start(1000); sesKayit = r; btn.classList.add('aktif');
@@ -422,7 +466,7 @@
     catch (e) { return dosyaSec('video/*', 'environment'); }
     const tur = uygunTur(['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']);
     const ekran = document.createElement('div'); ekran.className = 'video-kayit';
-    ekran.innerHTML = `<video autoplay muted playsinline></video><div class="alt"><button class="dugme ikincil" data-vz>${kac(_t('Vazgeç'))}</button><button class="kayit-dugme" data-vk aria-label="${kac(_t('Kaydet'))}"></button><span class="kayit-sayac" data-vs>0:00 / 0:${VIDEO_SN}</span></div>`;
+    ekran.innerHTML = `<video autoplay muted playsinline></video><div class="alt"><button class="dugme ikincil" data-vz>${kac(_t('Vazgeç'))}</button><button class="kayit-dugme" data-vk aria-label="${kac(_t('Kaydet'))}"></button><span class="kayit-sayac" data-vs>0:00 / ${sure(videoSn())}</span></div>`;
     document.body.appendChild(ekran);
     const v = ekran.querySelector('video'); v.srcObject = akis;
     let r = null, sayac = null, iptal = false;
@@ -432,15 +476,15 @@
       const b = e.currentTarget;
       if (r) { if (r.state !== 'inactive') r.stop(); return; }
       const parca = [], bas = Date.now();
-      r = new MediaRecorder(akis, Object.assign(tur ? { mimeType: tur } : {}, { videoBitsPerSecond: 600000, audioBitsPerSecond: 32000 }));
+      r = new MediaRecorder(akis, Object.assign(tur ? { mimeType: tur } : {}, { videoBitsPerSecond: bulutVar() ? 1500000 : 600000, audioBitsPerSecond: bulutVar() ? 64000 : 32000 }));
       r.ondataavailable = (x) => { if (x.data.size) parca.push(x.data); };
       r.onstop = async () => {
         kapat(); if (iptal) return;
         const bl = new Blob(parca, { type: (r.mimeType || 'video/webm').split(';')[0] });
-        if (bl.size) ekEkle(_t('Video') + '.' + (bl.type.split('/')[1] || 'webm'), await blobUrl(bl));
+        if (bl.size) await blobEkle(_t('Video') + '.' + (bl.type.split('/')[1] || 'webm'), bl);
       };
       r.start(1000); b.classList.add('duruyor');
-      sayac = setInterval(() => { const s = Math.floor((Date.now() - bas) / 1000); ekran.querySelector('[data-vs]').textContent = `0:${String(s).padStart(2, '0')} / 0:${VIDEO_SN}`; if (s >= VIDEO_SN && r.state !== 'inactive') r.stop(); }, 300);
+      sayac = setInterval(() => { const s = Math.floor((Date.now() - bas) / 1000); ekran.querySelector('[data-vs]').textContent = `${sure(s)} / ${sure(videoSn())}`; if (s >= videoSn() && r.state !== 'inactive') r.stop(); }, 300);
     };
   }
 

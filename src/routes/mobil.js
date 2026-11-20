@@ -16,12 +16,15 @@ import { tanimlar, yeniId } from '../veri.js';
 import { okuyabilir, fnErisim } from '../kurallar/yetki.js';
 import { projeKisileri, gorunurDegerler } from '../kayitServis.js';
 import { mesajYaz, MesajSema } from './kayitlar.js';
+import { EkSema } from '../kurallar/ekler.js';
+import * as google from '../baglanti/google.js';
+import * as drive from '../baglanti/driveHesap.js';
+import * as ms from '../baglanti/microsoft.js';
 
 const ozet = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 const KOD_RE = /^[A-Za-z0-9_-]{43}$/;
 const CIHAZ_GUN = 180;
 const Kimlik = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
-const EK_RE = /^data:(image\/(png|jpeg|webp)|audio\/(webm|ogg|mp4|mpeg|aac|x-m4a)|video\/(webm|mp4|quicktime))(;codecs=[\w.,]+)?;base64,[A-Za-z0-9+/]+=*$/;
 
 function cerez(ad, deger, maxAge, httpOnly) {
   const p = [`${ad}=${encodeURIComponent(deger)}`, 'Path=/', 'SameSite=Lax', `Max-Age=${maxAge}`];
@@ -91,11 +94,7 @@ mobil.post('/push/sil', async (req, res) => {
 });
 
 // ---------- Notlarım ----------
-const NotSema = z.object({
-  metin: z.string().trim().max(10000).default(''),
-  ekler: z.array(z.object({ ad: z.string().trim().max(120).default(''), url: z.string().max(3_600_000).regex(EK_RE, 'Desteklenmeyen dosya') })).max(6).default([])
-    .refine((L) => L.reduce((t, e) => t + e.url.length, 0) <= 4_500_000, 'Ekler çok büyük (toplam 3 MB)'),
-});
+const NotSema = z.object({ metin: z.string().trim().max(10000).default(''), ekler: EkSema });
 const notApi = (n) => ({ id: n.id, metin: n.metin || '', ekler: json.oku(n.ekler, []), olusturma: n.olusturma ? new Date(n.olusturma).toISOString() : null });
 
 mobil.get('/mobil/notlar', async (req, res) => {
@@ -125,9 +124,19 @@ mobil.post('/mobil/notlar/:id/tasi', async (req, res) => {
 });
 
 // ---------- telefon için hafif özet ----------
+// Firmanın varsayılan deposu bulutsa ve bağlıysa büyük ekler oraya yüklenir (masaüstündeki bulutHazir ile aynı kural)
+async function bulutDepo(db) {
+  try {
+    const a = await db('ayarlar').where({ anahtar: 'firma' }).first();
+    const d = json.oku(a?.deger, {}).depo;
+    if (d === 'gdrive') { const [gd, g] = await Promise.all([drive.durum(db), google.durum(db)]); return gd.bagli || (g.bagli && g.drive) ? 'gdrive' : ''; }
+    if (d === 'onedrive') { const m = await ms.durum(db); return m.bagli && m.dosya ? 'onedrive' : ''; }
+  } catch (e) { console.error('mobil depo:', e.message); }
+  return '';
+}
 const iso = (x) => (x ? new Date(x).toISOString() : '');
 const duzMetin = (h) => String(h || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-const ekOzet = (L) => (Array.isArray(L) ? L.map((e) => ({ ad: e.ad || '', tur: String(e.url || '').slice(5, String(e.url || '').indexOf('/')) })) : []);
+const ekOzet = (L) => (Array.isArray(L) ? L.map((e) => ({ ad: e.ad || '', tur: e.depo ? String(e.tip || '').split('/')[0] || 'dosya' : String(e.url || '').slice(5, String(e.url || '').indexOf('/')) })) : []);
 
 // Kayıtlar (başlıklarıyla), modüller, kişiler ve son mesajlar. Ekler burada gönderilmez (boyut); kayıt açılınca gelir.
 mobil.get('/mobil/ozet', async (req, res) => {
@@ -161,6 +170,7 @@ mobil.get('/mobil/ozet', async (req, res) => {
     .slice(0, 80)
     .map((d) => ({ id: d.id, projeId: d.projeId, kartId: d.kartId || null, kimden: d.kisi, metin: String(d.metin || '').replace(/\s+/g, ' ').trim().slice(0, 240), ekler: ekOzet(d.ekler), zaman: d.zaman, okundu: Array.isArray(d.okuyan) && d.okuyan.includes(u.id) }));
   res.json({
+    depo: await bulutDepo(db),
     ben: { id: u.id, ad: u.ad, foto: u.foto || '' },
     kullanicilar: kullanicilar.map((k) => ({ id: k.id, ad: k.ad, foto: typeof k.foto === 'string' && k.foto.length < 60000 ? k.foto : '' })),
     moduller: moduller.map((m) => ({ id: m.id, ad: m.ad, renk: m.renk, tur: m.tur, yaz: m.fn.some((f) => f.tip === 'mesaj' && fnErisim(u, f) === 'duzenle') })),
