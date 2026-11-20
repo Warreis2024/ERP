@@ -275,6 +275,11 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .renk-sec:hover,.renk-sec[aria-expanded=true]{border-color:var(--brand)}
 .palet-pop[hidden]{display:none!important}
 .yaz-menu{position:relative;display:inline-flex}
+.dis-onay{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.do-bas{display:flex;align-items:center;gap:6px;font-size:13px}.do-bas svg{width:16px;height:16px}
+.do-aktif{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}.do-qr{width:120px;height:120px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.do-bilgi{display:grid;gap:6px;flex:1;min-width:220px;justify-items:start}
+.do-yanit{display:grid;gap:4px;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--line)}.do-imza{max-height:70px;max-width:240px;background:#fff;border-radius:4px}
 .ep-eksik{display:flex;gap:8px;align-items:flex-start;margin:0;padding:8px 10px;border-radius:8px;background:rgba(207,54,64,.08);color:var(--bad,#cf3640);font-size:13px}.ep-eksik svg{width:16px;height:16px;flex:none;margin-top:2px}
 .yaz-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:40;min-width:240px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);display:grid;gap:2px}
 .yaz-pop[hidden]{display:none!important}
@@ -846,11 +851,13 @@ img.ku-foto{font-size:1em}
   <div id="onizle"></div>
 </div>
 <div class="toast" id="toast" hidden></div>
+<script src="qr.js"></script>
 <script>
 const YER={"ulke":["Türkiye","KKTC","Almanya","Amerika Birleşik Devletleri","İngiltere","Fransa","Hollanda","İtalya","İspanya","Rusya","Çin","Azerbaycan","Birleşik Arap Emirlikleri"],"il":{"Adana":["Aladağ","Ceyhan","Çukurova","Feke","İmamoğlu","Karaisalı","Karataş","Kozan","Pozantı","Saimbeyli","Sarıçam","Seyhan","Tufanbeyli","Yumurtalık","Yüreğir"],"Adıyaman":["Besni","Çelikhan","Gerger","Gölbaşı","Kahta","Merkez","Samsat","Sincik","Tut"],"Afyonkarahisar":["Başmakçı","Bayat","Bolvadin","Çay","Çobanlar","Dazkırı","Dinar","Emirdağ","Evciler","Hocalar","İhsaniye","İscehisar","Kızılören","Merkez","Sandıklı","Sinanpaşa","Sultandağı","Şuhut"],"Ağrı":["Diyadin","Doğubayazıt","Eleşkirt","Hamur","Merkez","Patnos","Taşlıçay","Tutak"],"Amasya":["Göynücek","Gümüşhacıköy","Hamamözü","Merkez","Merzifon","Suluova","Taşova"],"Ankara":["Akyurt","Altındağ","Ayaş","Bala","Beypazarı","Çamlıdere","Çankaya","Çubuk","Elmadağ","Etimesgut","Evren","Gölbaşı","Güdül","Haymana","Kahramankazan","Kalecik","Keçiören","Kızılcahamam","Mamak","Nallıhan","Polatlı","Pursaklar","Sincan","Şereflikoçhisar","Yenimahalle"],"Antalya":["Akseki","Aksu","Alanya","Demre","Döşemealtı","Elmalı","Finike","Gazipaşa","Gündoğmuş","İbradı","Kaş","Kemer","Kepez","Konyaaltı","Korkuteli","Kumluca","Manavgat","Muratpaşa","Serik"],"Artvin":["Ardanuç","Arhavi","Borçka","Hopa","Kemalpaşa","Merkez","Murgul","Şavşat","Yusufeli"],"Aydın":["Bozdoğan","Buharkent","Çine","Didim","Efeler","Germencik","İncirliova","Karacasu","Karpuzlu","Koçarlı","Köşk","Kuşadası","Kuyucak","Nazilli","Söke","Sultanhisar","Yenipazar"],"Balıkesir":["Altıeylül","Ayvalık","Balya","Bandırma","Bigadiç","Burhaniye","Dursunbey","Edremit","Erdek","Gömeç","Gönen","Havran","İvrindi","Karesi","Kepsut","Manyas","Marmara","Savaştepe","Sındırgı","Susurluk"],"Bilecik":["Bozüyük","Gölpazarı","İnhisar","Merkez","Osmaneli","Pazaryeri","Söğüt","Yenipazar"],"Bingöl":["Adaklı","Genç","Karlıova","Kiğı","Merkez","Solhan","Yayladere","Yedisu"],"Bitlis":["Adilcevaz","Ahlat","Güroymak","Hizan","Merkez","Mutki","Tatvan"],"Bolu":["Dörtdivan","Gerede","Göynük","Kıbrıscık","Mengen","Merkez","Mudurnu","Seben","Yeniçağa"],"Burdur":["Ağlasun","Altınyayla","Bucak","Çavdır","Çeltikçi","Gölhisar","Karamanlı","Kemer","Merkez","Tefenni","Yeşilova"],"Bursa":["Büyükorhan","Gemlik","Gürsu","Harmancık","İnegöl","İznik","Karacabey","Keles","Kestel","Mudanya","Mustafakemalpaşa","Nilüfer","Orhaneli","Orhangazi","Osmangazi","Yenişehir","Yıldırım"],"Çanakkale":["Ayvacık","Bayramiç","Biga","Bozcaada","Çan","Eceabat","Ezine","Gelibolu","Gökçeada","Lapseki","Merkez","Yenice"],"Çankırı":["Atkaracalar","Bayramören","Çerkeş","Eldivan","Ilgaz","Kızılırmak","Korgun","Kurşunlu","Merkez","Orta","Şabanözü","Yapraklı"],"Çorum":["Alaca","Bayat","Boğazkale","Dodurga","İskilip","Kargı","Laçin","Mecitözü","Merkez","Oğuzlar","Ortaköy","Osmancık","Sungurlu","Uğurludağ"],"Denizli":["Acıpayam","Babadağ","Baklan","Bekilli","Beyağaç","Bozkurt","Buldan","Çal","Çameli","Çardak","Çivril","Güney","Honaz","Kale","Merkezefendi","Pamukkale","Sarayköy","Serinhisar","Tavas"],"Diyarbakır":["Bağlar","Bismil","Çermik","Çınar","Çüngüş","Dicle","Eğil","Ergani","Hani","Hazro","Kayapınar","Kocaköy","Kulp","Lice","Silvan","Sur","Yenişehir"],"Edirne":["Enez","Havsa","İpsala","Keşan","Lalapaşa","Meriç","Merkez","Süloğlu","Uzunköprü"],"Elazığ":["Ağın","Alacakaya","Arıcak","Baskil","Karakoçan","Keban","Kovancılar","Maden","Merkez","Palu","Sivrice"],"Erzincan":["Çayırlı","İliç","Kemah","Kemaliye","Merkez","Otlukbeli","Refahiye","Tercan","Üzümlü"],"Erzurum":["Aşkale","Aziziye","Çat","Hınıs","Horasan","İspir","Karaçoban","Karayazı","Köprüköy","Narman","Oltu","Olur","Palandöken","Pasinler","Pazaryolu","Şenkaya","Tekman","Tortum","Uzundere","Yakutiye"],"Eskişehir":["Alpu","Beylikova","Çifteler","Günyüzü","Han","İnönü","Mahmudiye","Mihalgazi","Mihalıççık","Odunpazarı","Sarıcakaya","Seyitgazi","Sivrihisar","Tepebaşı"],"Gaziantep":["Araban","İslahiye","Karkamış","Nizip","Nurdağı","Oğuzeli","Şahinbey","Şehitkamil","Yavuzeli"],"Giresun":["Alucra","Bulancak","Çamoluk","Çanakçı","Dereli","Doğankent","Espiye","Eynesil","Görele","Güce","Keşap","Merkez","Piraziz","Şebinkarahisar","Tirebolu","Yağlıdere"],"Gümüşhane":["Kelkit","Köse","Kürtün","Merkez","Şiran","Torul"],"Hakkari":["Çukurca","Derecik","Merkez","Şemdinli","Yüksekova"],"Hatay":["Altınözü","Antakya","Arsuz","Belen","Defne","Dörtyol","Erzin","Hassa","İskenderun","Kırıkhan","Kumlu","Payas","Reyhanlı","Samandağ","Yayladağı"],"Isparta":["Aksu","Atabey","Eğirdir","Gelendost","Gönen","Keçiborlu","Merkez","Senirkent","Sütçüler","Şarkikaraağaç","Uluborlu","Yalvaç","Yenişarbademli"],"Mersin":["Akdeniz","Anamur","Aydıncık","Bozyazı","Çamlıyayla","Erdemli","Gülnar","Mezitli","Mut","Silifke","Tarsus","Toroslar","Yenişehir"],"İstanbul":["Adalar","Arnavutköy","Ataşehir","Avcılar","Bağcılar","Bahçelievler","Bakırköy","Başakşehir","Bayrampaşa","Beşiktaş","Beykoz","Beylikdüzü","Beyoğlu","Büyükçekmece","Çatalca","Çekmeköy","Esenler","Esenyurt","Eyüpsultan","Fatih","Gaziosmanpaşa","Güngören","Kadıköy","Kağıthane","Kartal","Küçükçekmece","Maltepe","Pendik","Sancaktepe","Sarıyer","Silivri","Sultanbeyli","Sultangazi","Şile","Şişli","Tuzla","Ümraniye","Üsküdar","Zeytinburnu"],"İzmir":["Aliağa","Balçova","Bayındır","Bayraklı","Bergama","Beydağ","Bornova","Buca","Çeşme","Çiğli","Dikili","Foça","Gaziemir","Güzelbahçe","Karabağlar","Karaburun","Karşıyaka","Kemalpaşa","Kınık","Kiraz","Konak","Menderes","Menemen","Narlıdere","Ödemiş","Seferihisar","Selçuk","Tire","Torbalı","Urla"],"Kars":["Akyaka","Arpaçay","Digor","Kağızman","Merkez","Sarıkamış","Selim","Susuz"],"Kastamonu":["Abana","Ağlı","Araç","Azdavay","Bozkurt","Cide","Çatalzeytin","Daday","Devrekani","Doğanyurt","Hanönü","İhsangazi","İnebolu","Küre","Merkez","Pınarbaşı","Seydiler","Şenpazar","Taşköprü","Tosya"],"Kayseri":["Akkışla","Bünyan","Develi","Felahiye","Hacılar","İncesu","Kocasinan","Melikgazi","Özvatan","Pınarbaşı","Sarıoğlan","Sarız","Talas","Tomarza","Yahyalı","Yeşilhisar"],"Kırklareli":["Babaeski","Demirköy","Kofçaz","Lüleburgaz","Merkez","Pehlivanköy","Pınarhisar","Vize"],"Kırşehir":["Akçakent","Akpınar","Boztepe","Çiçekdağı","Kaman","Merkez","Mucur"],"Kocaeli":["Başiskele","Çayırova","Darıca","Derince","Dilovası","Gebze","Gölcük","İzmit","Kandıra","Karamürsel","Kartepe","Körfez"],"Konya":["Ahırlı","Akören","Akşehir","Altınekin","Beyşehir","Bozkır","Cihanbeyli","Çeltik","Çumra","Derbent","Derebucak","Doğanhisar","Emirgazi","Ereğli","Güneysınır","Hadim","Halkapınar","Hüyük","Ilgın","Kadınhanı","Karapınar","Karatay","Kulu","Meram","Sarayönü","Selçuklu","Seydişehir","Taşkent","Tuzlukçu","Yalıhüyük","Yunak"],"Kütahya":["Altıntaş","Aslanapa","Çavdarhisar","Domaniç","Dumlupınar","Emet","Gediz","Hisarcık","Merkez","Pazarlar","Simav","Şaphane","Tavşanlı"],"Malatya":["Akçadağ","Arapgir","Arguvan","Battalgazi","Darende","Doğanşehir","Doğanyol","Hekimhan","Kale","Kuluncak","Pütürge","Yazıhan","Yeşilyurt"],"Manisa":["Ahmetli","Akhisar","Alaşehir","Demirci","Gölmarmara","Gördes","Kırkağaç","Köprübaşı","Kula","Salihli","Sarıgöl","Saruhanlı","Selendi","Soma","Şehzadeler","Turgutlu","Yunusemre"],"Kahramanmaraş":["Afşin","Andırın","Çağlayancerit","Dulkadiroğlu","Ekinözü","Elbistan","Göksun","Nurhak","Onikişubat","Pazarcık","Türkoğlu"],"Mardin":["Artuklu","Dargeçit","Derik","Kızıltepe","Mazıdağı","Midyat","Nusaybin","Ömerli","Savur","Yeşilli"],"Muğla":["Bodrum","Dalaman","Datça","Fethiye","Kavaklıdere","Köyceğiz","Marmaris","Menteşe","Milas","Ortaca","Seydikemer","Ula","Yatağan"],"Muş":["Bulanık","Hasköy","Korkut","Malazgirt","Merkez","Varto"],"Nevşehir":["Acıgöl","Avanos","Derinkuyu","Gülşehir","Hacıbektaş","Kozaklı","Merkez","Ürgüp"],"Niğde":["Altunhisar","Bor","Çamardı","Çiftlik","Merkez","Ulukışla"],"Ordu":["Akkuş","Altınordu","Aybastı","Çamaş","Çatalpınar","Çaybaşı","Fatsa","Gölköy","Gülyalı","Gürgentepe","İkizce","Kabadüz","Kabataş","Korgan","Kumru","Mesudiye","Perşembe","Ulubey","Ünye"],"Rize":["Ardeşen","Çamlıhemşin","Çayeli","Derepazarı","Fındıklı","Güneysu","Hemşin","İkizdere","İyidere","Kalkandere","Merkez","Pazar"],"Sakarya":["Adapazarı","Akyazı","Arifiye","Erenler","Ferizli","Geyve","Hendek","Karapürçek","Karasu","Kaynarca","Kocaali","Pamukova","Sapanca","Serdivan","Söğütlü","Taraklı"],"Samsun":["19 Mayıs","Alaçam","Asarcık","Atakum","Ayvacık","Bafra","Canik","Çarşamba","Havza","İlkadım","Kavak","Ladik","Salıpazarı","Tekkeköy","Terme","Vezirköprü","Yakakent"],"Siirt":["Baykan","Eruh","Kurtalan","Merkez","Pervari","Şirvan","Tillo"],"Sinop":["Ayancık","Boyabat","Dikmen","Durağan","Erfelek","Gerze","Merkez","Saraydüzü","Türkeli"],"Sivas":["Akıncılar","Altınyayla","Divriği","Doğanşar","Gemerek","Gölova","Gürün","Hafik","İmranlı","Kangal","Koyulhisar","Merkez","Suşehri","Şarkışla","Ulaş","Yıldızeli","Zara"],"Tekirdağ":["Çerkezköy","Çorlu","Ergene","Hayrabolu","Kapaklı","Malkara","Marmaraereğlisi","Muratlı","Saray","Süleymanpaşa","Şarköy"],"Tokat":["Almus","Artova","Başçiftlik","Erbaa","Merkez","Niksar","Pazar","Reşadiye","Sulusaray","Turhal","Yeşilyurt","Zile"],"Trabzon":["Akçaabat","Araklı","Arsin","Beşikdüzü","Çarşıbaşı","Çaykara","Dernekpazarı","Düzköy","Hayrat","Köprübaşı","Maçka","Of","Ortahisar","Sürmene","Şalpazarı","Tonya","Vakfıkebir","Yomra"],"Tunceli":["Çemişgezek","Hozat","Mazgirt","Merkez","Nazımiye","Ovacık","Pertek","Pülümür"],"Şanlıurfa":["Akçakale","Birecik","Bozova","Ceylanpınar","Eyyübiye","Halfeti","Haliliye","Harran","Hilvan","Karaköprü","Siverek","Suruç","Viranşehir"],"Uşak":["Banaz","Eşme","Karahallı","Merkez","Sivaslı","Ulubey"],"Van":["Bahçesaray","Başkale","Çaldıran","Çatak","Edremit","Erciş","Gevaş","Gürpınar","İpekyolu","Muradiye","Özalp","Saray","Tuşba"],"Yozgat":["Akdağmadeni","Aydıncık","Boğazlıyan","Çandır","Çayıralan","Çekerek","Kadışehri","Merkez","Saraykent","Sarıkaya","Sorgun","Şefaatli","Yenifakılı","Yerköy"],"Zonguldak":["Alaplı","Çaycuma","Devrek","Ereğli","Gökçebey","Kilimli","Kozlu","Merkez"],"Aksaray":["Ağaçören","Eskil","Gülağaç","Güzelyurt","Merkez","Ortaköy","Sarıyahşi","Sultanhanı"],"Bayburt":["Aydıntepe","Demirözü","Merkez"],"Karaman":["Ayrancı","Başyayla","Ermenek","Kazımkarabekir","Merkez","Sarıveliler"],"Kırıkkale":["Bahşılı","Balışeyh","Çelebi","Delice","Karakeçili","Keskin","Merkez","Sulakyurt","Yahşihan"],"Batman":["Beşiri","Gercüş","Hasankeyf","Kozluk","Merkez","Sason"],"Şırnak":["Beytüşşebap","Cizre","Güçlükonak","İdil","Merkez","Silopi","Uludere"],"Bartın":["Amasra","Kurucaşile","Merkez","Ulus"],"Ardahan":["Çıldır","Damal","Göle","Hanak","Merkez","Posof"],"Iğdır":["Aralık","Karakoyunlu","Merkez","Tuzluca"],"Yalova":["Altınova","Armutlu","Çınarcık","Çiftlikköy","Merkez","Termal"],"Karabük":["Eflani","Eskipazar","Merkez","Ovacık","Safranbolu","Yenice"],"Kilis":["Elbeyli","Merkez","Musabeyli","Polateli"],"Osmaniye":["Bahçe","Düziçi","Hasanbeyli","Kadirli","Merkez","Sumbas","Toprakkale"],"Düzce":["Akçakoca","Cumayeri","Çilimli","Gölyaka","Gümüşova","Kaynaşlı","Merkez","Yığılca"]}};
 
 /* ---------- ikonlar ---------- */
 const ICONS={
+  qr:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 20h2M20 14v2"/>',
   geri:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   ileri:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
   yenile:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
@@ -1813,13 +1820,13 @@ function kontrol(f, row, ck){
       const sabl=S.sablonlar.find(x=>x.id===row.tur);
       if(sabl&&!duz(row.metin)) row.metin=sablonDoldur(sabl, row.slot);
       else if(/\{\{[^}]+\}\}/.test(row.metin||'')) row.metin=sablonBoslukDoldur(row.metin, row.slot);
-      const bos=sabl?[...new Set([...String(row.metin||'').matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))]:[];
+      const bos=sabl?[...new Set([...String(row.metin||'').matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].filter(k=>!ozelBosluk(k)):[];
       const secenek=liste.some(x=>x.id===row.tur)||!sabl?liste:[...liste,sabl];
       const secici=secenek.length===1&&sabl
         ? `${ortak('tur',`<input type="hidden" value="${esc(sabl.id)}">`)}<span class="tag">${ic('sablon')} ${esc(sabl.ad)}</span>`
         : secenek.length?ortak('tur',`<select data-sablon-sec="1">${secOp(secenek.map(s=>[s.id,s.ad]), row.tur, 'Şablon seç…')}</select>`)
         : `<span class="zaman">Bu modüle bağlı şablon yok (Ayarlar → Şablonlar).</span>`;
-      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm pri" data-act="sablon-doldur" data-uid="${f.uid}" title="Metindeki {{alan}} boşluklarını formdaki güncel değerlerle doldurur; yazdıklarına dokunmaz">${ic('onay')}Formdan doldur</button><button type="button" class="btn sm" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu baştan yerleştirir (düzenlemeler gider)">${ic('yenile')}Baştan yükle</button>`:''}${bos.length?`<span class="zaman">Boş {{…}} alanlarına tıklayıp yaz</span>`:''}</div>${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}`;
+      return `<div class="rowbtns" style="flex-wrap:nowrap;align-items:center">${secici}${sabl?`<button type="button" class="btn sm pri" data-act="sablon-doldur" data-uid="${f.uid}" title="Metindeki {{alan}} boşluklarını formdaki güncel değerlerle doldurur; yazdıklarına dokunmaz">${ic('onay')}Formdan doldur</button><button type="button" class="btn sm" data-act="sablon-uygula" data-uid="${f.uid}" title="Şablonu baştan yerleştirir (düzenlemeler gider)">${ic('yenile')}Baştan yükle</button>`:''}${bos.length?`<span class="zaman">Boş {{…}} alanlarına tıklayıp yaz</span>`:''}</div>${ortak('metin',`<textarea class="zk-src" data-zmod="tam" placeholder="Şablon metni">${esc(row.metin)}</textarea>`)}${ck?'':disPanel(f,row)}`;
     }
   }
   return ortak('metin',`<input value="${esc(row.metin)}">`);
@@ -2359,7 +2366,7 @@ function sablonUygula(){
     if(!duz(r.metin)) return;   // kullanıcı metni bilerek boşalttı
     // metinde kalan boşluklardan değeri bilinenler kayıtta doldurulur
     const oto=sablonFormDegerleri();
-    r.metin=String(r.metin).replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(r.slot||{})[k]||oto[nrm(k)]; if(v) return esc(v); kalan.push(k); return t; });
+    r.metin=String(r.metin).replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(r.slot||{})[k]||oto[nrm(k)]; if(v) return esc(v); if(!ozelBosluk(k)) kalan.push(k); return t; });
   });
   return [...new Set(kalan)];
 }
@@ -2371,7 +2378,7 @@ function sablonEksikler(){
     if(r.fnTip!=='sablon') return;
     let metin=String(r.metin||'');
     if(!duz(metin)){ const L=sablonListe(formModulId()); const sb=S.sablonlar.find(x=>x.id===(r.tur||(L.length===1?L[0].id:''))); metin=sb?sb.metin:''; }
-    for(const m of metin.matchAll(/\{\{([^}]+)\}\}/g)){ const k=m[1].trim(); if(!(r.slot||{})[k]&&!oto[nrm(k)]) L.push(k); }
+    for(const m of metin.matchAll(/\{\{([^}]+)\}\}/g)){ const k=m[1].trim(); if(!ozelBosluk(k)&&!(r.slot||{})[k]&&!oto[nrm(k)]) L.push(k); }
   });
   return [...new Set(L)];
 }
@@ -2379,6 +2386,49 @@ function sablonEksikler(){
 function sablonBoslukDoldur(metin, slot){
   const oto=sablonFormDegerleri();
   return String(metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(slot||{})[k]||oto[nrm(k)]; return v?esc(v):t; });
+}
+// {{QR}} ve {{müşteri:…}}: dış onaya ait; formdan doldurulmaz, eksik sayılmaz
+const ozelBosluk=k=>/^\s*(qr|m(ü|u)ş?teri\s*:)/i.test(String(k));
+const zamanYaz=iso=>{ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); };
+const disUrl=a=>location.origin+'/onay.html#'+a;
+function disYukle(kid, zorla){
+  ui.dis=ui.dis||{}; ui.disYuk=ui.disYuk||{};
+  if(ui.disYuk[kid]&&!zorla) return;
+  ui.disYuk[kid]=true;
+  apiIstek('/dis-onay?kartId='+encodeURIComponent(kid)).then(L=>{ ui.dis[kid]=L; }).catch(e=>{ ui.dis[kid]=[]; toast(e.message); })
+    .finally(()=>{ if(ui.form?.id===kid&&!ui.eposta){ formDomOku(); renderDrawer(); } });
+}
+function disDurum(uid){
+  const L=(ui.dis?.[ui.form?.id]||[]).filter(x=>x.fnUid===uid);
+  return {L, aktif:L.find(x=>x.durum==='bekliyor'&&x.anahtar), yanit:L.find(x=>x.durum==='yanitlandi')};
+}
+function disOlustur(uid, saat){
+  formDomOku();
+  const r=ui.form.skaler[uid], kid=ui.form.id;
+  if(r&&!duz(r.metin)){ const L=sablonListe(formModulId()); if(!r.tur&&L.length===1) r.tur=L[0].id; const sb=S.sablonlar.find(x=>x.id===r.tur); if(sb) r.metin=sablonDoldur(sb, r.slot); }
+  const belge=sablonBoslukDoldur(r?.metin||'', r?.slot);
+  return apiIstek('/dis-onay',{method:'POST', govde:{kartId:kid, fnUid:uid, saat:saat||8, belge}}).then(x=>{
+    ui.dis=ui.dis||{}; const L=ui.dis[kid]=ui.dis[kid]||[];
+    L.forEach(y=>{ if(y.fnUid===uid&&y.durum==='bekliyor') y.durum='iptal'; }); L.unshift(x); return x;
+  });
+}
+function disPanel(f, row){
+  const metin=String(row.metin||'')+(S.sablonlar.find(x=>x.id===row.tur)?.metin||'');
+  if(!/\{\{\s*(qr|m(ü|u)ş?teri\s*:)/i.test(metin)) return '';
+  const kap=ic=>`<div class="dis-onay"><div class="do-bas">${ic_('qr')}<b>Dış onay (QR)</b></div>${ic}</div>`;
+  const ic_=ic;
+  if(!API.acik) return kap(`<p class="zaman">QR ile müşteri onayı sunucu sürümünde çalışır.</p>`);
+  const kid=ui.form?.id;
+  if(!kid||ui.form.tur!=='kart') return kap(`<p class="zaman">QR bağlantısı için önce kaydı kaydet.</p>`);
+  if(!ui.dis?.[kid]){ disYukle(kid); return kap(`<p class="zaman">Yükleniyor…</p>`); }
+  const {L, aktif, yanit}=disDurum(f.uid);
+  const sure=[1,4,8,24,72,168].map(h=>`<option value="${h}" ${h===8?'selected':''}>${h<24?h+' saat':h/24+' gün'}</option>`).join('');
+  const ak=aktif?`<div class="do-aktif"><img class="do-qr" src="${QR.dataUrl(disUrl(aktif.anahtar))}" alt="QR kod"><div class="do-bilgi"><span class="pill p-ok">Bağlantı etkin</span><span class="zaman">Son geçerlilik: <b>${esc(zamanYaz(aktif.son))}</b></span><span class="zaman">Müşteri ${aktif.alanlar.length?esc(aktif.alanlar.map(a=>a.ad).join(', '))+' alanlarını doldurur':'alan doldurmaz'}${aktif.onay?', onaylar ya da reddeder':''}${aktif.not?', not yazabilir':''}.</span><div class="rowbtns"><button type="button" class="btn sm" data-act="dis-kopya" data-url="${esc(disUrl(aktif.anahtar))}">${ic('kopya')}Bağlantıyı kopyala</button><a class="btn sm" href="${esc(disUrl(aktif.anahtar))}" target="_blank" rel="noopener noreferrer">Aç</a><button type="button" class="btn sm danger" data-act="dis-iptal" data-id="${esc(aktif.id)}">İptal et</button></div></div></div>`
+    :`<div class="rowbtns" style="align-items:center"><select class="mini" data-dis-saat="${f.uid}" aria-label="Geçerlilik süresi">${sure}</select><button type="button" class="btn sm pri" data-act="dis-olustur" data-uid="${f.uid}">${ic('qr')}${yanit?'Yeni QR oluştur':'QR oluştur'}</button><span class="zaman">Bağlantı şifresizdir; yalnız bu belgeyi gösterir ve bir kez yanıt alır.</span></div>`;
+  const y=yanit?.yanit;
+  const yn=yanit?`<div class="do-yanit"><div><span class="pill ${y.karar==='red'?'p-bad':'p-ok'}">${y.karar==='red'?'Müşteri reddetti':y.karar==='onay'?'Müşteri onayladı':'Müşteri yanıtladı'}</span> <span class="zaman">${esc(zamanYaz(yanit.yanitZaman))}</span></div>${Object.entries(y.alanlar||{}).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join('')}${Object.entries(y.imzalar||{}).map(([k,v])=>/^data:image\/png;base64,/.test(v)?`<div><b>${esc(k)}:</b><br><img class="do-imza" src="${v}" alt="${esc(k)}"></div>`:'').join('')}${y.notu?`<div><b>Not:</b> ${esc(y.notu)}</div>`:''}</div>`:'';
+  const eski=L.filter(x=>x!==aktif&&x!==yanit).length;
+  return kap(ak+yn+(eski?`<p class="zaman">${eski} eski bağlantı (süresi dolmuş / iptal).</p>`:''));
 }
 function eksikSoru(L, is){ return !L.length||confirm(`Şablonda doldurulmamış alan var: ${L.join(', ')}.\nBu alanlar boş ${is}. Devam edilsin mi?`); }
 // kayıt mesajı: dolmamış {{alan}} varsa uyarır (kayıt yine yapılır)
@@ -3077,7 +3127,7 @@ function cekmeceHTML(){
   if(c.tur==='sablon' && c.id==='yeni') return bas('Şablon','Yeni')+`<form class="form" id="ayarForm"><label>Ad<input name="ad" required></label><label>Metin<textarea class="zk-src" data-zmod="tam" name="metin" placeholder="Sayın {{yetkili}}"></textarea></label>${sablonModSecim(null,'mod')}<p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar.</p>${onay}</form>`;
   if(c.tur==='sablon'){
     const s=S.sablonlar.find(x=>x.id===c.id); if(!s) return bas('Şablon','');
-    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
+    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<div class="lbl">Dış onay (QR)<div class="secim"><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="onay" ${s.dis?.onay!==false?'checked':''}>Müşteri onaylayabilir / reddedebilir</label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="not" ${s.dis?.not!==false?'checked':''}>Müşteri not yazabilir</label></div></div><p class="zaman"><b>{{QR}}</b> yazdığın yere karekod basılır; okutan kişi şifresiz, süreli bağlantıyla belgeyi görür. <b>{{müşteri:Yetkili}}</b>, <b>{{müşteri:İmza}}</b> gibi alanları müşteri doldurur (adında "imza" geçen alan imza kutusu olur); yanıt kayda ve çıktıya işlenir.</p><p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
   }
   if(c.tur==='rfirma' && c.id==='yeni') return bas('Rehber','Yeni firma')+`<form class="form" id="ayarForm"><label>Firma adı<input name="ad" required></label><div class="two"><label>Telefon<input name="tel" type="tel"></label><label>E-posta<input name="eposta" type="email"></label></div>${onay}</form>`;
   if(c.tur==='rfirma'){
@@ -4342,24 +4392,41 @@ function ckKayitButon(mid, id){
   </div></span>`;
 }
 // Şablon alanının o anki metnini (formdaki değerlerle) yazdırır; dolmamış {{alan}} elle doldurmak için boş çizgi olur
-function sablonYazdir(uid, antet){
+function sablonYazdir(uid, antet, pencere){
   formDomOku();
   const f=fnBul(uid), r=ui.form?.skaler?.[uid];
   if(r&&!duz(r.metin)){   // alan henüz açılmadıysa şablon formdan doldurulur
     const L=sablonListe(formModulId()); if(!r.tur&&L.length===1) r.tur=L[0].id;
     const sb0=S.sablonlar.find(x=>x.id===r.tur); if(sb0) r.metin=sablonDoldur(sb0, r.slot);
   }
-  const oto=sablonFormDegerleri();
-  const govde=zTemiz(String(r?.metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ const v=(r?.slot||{})[k.trim()]||oto[nrm(k.trim())]; return v?esc(v):'<span class="sb-bos">&nbsp;</span>'; }));
+  // QR: etkin bağlantı yoksa oluşturup öyle yazdır (pencere önce açılır ki engellenmesin)
+  const {aktif, yanit}=disDurum(uid);
+  if(!pencere&&/\{\{\s*qr\s*\}\}/i.test(r?.metin||'')&&!aktif&&API.acik&&ui.form?.id&&ui.form.tur==='kart'){
+    if(confirm('Şablonda QR var ama etkin bağlantı yok. 8 saat geçerli bir bağlantı oluşturulup yazdırılsın mı?\n(İptal: QR olmadan yazdırır)')){
+      let w=null; try{ w=window.open('','_blank'); }catch(e){}
+      disOlustur(uid, 8).then(()=>{ sablonYazdir(uid, antet, w||'yok'); }).catch(e=>{ if(w) w.close(); toast(e.message); });
+      return;
+    }
+  }
+  const oto=sablonFormDegerleri(), ek=[], tut=h=>{ ek.push(h); return '§§'+(ek.length-1)+'§§'; };
+  const y=yanit?.yanit;
+  const govde=zTemiz(String(r?.metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{
+    k=k.trim();
+    if(/^qr$/i.test(k)) return aktif?tut(`<img class="sb-qr" src="${QR.dataUrl(disUrl(aktif.anahtar))}" alt="QR">`):'';
+    const mm=k.match(/^m(?:ü|u)ş?teri\s*:\s*(.+)$/i);
+    if(mm){ const ad=mm[1].trim(); if(y?.imzalar?.[ad]&&/^data:image\/png;base64,/.test(y.imzalar[ad])) return tut(`<img class="sb-imza" src="${y.imzalar[ad]}" alt="">`); if(y?.alanlar?.[ad]) return esc(y.alanlar[ad]); return '<span class="sb-bos">&nbsp;</span>'; }
+    const v=(r?.slot||{})[k]||oto[nrm(k)]; return v?esc(v):'<span class="sb-bos">&nbsp;</span>';
+  })).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'')
+    +(y&&(y.karar||y.notu)?`<p class="sb-yanit"><b>Müşteri yanıtı:</b> ${y.karar==='red'?'Reddedildi':y.karar==='onay'?'Onaylandı':'Yanıtlandı'} · ${esc(zamanYaz(yanit.yanitZaman))}${y.notu?' · Not: '+esc(y.notu):''}</p>`:'');
   if(!duz(govde)&&!/<(img|table)/i.test(govde)) return toast('Şablon alanı boş; önce şablonu doldur');
   const sb=S.sablonlar.find(x=>x.id===r?.tur);
   const ad=sb?.ad||f?.ad||'Şablon';
   const css=[...document.styleSheets].flatMap(ss=>{ try{ return [...ss.cssRules]; }catch(e){ return []; } }).map(x=>x.cssText).filter(t=>/\.kagit|\.ck-(sayfa|ust|alt|logo|firma|belge|icerik)/.test(t)&&!/^@media/.test(t)).join('\n');
   const ic=`<div class="sb-baski">${govde}</div>`;
   const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${esc(ad)} · ${esc(S.firma.ad)}</title><style>@page{size:A4;margin:12mm}html,body{margin:0;background:#fff;color:#111;font-family:Inter,Arial,sans-serif;font-size:13px}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}${css}
-.sb-baski{line-height:1.5}.sb-baski table{border-collapse:collapse;width:100%;margin:6px 0}.sb-baski td,.sb-baski th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}.sb-baski th{background:#f1f3f6}.sb-baski img{max-width:100%}.sb-baski h2{margin:0 0 10px}.sb-bos{display:inline-block;min-width:120px;border-bottom:1px dotted #555}
+.sb-baski{line-height:1.5}.sb-baski table{border-collapse:collapse;width:100%;margin:6px 0}.sb-baski td,.sb-baski th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}.sb-baski th{background:#f1f3f6}.sb-baski img{max-width:100%}.sb-baski h2{margin:0 0 10px}.sb-bos{display:inline-block;min-width:120px;border-bottom:1px dotted #555}.sb-qr{width:110px;height:110px}.sb-imza{max-height:80px;max-width:260px}.sb-yanit{margin-top:12px;font-size:12px;color:#333}
 .kagit.baski{box-shadow:none;margin:0;padding:0;width:auto;min-height:0}@media screen{.kagit.baski{max-width:210mm;margin:10mm auto}}</style></head><body><div class="kagit baski">${antet?ckSarmal({ad}, ic):ic}</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250)}<\/script></body></html>`;
-  let w=null; try{ w=window.open('','_blank'); }catch(e){}
+  let w=pencere&&pencere!=='yok'?pencere:null; if(!pencere){ try{ w=window.open('','_blank'); }catch(e){} }
   if(w&&w.document){ w.document.open(); w.document.write(html); w.document.close(); return; }
   const b=new Blob([html],{type:'text/html'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=ad+'.html'; a.click();
   toast('Açılır pencere engellendi; dosya indirildi, açıp yazdırabilirsin');
@@ -5177,6 +5244,7 @@ function bagla(){
     if(t.dataset.fnKanban){ const f=fnBul(t.dataset.fnKanban); if(f && f.tip!=='gecmis'){ f.kanban=t.checked; persist(); render(); } return; }
     if(t.dataset.fnPuan){ const f=fnBul(t.dataset.fnPuan); if(f&&f.tip==='puan'){ f.tarihVarsayilan=t.value==='10'?'10':''; persist(); render(); } return; }
     if(t.dataset.fnTarih){ const f=fnBul(t.dataset.fnTarih); if(f&&f.tip==='tarih'){ f.tarihVarsayilan=t.value==='bugun'?'bugun':''; persist(); } return; }
+    if(t.dataset.sablonDis){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonDis); if(s){ s.dis={...(s.dis||{}), [t.dataset.k]:t.checked}; persist(); } return; }
     if(t.dataset.sablonMod){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonMod); if(s){ s.moduller=[...document.querySelectorAll(`[data-sablon-mod="${s.id}"]:checked`)].map(x=>x.value); persist(); } return; }
     if(t.dataset.sablon){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablon); if(s){ s[t.dataset.alan]=t.value; persist(); } return; }
     if(t.dataset.rf){
@@ -5293,12 +5361,24 @@ function bagla(){
       case 'yanitla': formDomOku(); msgT(b.dataset.uid).yanit=b.dataset.id; renderDrawer(); { const ta=document.querySelector(`[data-mesaj-yaz="${b.dataset.uid}"]`); if(ta) ta.focus(); } return;
       case 'yanit-iptal': formDomOku(); msgT(b.dataset.uid).yanit=null; renderDrawer(); return;
       case 'ek-sil': formDomOku(); msgT(b.dataset.uid).ekler.splice(+b.dataset.j,1); renderDrawer(); return;
+      case 'dis-olustur': {
+        const sel=document.querySelector(`[data-dis-saat="${b.dataset.uid}"]`); const saat=+(sel?.value||8);
+        b.disabled=true;
+        disOlustur(b.dataset.uid, saat).then(()=>{ formDomOku(); renderDrawer(); toast('QR bağlantısı oluşturuldu; yazdırınca {{QR}} yerine basılır'); }).catch(e=>{ b.disabled=false; toast(e.message); });
+        return;
+      }
+      case 'dis-kopya': { const u=b.dataset.url; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast('Bağlantı kopyalandı'),()=>prompt('Bağlantı',u)); return; }
+      case 'dis-iptal': {
+        if(!confirm('QR bağlantısı iptal edilsin mi? Müşteri artık belgeyi açamaz.')) return;
+        apiIstek('/dis-onay/'+encodeURIComponent(b.dataset.id)+'/iptal',{method:'POST', govde:{}}).then(()=>{ const x=(ui.dis?.[ui.form?.id]||[]).find(y=>y.id===b.dataset.id); if(x) x.durum='iptal'; formDomOku(); renderDrawer(); toast('Bağlantı iptal edildi'); }).catch(e=>toast(e.message));
+        return;
+      }
       case 'sablon-doldur': {
         formDomOku();
         const r=ui.form.skaler[b.dataset.uid]; if(!r) return;
         const say=m=>[...String(m||'').matchAll(/\{\{[^}]+\}\}/g)].length;
         const once=say(r.metin); r.metin=sablonBoslukDoldur(r.metin, r.slot);
-        const dolan=once-say(r.metin), kalan=[...new Set([...String(r.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))];
+        const dolan=once-say(r.metin), kalan=[...new Set([...String(r.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].filter(k=>!ozelBosluk(k));
         renderDrawer();
         toast((dolan?dolan+' alan dolduruldu':'Formdan doldurulacak alan bulunamadı')+(kalan.length?' · formda değeri olmayan: '+kalan.join(', '):''), kalan.length?7000:0);
         return;

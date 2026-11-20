@@ -13,6 +13,7 @@ import durum from './routes/durum.js';
 import kayitlar from './routes/kayitlar.js';
 import ayar, { firmaRouter, kullaniciRouter } from './routes/ayar.js';
 import baglanti, { donusRouter } from './routes/baglanti.js';
+import { disYonetim, disGenel } from './routes/disOnay.js';
 
 const kok = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const app = express();
@@ -51,6 +52,8 @@ api.get('/firma-genel', firmaCoz, async (req, res) => {
   const f = json.oku(a?.deger, {});
   res.set('Cache-Control', 'no-store').json({ ad: f.ad || req.firma.ad, sub: req.firma.sub, logo: typeof f.logo === 'string' && f.logo.startsWith('data:image/') ? f.logo : '' });
 });
+// Dış onay (QR): şifresiz, süreli bağlantı — oturum ve CSRF yok; yalnız kendi anahtarının belgesine erişir
+api.use('/dis', firmaCoz, disGenel);
 api.use(firmaCoz, kimlik, csrfDenetle);
 api.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 api.use('/oturum', oturum);
@@ -60,6 +63,7 @@ api.use(meta);
 api.use(durum);
 api.use(kayitlar);
 api.use(baglanti);
+api.use(disYonetim);
 api.use('/ayar/firma', firmaRouter);
 api.use('/ayar/kullanicilar', kullaniciRouter);
 api.use('/ayar', ayar);

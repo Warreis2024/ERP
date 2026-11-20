@@ -1,0 +1,34 @@
+*{box-sizing:border-box}
+html,body{margin:0;background:#f3f5f9;color:#16203a;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.kok{max-width:860px;margin:0 auto;padding:16px 12px 48px;display:grid;gap:14px}
+.kart{background:#fff;border:1px solid #e2e6ef;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(20,30,60,.05)}
+.ust{display:flex;align-items:center;gap:12px}
+.ust img{width:44px;height:44px;object-fit:contain;border-radius:8px}
+.ust .harf{width:44px;height:44px;border-radius:8px;background:#d62b2b;color:#fff;display:grid;place-items:center;font-weight:800}
+.ust b{display:block;font-size:16px}
+.ust span{color:#66708a;font-size:13px}
+.sure{margin-left:auto;text-align:right;font-size:12px;color:#66708a}
+.sure b{display:block;font-size:14px;color:#16203a}
+h1{font-size:19px;margin:0 0 4px}
+.belge{width:100%;border:0;min-height:300px;display:block}
+.bilgi{font-size:13px;color:#66708a;margin:0}
+form{display:grid;gap:14px}
+label{display:grid;gap:5px;font-weight:600;font-size:14px}
+input[type=text],textarea{font:inherit;padding:10px 12px;border:1px solid #cdd3e0;border-radius:10px;background:#fff;width:100%}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid #2b62e3;outline-offset:1px}
+.imza{display:grid;gap:6px}
+.imza canvas{width:100%;height:180px;border:1px dashed #9aa3b8;border-radius:10px;background:#fff;touch-action:none}
+.imza button{justify-self:start}
+.karar{display:flex;gap:10px;flex-wrap:wrap}
+.karar label{flex:1;min-width:140px;display:flex;align-items:center;gap:8px;padding:12px;border:1px solid #cdd3e0;border-radius:10px;cursor:pointer;font-weight:600}
+.karar input{width:18px;height:18px}
+.karar label.onay:has(input:checked){border-color:#1f9d6b;background:#eaf8f1}
+.karar label.red:has(input:checked){border-color:#cf3640;background:#fdeeee}
+.btn{font:inherit;font-weight:700;border:1px solid #cdd3e0;background:#fff;border-radius:10px;padding:9px 14px;cursor:pointer}
+.btn.pri{background:#2b62e3;border-color:#2b62e3;color:#fff;padding:13px 18px;font-size:16px}
+.btn:disabled{opacity:.6;cursor:default}
+.hata{color:#cf3640;font-weight:600;margin:0}
+.sonuc{text-align:center;padding:30px 16px}
+.sonuc .ikon{font-size:44px;line-height:1}
+.yukleniyor{text-align:center;color:#66708a}
