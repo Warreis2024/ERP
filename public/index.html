@@ -275,6 +275,16 @@ fieldset.salt{border:0;padding:0;margin:0;min-width:0;display:grid;gap:5px}
 .renk-sec:hover,.renk-sec[aria-expanded=true]{border-color:var(--brand)}
 .palet-pop[hidden]{display:none!important}
 .yaz-menu{position:relative;display:inline-flex}
+.bl h4 .bl-duzen{margin-left:auto;width:28px;height:28px}.bl h4 .bl-duzen svg{width:15px;height:15px}.bl-kis{font-size:10px;font-weight:600;color:var(--muted,#7482a8);border:1px solid var(--line);border-radius:999px;padding:0 6px;margin-left:6px}
+.gr-pasta{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center}.gr-pasta svg{width:150px;height:150px}
+.gr-top{font-size:15px;font-weight:700;fill:var(--fg)}.gr-alt{font-size:10px;fill:var(--muted,#7482a8)}
+.gr-lej{display:grid;gap:5px;font-size:12.5px;min-width:0}.gr-lej div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 38px;gap:7px;align-items:center}.gr-lej i{width:10px;height:10px;border-radius:3px}.gr-lej span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gr-lej small{color:var(--muted,#7482a8);text-align:right}
+.gr-lej.yatay{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px}.gr-lej.yatay div{display:flex;gap:6px}
+.gr-sat{grid-template-columns:140px minmax(0,1fr) auto}.gr-sat>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr-svg{width:100%;max-width:760px;height:auto;display:block;margin:0 auto}.gr-sat b{white-space:nowrap}.gr-eksen{stroke:var(--line);stroke-width:1.5}.gr-izgara{stroke:var(--line);stroke-dasharray:3 4}.gr-etiket{font-size:11px;fill:var(--muted,#7482a8)}.gr-deger{font-size:11px;font-weight:600;fill:var(--fg)}
+.kpi b.ok{color:var(--ok)}.gr-kpi{cursor:default}
+.gr-onizle{border:1px dashed var(--line);border-radius:10px;padding:10px}
+@media(max-width:600px){.gr-pasta{grid-template-columns:1fr;justify-items:center}}
 #bildirimler{position:fixed;top:64px;right:16px;z-index:900;display:grid;gap:8px;width:min(360px,calc(100vw - 32px))}
 .bld{display:flex;gap:10px;align-items:flex-start;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.18);cursor:pointer;animation:bldGir .25s ease}
 .bld-ik svg{width:18px;height:18px;margin-top:2px}.bld-ic{display:grid;gap:2px;flex:1;font-size:13px;min-width:0}.bld-ic span{color:var(--muted,#66708a);overflow-wrap:anywhere}
@@ -1414,7 +1424,7 @@ function migrate(s){
   if(!s.depolar.length) s.depolar=varsayilanDepolar();
   varsayilanSablonlar().forEach(t=>{ const x=s.sablonlar.find(y=>y.id===t.id); if(!x) s.sablonlar.push(t); else if(!Array.isArray(x.moduller)) x.moduller=t.moduller.filter(id=>s.moduller.some(m=>m.id===id)); });
   if(!s.yetkiGruplari.length) s.yetkiGruplari=[{id:'g-yon',ad:'Yönetim'},{id:'g-genel',ad:'Genel'}];
-  s.kullanicilar.forEach(u=>{ u.yetki=u.yetki||{}; u.foto=u.foto||''; u.ek=u.ek||{}; u.gorunum=u.gorunum||{}; u.panoGizli=u.panoGizli||{}; if(u.aktif==null) u.aktif=true; u.eposta=u.eposta||''; if(!u.grup) u.grup=u.rol==='yonetici'?s.yetkiGruplari[0].id:(s.yetkiGruplari[1]||s.yetkiGruplari[0]).id; });
+  s.kullanicilar.forEach(u=>{ u.yetki=u.yetki||{}; u.foto=u.foto||''; u.ek=u.ek||{}; u.gorunum=u.gorunum||{}; u.panoGizli=u.panoGizli||{}; u.panoEk=u.panoEk||{}; if(u.aktif==null) u.aktif=true; u.eposta=u.eposta||''; if(!u.grup) u.grup=u.rol==='yonetici'?s.yetkiGruplari[0].id:(s.yetkiGruplari[1]||s.yetkiGruplari[0]).id; });
   const ortak=Array.isArray(s.durumlar)?s.durumlar:[];
   s.moduller.forEach(m=>{
     m.ikon=m.ikon||IKON[m.id]||'grid';
@@ -2770,7 +2780,8 @@ const BILESEN=[
   ['ozet','Özet sayılar','grid'],['teslim','Yaklaşan teslimler (kalan gün)','hedef'],['butce','Bütçe durumu','para'],
   ['atanan','Bana atanan işler','kisi'],['geciken','Gecikmeler','uyari'],['hareket','Son hareketler','gecmis'],
   ['firma','Son görüşmeye göre firmalar','bina'],['islem','İşlem görmeyen kayıtlar','saat'],['dagilim','Durum dağılımı','grafik'],
-  ['mesaj','Okunmamış mesajlar','mesaj'],['efor','Efor özeti','saat'],['dosya','Onay bekleyen dosyalar','dosya'],['stok','Stok durumu','kutu']
+  ['mesaj','Okunmamış mesajlar','mesaj'],['efor','Efor özeti','saat'],['dosya','Onay bekleyen dosyalar','dosya'],['stok','Stok durumu','kutu'],
+  ['grafik','Grafik rapor','grafik'],['kpi','KPI göstergeleri','hedef']
 ];
 const BLAD=Object.fromEntries(BILESEN.map(x=>[x[0],x[1]]));
 const BLIK=Object.fromEntries(BILESEN.map(x=>[x[0],x[2]]));
@@ -2799,11 +2810,195 @@ function kayitSatir(tur,o,sag){
   return `<tr class="clk" data-act="${tur==='proje'?'ac-proje':'ac-kart'}" data-id="${o.id}"><td><span class="code-tag">${esc(o.kod)}</span></td><td><b>${esc(ad)}</b><div class="zaman">${esc(alt)}</div></td><td><span class="badge-t" style="--c:${durum(o.durumId)?.renk||'#7482a8'}">${esc(durum(o.durumId)?.ad||'')}</span></td><td class="sag">${sag||''}</td></tr>`;
 }
 function tablo(satirlar, bos){ return satirlar.length?`<div class="tbl"><table><tbody>${satirlar.join('')}</tbody></table></div>`:`<p class="empty">${esc(bos||'Kayıt yok')}</p>`; }
-function bilesenHTML(b){
+/* ---------- grafik raporlar (pano bileşeni: pasta / çubuk / sütun / trend, KPI) ---------- */
+const GR_TUR=[['pasta','Pasta (halka)'],['cubuk','Yatay çubuk'],['sutun','Sütun'],['trend','Trend (aylık çizgi)']];
+const GR_DONEM=[['tum','Tüm zamanlar'],['1','Bu ay'],['3','Son 3 ay'],['6','Son 6 ay'],['12','Son 12 ay']];
+const GR_FILTRE=[['acik','Açık kayıtlar'],['hepsi','Tüm kayıtlar'],['kapali','Kapanmış kayıtlar']];
+const GR_RENK=['#2b62e3','#1f9d6b','#e07b1a','#cf3640','#7a5af0','#1497a8','#c98a12','#d4405b','#5b6b8c','#0e7490','#92a20a','#a855f7'];
+// Hazır raporlar: yeni bileşen eklerken tek tıkla seçilir; sonra her ayarı değiştirilebilir
+function grHazir(){
+  const ana=modul('ana'), butce=(ana?.fn||[]).find(f=>f.tip==='fiyat'), mali=S.moduller.find(m=>(m.fn||[]).some(f=>f.tip==='mali'));
+  const maliFn=mali?.fn.find(f=>f.tip==='mali');
+  return [
+    {k:'butce', ad:'Bütçe – kategoriye göre', tip:'grafik', grafik:'pasta', kaynak:'ana', grupla:'kategori', olcu:butce?'tutar:'+butce.uid:'adet', filtre:'hepsi', donem:'tum'},
+    {k:'isyuku', ad:'Personel iş yükü (açık işler)', tip:'grafik', grafik:'cubuk', kaynak:'*', grupla:'kisi', olcu:'adet', filtre:'acik', donem:'tum'},
+    {k:'kalan', ad:'Kalan işler – modüle göre', tip:'grafik', grafik:'pasta', kaynak:'*', grupla:'modul', olcu:'adet', filtre:'acik', donem:'tum'},
+    {k:'durum', ad:'İşler – duruma göre', tip:'grafik', grafik:'pasta', kaynak:S.moduller.find(m=>m.id==='is')?'is':'*', grupla:'durum', olcu:'adet', filtre:'hepsi', donem:'tum'},
+    {k:'efor', ad:'Efor – kişiye göre (bu ay)', tip:'grafik', grafik:'cubuk', kaynak:'*', grupla:'kisi', olcu:'efor', filtre:'hepsi', donem:'1'},
+    {k:'trend', ad:'Açılan / kapanan iş (6 ay)', tip:'grafik', grafik:'trend', kaynak:'*', seri:'ackap', olcu:'adet', filtre:'hepsi', donem:'6'},
+    ...(maliFn?[{k:'mali', ad:mali.ad+' – aylık tutar', tip:'grafik', grafik:'sutun', kaynak:mali.id, grupla:'ay', olcu:'tutar:'+maliFn.uid, filtre:'hepsi', donem:'12'}]:[]),
+    {k:'kpi', ad:'KPI: zamanında tamamlama', tip:'kpi', kaynak:'*', donem:'3'},
+  ];
+}
+const grAy=t=>String(t||'').slice(0,7);
+const grAyAd=a=>{ const [y,m]=a.split('-'); return new Date(+y, +m-1, 1).toLocaleDateString('tr-TR',{month:'short', year:'2-digit'}); };
+function grAylar(n){ const L=[], d=new Date(); d.setDate(1); for(let i=n-1;i>=0;i--){ const x=new Date(d.getFullYear(), d.getMonth()-i, 1); L.push(x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')); } return L; }
+function grDonemBas(donem){ if(!donem||donem==='tum') return ''; return grAylar(+donem)[0]+'-01'; }
+// kaydın kapanma zamanı: kapatan durum değişikliğinin günlüğü, yoksa son güncelleme
+function grKapanis(x){
+  if(!kapali(x.o.durumId)) return '';
+  const L=S.log.filter(l=>l.tip==='durum'&&(x.proje?(l.projeId===x.o.id&&!l.kartId):l.kartId===x.o.id)).sort((a,b)=>String(a.zaman).localeCompare(String(b.zaman)));
+  return (L.length?L[L.length-1].zaman:'')||x.o.guncelleme||x.o.olusturma||'';
+}
+const grTermin=x=>x.proje?projeTeslim(x.o):(x.o.tarih||'');
+function grKayitlar(b){
+  const mods=b.kaynak==='*'?S.moduller.filter(m=>m.acik&&m.tur!=='proje'&&yetki(m.id)!=='yok'):[modul(b.kaynak)].filter(m=>m&&yetki(m.id)!=='yok');
+  const L=[];
+  mods.forEach(m=>{
+    if(m.tur==='proje') pPro().forEach(p=>L.push({o:p, m, proje:true}));
+    else S.kartlar.filter(k=>k.modulId===m.id&&gorunurKart(k)&&PF(k.projeId)).forEach(k=>L.push({o:k, m}));
+  });
+  const f=b.filtre||'acik';
+  return L.filter(x=>f==='hepsi'||(f==='acik'?!kapali(x.o.durumId):kapali(x.o.durumId)));
+}
+function grDegerler(x){ return S.degerler.filter(d=>(x.proje?(d.projeId===x.o.id&&!d.kartId):d.kartId===x.o.id)&&gorunurDeger(d)); }
+const grTarih=x=>String(x.o.olusturma||x.o.tarih||'').slice(0,10);
+// ölçü satırları: [{v, t, kisi}]
+function grOlcu(x, b, D){
+  const o=b.olcu||'adet';
+  if(o==='adet') return [{v:1, t:grTarih(x)}];
+  if(o==='efor') return D.filter(d=>d.fnTip==='sure').map(d=>({v:sayiOku(d.adet), t:String(d.tarih||grTarih(x)).slice(0,10), kisi:d.kisi}));
+  if(o.startsWith('tutar:')){
+    const uid=o.slice(6);
+    return D.filter(d=>d.fnUid===uid).map(d=>({v:d.fnTip==='fiyat'?sayiOku(d.tutar):d.fnTip==='mali'?maliSatirTutar(d):sayiOku(d.adet), t:String(d.tarih||grTarih(x)).slice(0,10)}));
+  }
+  return [];
+}
+function grAnahtar(x, b, D){
+  const g=b.grupla||'durum';
+  if(g==='durum'){ const d=durum(x.o.durumId); return [{k:d?.ad||'—', renk:d?.renk}]; }
+  if(g==='modul') return [{k:x.m.ad, renk:x.m.renk}];
+  if(g==='proje') return [{k:x.proje?x.o.ad:(proje(x.o.projeId)?.ad||'—')}];
+  if(g==='kategori') return [{k:(x.proje?x.o:proje(x.o.projeId))?.kategori||'Kategorisiz'}];
+  if(g==='olusturan') return [{k:kisiAd(x.o.olusturan)||'—'}];
+  if(g==='kisi'){
+    const K=new Set(D.filter(d=>d.fnTip==='kisi'||d.fnTip==='ekip').map(d=>kisiAd(d.kisi)).filter(Boolean));
+    if(x.proje) (x.o.yonetici||[]).forEach(id=>K.add(kisiAd(id)));
+    return K.size?[...K].map(k=>({k})):[{k:'Atanmamış'}];
+  }
+  if(g.startsWith('fn:')){ const uid=g.slice(3); const V=[...new Set(D.filter(d=>d.fnUid===uid).map(d=>duz(ozet(d))).filter(Boolean))]; return V.length?V.map(k=>({k})):[{k:'Boş'}]; }
+  return [{k:'—'}];
+}
+// {etiket: {v, renk}} toplamı; trend için {aylar, seriler}
+function grVeri(b){
+  const bas=grDonemBas(b.donem), X=grKayitlar(b);
+  if(b.grafik==='trend'){
+    const aylar=grAylar(b.donem&&b.donem!=='tum'?Math.max(+b.donem,2):12);
+    if(b.seri==='ackap'){
+      const ac=aylar.map(()=>0), kp=aylar.map(()=>0);
+      grKayitlar({...b, filtre:'hepsi'}).forEach(x=>{ const i=aylar.indexOf(grAy(grTarih(x))); if(i>=0) ac[i]++; const j=aylar.indexOf(grAy(grKapanis(x))); if(j>=0) kp[j]++; });
+      return {aylar, seriler:[{ad:'Açılan', v:ac, renk:GR_RENK[0]},{ad:'Kapanan', v:kp, renk:GR_RENK[1]}]};
+    }
+    const v=aylar.map(()=>0);
+    X.forEach(x=>{ const D=grDegerler(x); grOlcu(x,b,D).forEach(r=>{ const i=aylar.indexOf(grAy(r.t)); if(i>=0) v[i]+=r.v; }); });
+    return {aylar, seriler:[{ad:grOlcuAd(b), v, renk:GR_RENK[0]}]};
+  }
+  const T=new Map();
+  X.forEach(x=>{
+    const D=grDegerler(x), A=grAnahtar(x,b,D);
+    grOlcu(x,b,D).forEach(r=>{
+      if(bas&&r.t&&r.t<bas) return;
+      const keys=b.grupla==='ay'?[{k:grAy(r.t)||'—'}]:(b.grupla==='kisi'&&r.kisi)?[{k:kisiAd(r.kisi)||'—'}]:A;
+      keys.forEach(a=>{ const e=T.get(a.k)||{k:a.k, v:0, renk:a.renk}; e.v+=r.v; T.set(a.k, e); });
+    });
+  });
+  let L=[...T.values()].filter(e=>e.v);
+  if(b.grupla==='ay') L.sort((a,b)=>a.k.localeCompare(b.k)).forEach(e=>{ if(/^\d{4}-\d{2}$/.test(e.k)) e.ad=grAyAd(e.k); });
+  else L.sort((a,b)=>b.v-a.v);
+  L.forEach((e,i)=>{ e.renk=e.renk||GR_RENK[i%GR_RENK.length]; e.ad=e.ad||e.k; });
+  return {L};
+}
+function grOlcuAd(b){ const o=b.olcu||'adet'; if(o==='adet') return 'Kayıt sayısı'; if(o==='efor') return 'Efor (saat)'; if(o.startsWith('tutar:')) return fnBul(o.slice(6))?.ad||'Tutar'; return o; }
+function grBicim(b, v){ const o=b.olcu||'adet'; if(o.startsWith('tutar:')) return paraYaz(v); if(o==='efor') return (Math.round(v*10)/10).toLocaleString('tr-TR')+' sa'; return Math.round(v).toLocaleString('tr-TR'); }
+
+function grPasta(b, L){
+  const top=L.reduce((a,e)=>a+e.v,0); if(!top) return '<p class="empty">Veri yok</p>';
+  let A=L.slice(0,8); if(L.length>8) A.push({ad:'Diğer', v:L.slice(8).reduce((a,e)=>a+e.v,0), renk:'#9aa3b8'});
+  const r=52, C=2*Math.PI*r; let ofs=0;
+  const yay=A.map(e=>{ const u=e.v/top*C; const s=`<circle r="${r}" cx="70" cy="70" fill="none" stroke="${esc(e.renk)}" stroke-width="22" stroke-dasharray="${u.toFixed(2)} ${(C-u).toFixed(2)}" stroke-dashoffset="${(-ofs).toFixed(2)}"><title>${esc(e.ad)}: ${esc(grBicim(b,e.v))}</title></circle>`; ofs+=u; return s; }).join('');
+  return `<div class="gr-pasta"><svg viewBox="0 0 140 140" role="img" aria-label="${esc(grOlcuAd(b))}"><g transform="rotate(-90 70 70)">${yay}</g><text x="70" y="66" text-anchor="middle" class="gr-top" style="font-size:${Math.max(9,Math.min(15,150/Math.max(4,grKisa(b,top).length)))}px">${esc(grKisa(b,top))}</text><text x="70" y="84" text-anchor="middle" class="gr-alt">toplam</text></svg>
+    <div class="gr-lej">${A.map(e=>`<div><i style="background:${esc(e.renk)}"></i><span>${esc(e.ad)}</span><b>${esc(grBicim(b,e.v))}</b><small>%${Math.round(e.v/top*100)}</small></div>`).join('')}</div></div>`;
+}
+function grCubuk(b, L){
+  if(!L.length) return '<p class="empty">Veri yok</p>';
+  const A=L.slice(0,12), mx=Math.max(...A.map(e=>e.v),1);
+  return `<div class="dag">${A.map(e=>`<div class="dag-sat gr-sat"><span title="${esc(e.ad)}">${esc(e.ad)}</span><span class="bar"><i style="width:${(e.v/mx*100).toFixed(1)}%;background:${esc(e.renk)}"></i></span><b>${esc(grBicim(b,e.v))}</b></div>`).join('')}</div>${L.length>12?`<p class="zaman">+${L.length-12} kalem daha</p>`:''}`;
+}
+function grSutun(b, L){
+  if(!L.length) return '<p class="empty">Veri yok</p>';
+  const A=L.slice(0,16), mx=Math.max(...A.map(e=>e.v),1), W=600, H=220, alt=36, ust=18, gw=W/A.length, bw=Math.min(46, gw*.62);
+  return `<svg class="gr-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(grOlcuAd(b))}"><line x1="0" y1="${H-alt}" x2="${W}" y2="${H-alt}" class="gr-eksen"/>${A.map((e,i)=>{ const h=(H-alt-ust)*e.v/mx, x=i*gw+(gw-bw)/2, y=H-alt-h; return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${esc(b.grupla==='ay'?GR_RENK[0]:e.renk)}"><title>${esc(e.ad)}: ${esc(grBicim(b,e.v))}</title></rect><text x="${(x+bw/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" class="gr-deger">${esc(grKisa(b,e.v))}</text><text x="${(x+bw/2).toFixed(1)}" y="${H-alt+16}" text-anchor="middle" class="gr-etiket">${esc(String(e.ad).slice(0,12))}</text>`; }).join('')}</svg>`;
+}
+const grKisa=(b,v)=>{ const a=Math.abs(v); return a>=1e6?(v/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn':a>=1e4?(v/1e3).toLocaleString('tr-TR',{maximumFractionDigits:0})+' B':grBicim(b,v).replace(' sa',''); };
+function grTrend(b, V){
+  const {aylar, seriler}=V, W=600, H=220, alt=30, ust=16, sol=40, n=aylar.length;
+  const mx=Math.max(1,...seriler.flatMap(s=>s.v)), x=i=>sol+(W-sol*2)*(n<2?0.5:i/(n-1)), y=v=>H-alt-(H-alt-ust)*v/mx;
+  if(!seriler.some(s=>s.v.some(Boolean))) return '<p class="empty">Bu dönemde veri yok</p>';
+  return `<svg class="gr-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Trend"><line x1="0" y1="${H-alt}" x2="${W}" y2="${H-alt}" class="gr-eksen"/>${[.5,1].map(k=>`<line x1="0" y1="${y(mx*k).toFixed(1)}" x2="${W}" y2="${y(mx*k).toFixed(1)}" class="gr-izgara"/><text x="2" y="${(y(mx*k)-3).toFixed(1)}" text-anchor="start" class="gr-etiket">${esc(grKisa(b,mx*k))}</text>`).join('')}
+    ${seriler.map(s=>`<polyline fill="none" stroke="${s.renk}" stroke-width="2.5" stroke-linejoin="round" points="${s.v.map((v,i)=>x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ')}"/>${s.v.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5" fill="${s.renk}"><title>${esc(s.ad)} · ${esc(grAyAd(aylar[i]))}: ${esc(grBicim(b,v))}</title></circle>`).join('')}`).join('')}
+    ${aylar.map((a,i)=>`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" class="gr-etiket">${esc(grAyAd(a))}</text>`).join('')}</svg>
+    ${seriler.length>1?`<div class="gr-lej yatay">${seriler.map(s=>`<div><i style="background:${s.renk}"></i><span>${esc(s.ad)}</span><b>${s.v.reduce((a,c)=>a+c,0)}</b></div>`).join('')}</div>`:''}`;
+}
+function grKpi(b){
+  const bas=grDonemBas(b.donem), bugun=new Date().toISOString().slice(0,10), buAy=bugun.slice(0,7);
+  const X=grKayitlar({...b, filtre:'hepsi'});
+  const acik=X.filter(x=>!kapali(x.o.durumId));
+  const gec=acik.filter(x=>{ const t=grTermin(x); return t&&t<bugun; });
+  const kap=X.map(x=>({x, k:grKapanis(x)})).filter(z=>z.k&&(!bas||z.k.slice(0,10)>=bas));
+  const terminli=kap.filter(z=>grTermin(z.x));
+  const zamaninda=terminli.filter(z=>z.k.slice(0,10)<=grTermin(z.x)).length;
+  const oran=terminli.length?Math.round(zamaninda/terminli.length*100):null;
+  const sure=kap.map(z=>{ const a=new Date(z.x.o.olusturma||z.x.o.tarih||z.k), c=new Date(z.k); return (c-a)/864e5; }).filter(g=>g>=0&&isFinite(g));
+  const ort=sure.length?Math.round(sure.reduce((a,c)=>a+c,0)/sure.length*10)/10:null;
+  const acilan=X.filter(x=>grAy(grTarih(x))===buAy).length, kapanan=X.filter(x=>grAy(grKapanis(x))===buAy).length;
+  const k=(ad,v,alt,cls)=>`<div class="kpi gr-kpi"><span>${ad}</span><b class="${cls||''}">${v}</b><small>${alt}</small></div>`;
+  return `<div class="kpis">${k('Zamanında tamamlama', oran==null?'—':'%'+oran, terminli.length?`${zamaninda}/${terminli.length} kayıt (terminli, ${GR_DONEM.find(d=>d[0]===(b.donem||'tum'))[1].toLowerCase()})`:'terminli kapanan kayıt yok', oran!=null&&oran<70?'bad':oran!=null&&oran>=90?'ok':'')}
+    ${k('Ortalama kapanma süresi', ort==null?'—':ort.toLocaleString('tr-TR')+' gün', sure.length+' kapanan kayıt')}
+    ${k('Açık / geciken', acik.length+' / '+gec.length, acik.length?'%'+Math.round(gec.length/acik.length*100)+' gecikmede':'açık kayıt yok', gec.length?'bad':'')}
+    ${k('Bu ay açılan / kapanan', acilan+' / '+kapanan, kapanan>=acilan?'birikim azalıyor':'birikim artıyor', kapanan>=acilan?'ok':'bad')}</div>`;
+}
+function grafikHTML(b){
+  if(b.tip==='kpi') return grKpi(b);
+  const V=grVeri(b);
+  if(b.grafik==='trend') return grTrend(b, V);
+  const ozet=`<p class="zaman">${esc(grOlcuAd(b))} · ${esc((GR_FILTRE.find(x=>x[0]===(b.filtre||'acik'))||[])[1]||'')}${b.donem&&b.donem!=='tum'?' · '+esc(GR_DONEM.find(x=>x[0]===b.donem)[1].toLowerCase()):''}</p>`;
+  return ozet+(b.grafik==='cubuk'?grCubuk(b,V.L):b.grafik==='sutun'?grSutun(b,V.L):grPasta(b,V.L));
+}
+// ayar alanları (bileşen çekmecesinde)
+function grAyarHTML(b, k){
+  const m=b.kaynak&&b.kaynak!=='*'?modul(b.kaynak):null;
+  const s=(alan, ad, L, v)=>`<label>${ad}<select data-bl="${k}" data-alan="${alan}">${secOp(L, v)}</select></label>`;
+  const kaynak=[['*','Tüm iş modülleri'], ...S.moduller.filter(x=>x.acik).map(x=>[x.id,x.ad])];
+  if(b.tip==='kpi') return `<div class="two">${s('kaynak','Kaynak',kaynak,b.kaynak||'*')}${s('donem','Dönem (tamamlama ve süre için)',GR_DONEM,b.donem||'3')}</div><p class="zaman">Zamanında tamamlama: kapanış tarihi termin/teslim tarihini geçmeyen kayıtların oranı. Ortalama kapanma: açılıştan kapatan duruma kadar geçen gün.</p>`;
+  const fnler=m?.fn||[];
+  const grup=[['durum','Durum'],...(b.kaynak==='*'?[['modul','Modül']]:[]),['proje','Proje'],['kategori','Proje kategorisi'],['kisi','Kişi (atanan / efor giren)'],['olusturan','Kaydı açan'],['ay','Ay'],
+    ...fnler.filter(f=>['tur','secim','firma','evet','etiket','light'].includes(f.tip)&&fnGorunur(f)).map(f=>['fn:'+f.uid, f.ad])];
+  const olcu=[['adet','Kayıt sayısı'],['efor','Efor (Süre/Efor saatleri)'],...fnler.filter(f=>['fiyat','mali','sayi','yuzde'].includes(f.tip)&&fnGorunur(f)).map(f=>['tutar:'+f.uid, f.ad+' (toplam)'])];
+  return `<div class="two">${s('grafik','Grafik türü',GR_TUR,b.grafik||'pasta')}${s('kaynak','Kaynak',kaynak,b.kaynak||'*')}</div>
+    <div class="two">${b.grafik==='trend'?s('seri','Çizgi',[['tek','Seçili ölçü'],['ackap','Açılan ve kapanan kayıt']],b.seri||'tek'):s('grupla','Grupla',grup,b.grupla||'durum')}${b.grafik==='trend'&&b.seri==='ackap'?'':s('olcu','Ölçü',olcu,b.olcu||'adet')}</div>
+    <div class="two">${s('filtre','Kayıtlar',GR_FILTRE,b.filtre||'acik')}${s('donem','Dönem',GR_DONEM,b.donem||'tum')}</div>
+    <p class="zaman">Kayıtlar yetkine göre süzülür; panonun proje süzgeci de uygulanır. Tutar ve efor, satırların kendi tarihine göre döneme girer.</p>`;
+}
+
+// pano bileşeni bul: "pano:uid" — panonun ortak bileşeni ya da kullanıcının kendi eklediği
+function yeniBilesen(tip){
+  if(tip.startsWith('hazir:')){ const h=grHazir().find(x=>x.k===tip.slice(6)); if(h){ const {k, ...o}=h; return {uid:nid('bl'), ...o, genis:o.grafik==='trend'||o.tip==='kpi'||o.grafik==='sutun'?'tam':'yarim'}; } }
+  if(tip==='grafik') return {uid:nid('bl'), tip, ad:BLAD[tip], grafik:'pasta', kaynak:'*', grupla:'durum', olcu:'adet', filtre:'acik', donem:'tum', genis:'yarim'};
+  if(tip==='kpi') return {uid:nid('bl'), tip, ad:BLAD[tip], kaynak:'*', donem:'3', genis:'tam'};
+  return {uid:nid('bl'), tip, ad:BLAD[tip], genis:['ozet','teslim','butce','dagilim'].includes(tip)?'tam':'yarim'};
+}
+function blBul(anahtar){
+  const [pid,uid]=String(anahtar).split(':'); const p=S.panolar.find(x=>x.id===pid);
+  const ortak=p?.bilesen?.find(x=>x.uid===uid); if(ortak) return {p, b:ortak, kisisel:false};
+  const kb=(ben().panoEk?.[pid]||[]).find(x=>x.uid===uid); return kb?{p, b:kb, kisisel:true}:null;
+}
+function bilesenHTML(b, pid){
   const u=ben();
-  const bas=`<h4>${ic(BLIK[b.tip])}${esc(b.ad||BLAD[b.tip])}</h4>`;
+  const duzen=pid&&(b._kisisel||u.rol==='yonetici')&&['grafik','kpi'].includes(b.tip)?`<button type="button" class="ibtn bl-duzen" data-act="bl-duzen" data-id="${esc(pid+':'+b.uid)}" title="Grafiği ayarla" aria-label="Grafiği ayarla">${ic('ayar')}</button>`:'';
+  const bas=`<h4>${ic(BLIK[b.tip])}${esc(b.ad||BLAD[b.tip])}${b._kisisel?'<small class="bl-kis">kişisel</small>':''}${duzen}</h4>`;
   let g='';
   switch(b.tip){
+    case 'grafik': case 'kpi': g=grafikHTML(b); break;
     case 'ozet': {
       const yuruyen=yetki('ana')!=='yok'?pPro().filter(p=>!p.arsiv&&!kapali(p.durumId)&&p.durumId!==akis('ana')[0]?.id).length:0;
       const atanan=acikKartlar().filter(atanmis);
@@ -2906,10 +3101,10 @@ function panoHTML(){
   const tarih=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric',weekday:'long'});
   const gizli=(u.panoGizli||{})[p.id]||[];
   const pr=projelerA().filter(x=>!x.arsiv||x.id===ui.panoProje);
-  const bl=(p.bilesen||[]).filter(b=>!gizli.includes(b.uid));
+  const bl=[...(p.bilesen||[]).filter(b=>!gizli.includes(b.uid)), ...((u.panoEk||{})[p.id]||[]).map(b=>({...b, _kisisel:true}))];
   return `<div class="phead"><span class="pic">${ic(p.ikon)}</span><div><h3>${esc(p.ad)}</h3><p>Merhaba ${esc(u.ad.split(' ')[0])}. Bugün ${esc(tarih)}.</p></div><div class="tools"><select id="panoProje" class="sel" aria-label="Proje filtresi">${secOp(pr.map(x=>[x.id,x.kod+' · '+x.ad]), ui.panoProje, 'Tüm projeler')}</select><button type="button" class="btn" data-act="pano-ozel" data-id="${p.id}" title="Bu panoda neyi göreceğini seç">${ic('katman')}Özelleştir</button>${u.rol==='yonetici'?`<button type="button" class="btn" data-act="pano-ayar" data-id="${p.id}">${ic('ayar')}Panoyu düzenle</button>`:''}</div></div>
     ${ui.panoProje?`<div class="note">${ic('filtre')} Yalnız <b>${esc(proje(ui.panoProje)?.ad||'')}</b> projesinin verisi gösteriliyor.</div>`:''}
-    <div class="pano-grid">${bl.map(bilesenHTML).join('')||'<p class="empty">Bu panoda gösterilecek bileşen yok. Özelleştir ile aç.</p>'}</div>`;
+    <div class="pano-grid">${bl.map(b=>bilesenHTML(b, p.id)).join('')||'<p class="empty">Bu panoda gösterilecek bileşen yok. Özelleştir ile aç.</p>'}</div>`;
 }
 
 /* ---------- gelen kutusu ve e-posta ---------- */
@@ -3083,7 +3278,11 @@ function cekmeceHTML(){
   if(c.tur==='panoKisi'){
     const p=S.panolar.find(x=>x.id===c.id); if(!p) return '';
     const g=(ben().panoGizli||{})[p.id]||[];
-    return bas('Panom',p.ad)+`<p class="zaman">Bu panoda göreceğin bileşenleri seç. Yalnız senin ekranını etkiler.</p><div class="liste">${(p.bilesen||[]).map(b=>`<label class="anahtar" style="width:auto"><input type="checkbox" data-pano-gizle="${p.id}:${b.uid}" ${g.includes(b.uid)?'':'checked'}><span>${ic(BLIK[b.tip])} ${esc(b.ad||BLAD[b.tip])}</span></label>`).join('')}</div>`;
+    const kb=(ben().panoEk||{})[p.id]||[];
+    return bas('Panom',p.ad)+`<p class="zaman">Bu panoda göreceğin bileşenleri seç. Yalnız senin ekranını etkiler.</p><div class="liste">${(p.bilesen||[]).map(b=>`<label class="anahtar" style="width:auto"><input type="checkbox" data-pano-gizle="${p.id}:${b.uid}" ${g.includes(b.uid)?'':'checked'}><span>${ic(BLIK[b.tip])} ${esc(b.ad||BLAD[b.tip])}</span></label>`).join('')}</div>
+      <h4 style="margin:14px 0 6px">Kendi grafiklerim</h4><p class="zaman">Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin.</p>
+      <div class="liste">${kb.map(b=>`<div class="fn-satir" data-act="bl-duzen" data-id="${esc(p.id+':'+b.uid)}" tabindex="0">${ic(BLIK[b.tip])}<div><span>${esc(b.ad||BLAD[b.tip])}</span></div></div>`).join('')||'<span class="zaman">Henüz yok</span>'}</div>
+      <div class="fn-ekle"><select id="blKisiSec" aria-label="Grafik"><optgroup label="Hazır raporlar">${grHazir().map(h=>`<option value="hazir:${h.k}">${esc(h.ad)}</option>`).join('')}</optgroup><optgroup label="Boş"><option value="grafik">Grafik rapor (kendim ayarlarım)</option><option value="kpi">KPI göstergeleri</option></optgroup></select><button type="button" class="btn pri" data-act="bl-kisi-ekle" data-id="${p.id}">${ic('arti')}Ekle</button></div>`;
   }
   if(c.tur==='depo' && c.id==='yeni') return bas('Depo','Yeni')+`<form class="form" id="ayarForm"><label>Depo adı<input name="ad" required></label>${onay}</form>`;
   if(c.tur==='depo'){
@@ -3190,7 +3389,7 @@ function cekmeceHTML(){
     const p=S.panolar.find(x=>x.id===c.id); if(!p) return bas('Pano','');
     const bl=(p.bilesen||[]).map(b=>`<div class="fn-satir ${ui.cekmece.bl===b.uid?'on':''}" draggable="true" data-sirala="bl" data-id="${b.uid}" data-act="sec" data-tur="bl" data-pano="${p.id}" tabindex="0">${ic(BLIK[b.tip])}<div><span>${esc(b.ad||BLAD[b.tip])}</span><b>${esc(BLAD[b.tip])} · ${b.genis==='tam'?'tam genişlik':'yarım'}</b></div></div>`).join('');
     return bas('Pano',p.ad)+`<form class="form"><label>Ad<input data-pano="${p.id}" value="${esc(p.ad)}"></label>${ikonSecici('pano',p.id,p.ikon)}<label><input type="checkbox" data-pano-acik="${p.id}" ${p.acik?'checked':''}> Sol menüde açık</label>
-      <div class="fn-ekle"><select id="blTipSec" aria-label="Bileşen">${BILESEN.map(([t,a])=>`<option value="${t}">${esc(a)}</option>`).join('')}</select><button type="button" class="btn pri" data-act="bl-ekle" data-id="${p.id}">${ic('arti')}Ekle</button></div>
+      <div class="fn-ekle"><select id="blTipSec" aria-label="Bileşen"><optgroup label="Bileşenler">${BILESEN.map(([t,a])=>`<option value="${t}">${esc(a)}</option>`).join('')}</optgroup><optgroup label="Hazır grafik raporlar">${grHazir().map(h=>`<option value="hazir:${h.k}">${esc(h.ad)}</option>`).join('')}</optgroup></select><button type="button" class="btn pri" data-act="bl-ekle" data-id="${p.id}">${ic('arti')}Ekle</button></div>
       <div class="lbl">Bileşenler<p class="zaman">Sırayı sürükle. Satıra tıklayınca ayarı açılır.</p><div class="fn-form">${bl||'<p class="zaman">Bileşen yok</p>'}</div></div>
       <div class="rowbtns"><button type="button" class="btn" data-act="pano-git" data-id="${p.id}">${ic('goz')}Panoyu aç</button>${S.panolar.length>1?`<button type="button" class="btn danger" data-act="pano-sil" data-id="${p.id}">${ic('sil')}Panoyu sil</button>`:''}</div></form>`;
   }
@@ -3235,11 +3434,13 @@ function cekmeceHTML(){
     return bas(k.ad+' · Sayfa',p.ad||KBAD[p.tip])+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="kiosk" data-id="${k.id}">${ic('sol')}Kioska dön</button><form class="form"><p class="zaman">${ic(KBIK[p.tip])} ${esc(KBAD[p.tip])}</p><label>Başlık<input data-ks="${key}" data-alan="ad" value="${esc(p.ad||'')}" placeholder="${esc(KBAD[p.tip])}"></label>${n('sure','Ekranda kalma süresi (sn)',20)}${ozel}${cb('atla','Gösterecek bir şey yoksa bu sayfayı atla')}<button type="button" class="btn danger" style="justify-self:start" data-act="ks-sil" data-id="${key}">${ic('sil')}Sayfayı kaldır</button></form>`;
   }
   if(c.tur==='bl'){
-    const p=S.panolar.find(x=>x.id===c.pano), b=p&&(p.bilesen||[]).find(x=>x.uid===c.id); if(!b) return bas('Bileşen','');
+    const bb=blBul(c.pano+':'+c.id); if(!bb) return bas('Bileşen','');
+    const p=bb.p, b=bb.b;
     const k=p.id+':'+b.uid;
+    const grAlan=['grafik','kpi'].includes(b.tip)?grAyarHTML(b,k):'';
     const gunAlan=['teslim','islem'].includes(b.tip)?`<label>${b.tip==='teslim'?'Kaç gün içinde teslim':'Kaç gündür hareketsiz'}<input type="number" min="1" data-bl="${k}" data-alan="gun" value="${esc(b.gun||(b.tip==='teslim'?30:14))}" style="max-width:120px"></label>`:'';
     const modAlan=b.tip==='firma'?`<div class="lbl">Görüşme sayılan modüller<div class="secim">${S.moduller.filter(m=>m.tur!=='proje').map(m=>`<label><input type="checkbox" data-bl-mod="${k}" value="${m.id}" ${(b.moduller||['crm','toplanti']).includes(m.id)?'checked':''}>${esc(m.ad)}</label>`).join('')}</div></div>`:'';
-    return bas(p.ad+' · Bileşen',b.ad||BLAD[b.tip])+`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="pano" data-id="${p.id}">${ic('sol')}Panoya dön</button><form class="form"><p class="zaman">${ic(BLIK[b.tip])} ${esc(BLAD[b.tip])}</p><label>Başlık<input data-bl="${k}" data-alan="ad" value="${esc(b.ad||'')}" placeholder="${esc(BLAD[b.tip])}"></label><label>Genişlik<select data-bl="${k}" data-alan="genis">${secOp([['yarim','Yarım'],['tam','Tam']], b.genis||'yarim')}</select></label>${gunAlan}${modAlan}<button type="button" class="btn danger" style="justify-self:start" data-act="bl-sil" data-id="${k}">${ic('sil')}Bileşeni kaldır</button></form>`;
+    return bas(p.ad+' · Bileşen',b.ad||BLAD[b.tip])+`${bb.kisisel?`<button type="button" class="btn sm" style="justify-self:start" data-act="pano-ozel" data-id="${p.id}">${ic('sol')}Panoma dön</button>`:`<button type="button" class="btn sm" style="justify-self:start" data-act="sec" data-tur="pano" data-id="${p.id}">${ic('sol')}Panoya dön</button>`}<form class="form"><p class="zaman">${ic(BLIK[b.tip])} ${esc(BLAD[b.tip])}${bb.kisisel?' · yalnız senin panonda':''}</p><label>Başlık<input data-bl="${k}" data-alan="ad" value="${esc(b.ad||'')}" placeholder="${esc(BLAD[b.tip])}"></label><label>Genişlik<select data-bl="${k}" data-alan="genis">${secOp([['yarim','Yarım'],['tam','Tam']], b.genis||'yarim')}</select></label>${gunAlan}${modAlan}${grAlan}${grAlan?`<div class="bl gr-onizle">${grafikHTML(b)}</div>`:''}<button type="button" class="btn danger" style="justify-self:start" data-act="bl-sil" data-id="${k}">${ic('sil')}Bileşeni kaldır</button></form>`;
   }
   return '';
 }
@@ -4896,7 +5097,7 @@ const AYAR_TABLO=[
 ];
 const KUL_ALAN=u=>({ad:u.ad, unvan:u.unvan||'', eposta:String(u.eposta||'').toLowerCase(), tel:u.tel||'', rol:u.rol, grup_id:u.grup||null, departman:u.departman||null, aktif:u.aktif!==false, foto:/^data:image\/(png|jpeg|webp);base64,/.test(u.foto||'')?u.foto:''});
 const KUL_YETKI=u=>{ const o={}; new Set([...Object.keys(u.yetki||{}), ...Object.keys(u.ek||{})]).forEach(m=>{ const y=(u.yetki||{})[m]||'yok', e=(u.ek||{})[m]||{}; if(y!=='yok') o[m]={yetki:y, onay:!!e.onay, disa:!!e.disa}; }); return o; };
-const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}}});
+const PROFIL=u=>({ad:u.ad, tel:u.tel||'', foto:u.foto||'', tercih:{gorunum:u.gorunum||{}, acilis:u.acilis||'pano', panoGizli:u.panoGizli||{}, panoEk:u.panoEk||{}}});
 const EPOSTA=u=>{ const h={...(u.epostaHesap||{tur:'yok'})}; ['bagli','zaman','sifre','sifreKayitli'].forEach(k=>delete h[k]); Object.keys(h).forEach(k=>{ if(k!=='tur'&&(h[k]===''||h[k]==null)) delete h[k]; }); h.tur=h.tur||'yok'; return h; };
 function iz(s){
   const dP=ayir(s.degerler.filter(d=>!d.kartId), d=>d.projeId), dK=ayir(s.degerler.filter(d=>d.kartId), d=>d.kartId);
@@ -5474,8 +5675,10 @@ function bagla(){
     if(t.dataset.pano){ const p=S.panolar.find(x=>x.id===t.dataset.pano); if(p){ p.ad=t.value.trim()||p.ad; persist(); render(); } return; }
     if(t.dataset.panoAcik){ const p=S.panolar.find(x=>x.id===t.dataset.panoAcik); if(p){ p.acik=t.checked; persist(); render(); } return; }
     if(t.dataset.bl){
-      const [pid,uid]=t.dataset.bl.split(':'); const b=S.panolar.find(x=>x.id===pid)?.bilesen.find(x=>x.uid===uid); if(!b) return;
-      const a=t.dataset.alan; b[a]=a==='gun'?Math.max(1,+t.value||1):t.value.trim(); persist(); render(); return;
+      const bb=blBul(t.dataset.bl); if(!bb) return; const b=bb.b;
+      const a=t.dataset.alan; b[a]=a==='gun'?Math.max(1,+t.value||1):t.value.trim();
+      if(a==='kaynak'){ if(String(b.grupla||'').startsWith('fn:')||(b.grupla==='modul'&&b.kaynak!=='*')) b.grupla='durum'; if(String(b.olcu||'').startsWith('tutar:')) b.olcu='adet'; }
+      persist(); render(); return;
     }
     if(t.dataset.kiosk){
       const k=S.kiosklar.find(x=>x.id===t.dataset.kiosk); if(!k) return;
@@ -5834,12 +6037,20 @@ function bagla(){
       case 'pano-sil': { if(!confirm('Pano silinsin mi? (Kayıtlar etkilenmez)')) return; S.panolar=S.panolar.filter(x=>x.id!==b.dataset.id); ui.cekmece=null; if(ui.panoId===b.dataset.id) ui.panoId=''; persist(); render(); return; }
       case 'bl-ekle': {
         const p=S.panolar.find(x=>x.id===b.dataset.id); const tip=$('#blTipSec')?.value; if(!p||!tip) return;
-        p.bilesen=p.bilesen||[]; p.bilesen.push({uid:nid('bl'), tip, ad:BLAD[tip], genis:['ozet','teslim','butce','dagilim'].includes(tip)?'tam':'yarim'});
+        p.bilesen=p.bilesen||[]; p.bilesen.push(yeniBilesen(tip));
         persist(); render(); return;
       }
+      case 'bl-duzen': { const [pid,uid]=b.dataset.id.split(':'); ui.form=null; ui.cekmece={tur:'bl', id:uid, pano:pid, bl:uid}; ui.scroll=true; renderDrawer(); return; }
+      case 'bl-kisi-ekle': {
+        const tip=$('#blKisiSec')?.value, pid=b.dataset.id; if(!tip) return;
+        const u=ben(); u.panoEk=u.panoEk||{}; const L=u.panoEk[pid]=u.panoEk[pid]||[];
+        if(L.length>=12) return toast('En fazla 12 kişisel bileşen');
+        const yb=yeniBilesen(tip); L.push(yb); persist(); ui.cekmece={tur:'bl', id:yb.uid, pano:pid, bl:yb.uid}; render(); return;
+      }
       case 'bl-sil': {
-        const [pid,uid]=b.dataset.id.split(':'); const p=S.panolar.find(x=>x.id===pid); if(!p) return;
-        p.bilesen=p.bilesen.filter(x=>x.uid!==uid); ui.cekmece={tur:'pano', id:pid, pano:pid}; persist(); render(); return;
+        const [pid,uid]=b.dataset.id.split(':'); const bb=blBul(b.dataset.id); if(!bb) return;
+        if(bb.kisisel){ const u=ben(); u.panoEk[pid]=(u.panoEk[pid]||[]).filter(x=>x.uid!==uid); ui.cekmece={tur:'panoKisi', id:pid}; persist(); render(); return; }
+        const p=bb.p; p.bilesen=p.bilesen.filter(x=>x.uid!==uid); ui.cekmece={tur:'pano', id:pid, pano:pid}; persist(); render(); return;
       }
       case 'migrasyon': if(API.acik) return toast('Sunucu modunda bu işlem yapılamaz'); migrasyonHepsine(); return;
       case 'firma-ekle': { if(API.acik) return toast('Sunucu modunda bu işlem yapılamaz');
