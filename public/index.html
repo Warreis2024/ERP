@@ -2409,6 +2409,8 @@ function disYanitIsle(row, yanit){
   if(yeni===row.metin) return false;
   row.metin=yeni; return true;
 }
+// Şablonda QR: tasarımdaki "QR kod ekle" seçeneği (eski yazım {{QR}} de tanınır)
+const sablonQr=(sb, metin)=>!!(sb?.dis?.qr)||/\{\{\s*qr\s*\}\}/i.test(String(metin||''));
 function disDurum(uid){
   const L=(ui.dis?.[ui.form?.id]||[]).filter(x=>x.fnUid===uid);
   return {L, aktif:L.find(x=>x.durum==='bekliyor'&&x.anahtar), yanit:L.find(x=>x.durum==='yanitlandi')};
@@ -2424,8 +2426,8 @@ function disOlustur(uid, saat){
   });
 }
 function disPanel(f, row){
-  const metin=String(row.metin||'')+(S.sablonlar.find(x=>x.id===row.tur)?.metin||'');
-  if(!/\{\{\s*qr\s*\}\}|\[\[[^\[\]]+\]\]|\{\{\s*m(ü|u)ş?teri\s*:/i.test(metin)) return '';
+  const sb0=S.sablonlar.find(x=>x.id===row.tur), metin=String(row.metin||'')+(sb0?.metin||'');
+  if(!sablonQr(sb0, metin)&&!/\[\[[^\[\]]+\]\]|\{\{\s*m(ü|u)ş?teri\s*:/i.test(metin)) return '';
   const kap=ic=>`<div class="dis-onay"><div class="do-bas">${ic_('qr')}<b>Dış onay (QR)</b></div>${ic}</div>`;
   const ic_=ic;
   if(!API.acik) return kap(`<p class="zaman">QR ile müşteri onayı sunucu sürümünde çalışır.</p>`);
@@ -3138,7 +3140,7 @@ function cekmeceHTML(){
   if(c.tur==='sablon' && c.id==='yeni') return bas('Şablon','Yeni')+`<form class="form" id="ayarForm"><label>Ad<input name="ad" required></label><label>Metin<textarea class="zk-src" data-zmod="tam" name="metin" placeholder="Sayın {{yetkili}}"></textarea></label>${sablonModSecim(null,'mod')}<p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar.</p>${onay}</form>`;
   if(c.tur==='sablon'){
     const s=S.sablonlar.find(x=>x.id===c.id); if(!s) return bas('Şablon','');
-    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<div class="lbl">Dış onay (QR)<div class="secim"><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="onay" ${s.dis?.onay!==false?'checked':''}>Müşteri onaylayabilir / reddedebilir</label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="not" ${s.dis?.not!==false?'checked':''}>Müşteri not yazabilir</label></div></div><p class="zaman"><b>{{QR}}</b> yazdığın yere karekod basılır; okutan kişi şifresiz, süreli bağlantıyla belgeyi görür. <b>[[Yetkili]]</b>, <b>[[İmza]]</b> gibi köşeli çift parantezli alanları müşteri doldurur (adında "imza" geçen alan imza kutusu olur); yanıt kayda ve çıktıya işlenir. <b>{{…}}</b> alanları ise formdan dolar.</p><p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
+    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<div class="lbl">Dış onay (QR)<div class="secim"><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="qr" ${s.dis?.qr?'checked':''}>QR kod ekle</label><label>Konum <select class="mini" data-sablon-dis-konum="${s.id}" ${s.dis?.qr?'':'disabled'}>${secOp([['sag-ust','Sağ üst'],['sag-alt','Sağ alt'],['sol-alt','Sol alt']], s.dis?.konum||'sag-ust')}</select></label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="onay" ${s.dis?.onay!==false?'checked':''}>Müşteri onaylayabilir / reddedebilir</label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="not" ${s.dis?.not!==false?'checked':''}>Müşteri not yazabilir</label></div></div><p class="zaman"><b>QR kod ekle</b> açıksa çıktıda seçtiğin köşeye karekod basılır; okutan kişi şifresiz, süreli bağlantıyla belgeyi görür. <b>[[Yetkili]]</b>, <b>[[İmza]]</b> gibi köşeli çift parantezli alanları müşteri doldurur (adında "imza" geçen alan imza kutusu olur); yanıt kayda ve çıktıya işlenir. <b>{{…}}</b> alanları ise formdan dolar.</p><p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
   }
   if(c.tur==='rfirma' && c.id==='yeni') return bas('Rehber','Yeni firma')+`<form class="form" id="ayarForm"><label>Firma adı<input name="ad" required></label><div class="two"><label>Telefon<input name="tel" type="tel"></label><label>E-posta<input name="eposta" type="email"></label></div>${onay}</form>`;
   if(c.tur==='rfirma'){
@@ -4414,7 +4416,8 @@ function sablonYazdir(uid, antet, pencere){
   }
   // QR: etkin bağlantı yoksa oluşturup öyle yazdır (pencere önce açılır ki engellenmesin)
   const {aktif, yanit}=disDurum(uid);
-  if(!pencere&&/\{\{\s*qr\s*\}\}/i.test(r?.metin||'')&&!aktif&&API.acik&&ui.form?.id&&ui.form.tur==='kart'){
+  const sbQ=S.sablonlar.find(x=>x.id===r?.tur), qrVar=sablonQr(sbQ, r?.metin), qrKonum=sbQ?.dis?.konum||'sag-ust';
+  if(!pencere&&qrVar&&!aktif&&API.acik&&ui.form?.id&&ui.form.tur==='kart'){
     if(confirm('Şablonda QR var ama etkin bağlantı yok. 8 saat geçerli bir bağlantı oluşturulup yazdırılsın mı?\n(İptal: QR olmadan yazdırır)')){
       let w=null; try{ w=window.open('','_blank'); }catch(e){}
       disOlustur(uid, 8).then(()=>{ sablonYazdir(uid, antet, w||'yok'); }).catch(e=>{ if(w) w.close(); toast(e.message); });
@@ -4431,15 +4434,17 @@ function sablonYazdir(uid, antet, pencere){
     const mm=k.match(/^m(?:ü|u)ş?teri\s*:\s*(.+)$/i);
     if(mm) return musteriDeger(mm[1].trim());
     const v=(r?.slot||{})[k]||oto[nrm(k)]; return v?esc(v):'<span class="sb-bos">&nbsp;</span>';
-  }).replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>musteriDeger(duz(ad).trim()))).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'')
+  }).replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>musteriDeger(duz(ad).trim()))).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'');
+  const qrKutu=qrVar&&aktif&&!/\{\{\s*qr\s*\}\}/i.test(r?.metin||'')?`<div class="sb-qrkutu ${qrKonum}"><img class="sb-qr" src="${QR.dataUrl(disUrl(aktif.anahtar))}" alt="QR"><span>Okutarak görüntüleyin / onaylayın</span></div>`:'';
+  const govdeQr=(qrKonum==='sag-ust'?qrKutu:'')+govde+(qrKonum!=='sag-ust'?qrKutu:'')
     +(y&&(y.karar||y.notu)?`<p class="sb-yanit"><b>Müşteri yanıtı:</b> ${y.karar==='red'?'Reddedildi':y.karar==='onay'?'Onaylandı':'Yanıtlandı'} · ${esc(zamanYaz(yanit.yanitZaman))}${yanit.yanitIp?' · IP: '+esc(yanit.yanitIp):''}${y.notu?' · Not: '+esc(y.notu):''}</p>`:'');
   if(!duz(govde)&&!/<(img|table)/i.test(govde)) return toast('Şablon alanı boş; önce şablonu doldur');
   const sb=S.sablonlar.find(x=>x.id===r?.tur);
   const ad=sb?.ad||f?.ad||'Şablon';
   const css=[...document.styleSheets].flatMap(ss=>{ try{ return [...ss.cssRules]; }catch(e){ return []; } }).map(x=>x.cssText).filter(t=>/\.kagit|\.ck-(sayfa|ust|alt|logo|firma|belge|icerik)/.test(t)&&!/^@media/.test(t)).join('\n');
-  const ic=`<div class="sb-baski">${govde}</div>`;
+  const ic=`<div class="sb-baski">${govdeQr}</div>`;
   const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>${esc(ad)} · ${esc(S.firma.ad)}</title><style>@page{size:A4;margin:12mm}html,body{margin:0;background:#fff;color:#111;font-family:Inter,Arial,sans-serif;font-size:13px}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}${css}
-.sb-baski{line-height:1.5}.sb-baski table{border-collapse:collapse;width:100%;margin:6px 0}.sb-baski td,.sb-baski th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}.sb-baski th{background:#f1f3f6}.sb-baski img{max-width:100%}.sb-baski h2{margin:0 0 10px}.sb-bos{display:inline-block;min-width:120px;border-bottom:1px dotted #555}.sb-qr{width:110px;height:110px}.sb-imza{max-height:80px;max-width:260px}.sb-yanit{margin-top:12px;font-size:12px;color:#333}
+.sb-baski{line-height:1.5}.sb-baski table{border-collapse:collapse;width:100%;margin:6px 0}.sb-baski td,.sb-baski th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}.sb-baski th{background:#f1f3f6}.sb-baski img{max-width:100%}.sb-baski h2{margin:0 0 10px}.sb-bos{display:inline-block;min-width:120px;border-bottom:1px dotted #555}.sb-qr{width:110px;height:110px}.sb-qrkutu{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#555;width:120px;text-align:center}.sb-qrkutu.sag-ust{float:right;margin:0 0 8px 12px}.sb-qrkutu.sag-alt{margin:12px 0 0 auto}.sb-qrkutu.sol-alt{margin:12px auto 0 0}.sb-imza{max-height:80px;max-width:260px}.sb-yanit{margin-top:12px;font-size:12px;color:#333}
 .kagit.baski{box-shadow:none;margin:0;padding:0;width:auto;min-height:0}@media screen{.kagit.baski{max-width:210mm;margin:10mm auto}}</style></head><body><div class="kagit baski">${antet?ckSarmal({ad}, ic):ic}</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250)}<\/script></body></html>`;
   let w=pencere&&pencere!=='yok'?pencere:null; if(!pencere){ try{ w=window.open('','_blank'); }catch(e){} }
   if(w&&w.document){ w.document.open(); w.document.write(html); w.document.close(); return; }
@@ -5259,7 +5264,8 @@ function bagla(){
     if(t.dataset.fnKanban){ const f=fnBul(t.dataset.fnKanban); if(f && f.tip!=='gecmis'){ f.kanban=t.checked; persist(); render(); } return; }
     if(t.dataset.fnPuan){ const f=fnBul(t.dataset.fnPuan); if(f&&f.tip==='puan'){ f.tarihVarsayilan=t.value==='10'?'10':''; persist(); render(); } return; }
     if(t.dataset.fnTarih){ const f=fnBul(t.dataset.fnTarih); if(f&&f.tip==='tarih'){ f.tarihVarsayilan=t.value==='bugun'?'bugun':''; persist(); } return; }
-    if(t.dataset.sablonDis){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonDis); if(s){ s.dis={...(s.dis||{}), [t.dataset.k]:t.checked}; persist(); } return; }
+    if(t.dataset.sablonDis){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonDis); if(s){ s.dis={...(s.dis||{}), [t.dataset.k]:t.checked}; persist(); if(t.dataset.k==='qr') renderDrawer(); } return; }
+    if(t.dataset.sablonDisKonum){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonDisKonum); if(s){ s.dis={...(s.dis||{}), konum:t.value}; persist(); } return; }
     if(t.dataset.sablonMod){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablonMod); if(s){ s.moduller=[...document.querySelectorAll(`[data-sablon-mod="${s.id}"]:checked`)].map(x=>x.value); persist(); } return; }
     if(t.dataset.sablon){ const s=S.sablonlar.find(x=>x.id===t.dataset.sablon); if(s){ s[t.dataset.alan]=t.value; persist(); } return; }
     if(t.dataset.rf){
