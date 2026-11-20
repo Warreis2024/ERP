@@ -64,3 +64,21 @@ Ayrıntı: [docs/KURULUM.md](docs/KURULUM.md).
 - [x] Kullanıcının kendi hesabıyla gönderim (Profilim → E-posta hesabım → SMTP → Test et ve kaydet); şifre kullanıcıya özel kasada. Firma ayarında "Kullanıcılar kendi e-posta hesabını bağlayabilir" açık olmalı. Öncelik: kendi hesabı → firma hesabı → e-posta programı.
 - [ ] Gelen e-postalar (IMAP); Google/Microsoft hesabıyla doğrudan (OAuth) kişisel gönderim.
 - [ ] Kiosk, çıktı formu, gelen kutusu, e-posta uçları
+- [x] Çoklu dil (Türkçe / English / Deutsch / Español)
+- [x] Mobil uygulama (PWA, `/m/`): QR ile şifresiz eşleme, bildirim, mesaj, hızlı not, sesli not, dikte, fotoğraf/video
+- [ ] Mobil: ayrı Android APK dosyası (şimdilik Chrome "Yükle" ile WebAPK); AI özellikleri
+
+## Yapılacaklar — düşünceler (analiz edilecek)
+
+Henüz karar verilmedi; üzerinde konuşulup kapsamı netleştirilecek.
+
+- [ ] **Misafir / müşteri kullanıcı:** dışarıdan gelen, sınırlı erişimli kullanıcı. Giriş Gmail ya da Microsoft hesabıyla veya geçici şifreyle.
+- [ ] **Dış müşteri formları:** antet formu gibi, dışarıdaki müşterinin dolduracağı formlar oluşturma.
+- [ ] **Alan / fonksiyon kilidi:** bazı alan ve fonksiyonları kaydı açan ve yönetici dışında kimse değiştiremesin (yetki ayarı).
+- [ ] **Ticket:** gelen e-postadan AI ile ticket açılması ve takibi (ticket fonksiyonu).
+- [ ] **Üretim süreçleri:** basit iş emri ve efor (başladım, bitti, mola, izin); malzeme kullanımı, sarf, fire, saat takibi.
+- [ ] **İş emri aktarımı:** iş tamamlandıkça bir iş emrinden diğerine, kişiden kişiye transfer.
+- [ ] **Yetkiye bağlı durum değişimi:** örneğin kaydı müşteri açtıysa onu müşteri kapatır.
+- [ ] **Formdan forma iş akışı:** örneğin servis formu → teknik hizmet → fatura.
+- [ ] **Onay sistemi:** tutar, form, durum ya da yetki baremine göre kaydın ilgili yetkiliye onaya gitmesi.
+- [ ] **Performans ölçeği:** adam/saate göre performans.
