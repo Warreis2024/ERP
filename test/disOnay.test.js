@@ -12,9 +12,9 @@ test('anahtar 256 bit, base64url; özet sabit uzunlukta ve geri çevrilemez', ()
 });
 
 test('şablondan müşteri alanları: etiket ve varlıklar temizlenir, imza tanınır, tekrar atılır', () => {
-  const html = '<p>{{müşteri:Yetkili}}</p><td>{{<b>Proje</b>}}</td><p>{{Müşteri:Yetkili}} {{musteri:İmza}} {{müşteri: Not &amp; açıklama }}</p>{{QR}}';
+  const html = '<p>[[Yetkili]]</p><td>{{<b>Proje</b>}}</td><p>[[ <b>Yetkili</b> ]] {{musteri:İmza}} [[ Not &amp; açıklama ]]</p>{{QR}} [[Signature]]';
   assert.deepEqual(musteriAlanlari(html), [
-    { ad: 'Yetkili', tip: 'metin' }, { ad: 'İmza', tip: 'imza' }, { ad: 'Not & açıklama', tip: 'metin' },
+    { ad: 'Yetkili', tip: 'metin' }, { ad: 'İmza', tip: 'imza' }, { ad: 'Not & açıklama', tip: 'metin' }, { ad: 'Signature', tip: 'imza' },
   ]);
   assert.deepEqual(musteriAlanlari('{{Proje}} {{QR}}'), []);
 });

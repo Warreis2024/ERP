@@ -15,14 +15,15 @@ const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'", nbsp
 const varlikCoz = (s) => s.replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (_, k) => ENT[k]);
 const kucuk = (s) => s.toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
 
-// {{müşteri:Ad}} / {{musteri:Ad}} → [{ad, tip}] (imza adı geçen alan imza kutusu olur)
+// [[Ad]] (dilden bağımsız; eski yazım {{müşteri:Ad}} de tanınır) → [{ad, tip}] (adında imza geçen alan imza kutusu olur)
+export const MUSTERI_RE = /\[\[\s*([^\[\]]+?)\s*\]\]|\{\{\s*m(?:ü|u)ş?s?teri\s*:\s*([^{}]+?)\s*\}\}/giu;
 export function musteriAlanlari(html) {
   const L = [];
   const metin = varlikCoz(String(html || '').replace(/<[^>]*>/g, ''));
-  for (const m of metin.matchAll(/\{\{\s*m(?:ü|u)ş?s?teri\s*:\s*([^{}]+?)\s*\}\}/giu)) {
-    const ad = m[1].replace(/\s+/g, ' ').trim().slice(0, SINIR.alanAd);
+  for (const m of metin.matchAll(MUSTERI_RE)) {
+    const ad = (m[1] || m[2]).replace(/\s+/g, ' ').trim().slice(0, SINIR.alanAd);
     if (!ad || L.some((x) => x.ad === ad)) continue;
-    L.push({ ad, tip: kucuk(ad).includes('imza') ? 'imza' : 'metin' });
+    L.push({ ad, tip: /imza|signature|unterschrift|firma\b/.test(kucuk(ad)) ? 'imza' : 'metin' });
     if (L.length >= SINIR.alanSayisi) break;
   }
   return L;

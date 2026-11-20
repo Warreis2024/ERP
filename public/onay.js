@@ -28,7 +28,7 @@
   function belgeHtml(v) {
     let h = String(v.belge || '');
     h = h.replace(/\{\{\s*QR\s*\}\}/gi, '');
-    h = h.replace(/\{\{\s*m(?:ü|u)şteri\s*:\s*([^{}]+?)\s*\}\}/giu, (_, ad) => `<mark>${ad.replace(/<[^>]*>/g, '')} ↓</mark>`);
+    h = h.replace(/\[\[\s*([^\[\]]+?)\s*\]\]|\{\{\s*m(?:ü|u)ş?teri\s*:\s*([^{}]+?)\s*\}\}/giu, (_, a, b) => `<mark>${(a || b).replace(/<[^>]*>/g, '')} ↓</mark>`);
     h = h.replace(/\{\{[^{}]*\}\}/g, '');
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       body{margin:0;font:14px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#16203a;overflow-wrap:anywhere}

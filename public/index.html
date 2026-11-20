@@ -2387,7 +2387,7 @@ function sablonBoslukDoldur(metin, slot){
   const oto=sablonFormDegerleri();
   return String(metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{ k=k.trim(); const v=(slot||{})[k]||oto[nrm(k)]; return v?esc(v):t; });
 }
-// {{QR}} ve {{müşteri:…}}: dış onaya ait; formdan doldurulmaz, eksik sayılmaz
+// {{QR}} ve [[Alan]] (eski: {{müşteri:…}}): dış onaya ait; formdan doldurulmaz, eksik sayılmaz
 const ozelBosluk=k=>/^\s*(qr|m(ü|u)ş?teri\s*:)/i.test(String(k));
 const zamanYaz=iso=>{ const d=new Date(iso); return isNaN(d)?'':d.toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); };
 const disUrl=a=>location.origin+'/onay.html#'+a;
@@ -2414,7 +2414,7 @@ function disOlustur(uid, saat){
 }
 function disPanel(f, row){
   const metin=String(row.metin||'')+(S.sablonlar.find(x=>x.id===row.tur)?.metin||'');
-  if(!/\{\{\s*(qr|m(ü|u)ş?teri\s*:)/i.test(metin)) return '';
+  if(!/\{\{\s*qr\s*\}\}|\[\[[^\[\]]+\]\]|\{\{\s*m(ü|u)ş?teri\s*:/i.test(metin)) return '';
   const kap=ic=>`<div class="dis-onay"><div class="do-bas">${ic_('qr')}<b>Dış onay (QR)</b></div>${ic}</div>`;
   const ic_=ic;
   if(!API.acik) return kap(`<p class="zaman">QR ile müşteri onayı sunucu sürümünde çalışır.</p>`);
@@ -3127,7 +3127,7 @@ function cekmeceHTML(){
   if(c.tur==='sablon' && c.id==='yeni') return bas('Şablon','Yeni')+`<form class="form" id="ayarForm"><label>Ad<input name="ad" required></label><label>Metin<textarea class="zk-src" data-zmod="tam" name="metin" placeholder="Sayın {{yetkili}}"></textarea></label>${sablonModSecim(null,'mod')}<p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar.</p>${onay}</form>`;
   if(c.tur==='sablon'){
     const s=S.sablonlar.find(x=>x.id===c.id); if(!s) return bas('Şablon','');
-    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<div class="lbl">Dış onay (QR)<div class="secim"><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="onay" ${s.dis?.onay!==false?'checked':''}>Müşteri onaylayabilir / reddedebilir</label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="not" ${s.dis?.not!==false?'checked':''}>Müşteri not yazabilir</label></div></div><p class="zaman"><b>{{QR}}</b> yazdığın yere karekod basılır; okutan kişi şifresiz, süreli bağlantıyla belgeyi görür. <b>{{müşteri:Yetkili}}</b>, <b>{{müşteri:İmza}}</b> gibi alanları müşteri doldurur (adında "imza" geçen alan imza kutusu olur); yanıt kayda ve çıktıya işlenir.</p><p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
+    return bas('Şablon',s.ad)+`<form class="form"><label>Ad<input data-sablon="${s.id}" data-alan="ad" value="${esc(s.ad)}"></label><label>Metin<textarea class="zk-src" data-zmod="tam" data-sablon="${s.id}" data-alan="metin" placeholder="Sayın {{yetkili}}">${esc(s.metin)}</textarea></label>${sablonModSecim(s)}<div class="lbl">Dış onay (QR)<div class="secim"><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="onay" ${s.dis?.onay!==false?'checked':''}>Müşteri onaylayabilir / reddedebilir</label><label><input type="checkbox" data-sablon-dis="${s.id}" data-k="not" ${s.dis?.not!==false?'checked':''}>Müşteri not yazabilir</label></div></div><p class="zaman"><b>{{QR}}</b> yazdığın yere karekod basılır; okutan kişi şifresiz, süreli bağlantıyla belgeyi görür. <b>[[Yetkili]]</b>, <b>[[İmza]]</b> gibi köşeli çift parantezli alanları müşteri doldurur (adında "imza" geçen alan imza kutusu olur); yanıt kayda ve çıktıya işlenir. <b>{{…}}</b> alanları ise formdan dolar.</p><p class="zaman">{{alan}} boşlukları formda aynı adlı alan (Proje, Firma, Müşteri, Kod, Durum, Bugün, modül alanları…) varsa otomatik dolar; kalanları kullanıcı yazar. Bulunan boşluklar: ${[...new Set([...String(s.metin).matchAll(/\{\{([^}]+)\}\}/g)].map(x=>x[1].trim()))].map(x=>'<span class="tag">'+esc(x)+'</span>').join(' ')||'yok'}</p><button type="button" class="btn danger" style="justify-self:start" data-act="sablon-sil" data-id="${s.id}">${ic('sil')}Sil</button></form>`;
   }
   if(c.tur==='rfirma' && c.id==='yeni') return bas('Rehber','Yeni firma')+`<form class="form" id="ayarForm"><label>Firma adı<input name="ad" required></label><div class="two"><label>Telefon<input name="tel" type="tel"></label><label>E-posta<input name="eposta" type="email"></label></div>${onay}</form>`;
   if(c.tur==='rfirma'){
@@ -3360,7 +3360,8 @@ function zenginKur(){
       <button type="button" class="zb" data-z="ul" title="Madde listesi">${ic('liste')}</button>
       <button type="button" class="zb" data-z="ol" title="Numaralı liste">1.</button>
       <button type="button" class="zb" data-z="link" title="Bağlantı">${ic('bag')}</button>
-      <button type="button" class="zb" data-z="bosluk" title="Doldurulacak alan ekle: {{Alan adı}}" style="font-family:monospace;font-weight:700">{{ }}</button>
+      <button type="button" class="zb" data-z="bosluk" title="Formdan dolan alan ekle: {{Alan adı}}" style="font-family:monospace;font-weight:700">{{ }}</button>
+      <button type="button" class="zb" data-z="musteri" title="Müşterinin dolduracağı alan ekle (QR ile): [[Alan adı]]" style="font-family:monospace;font-weight:700">[[ ]]</button>
       <button type="button" class="zb" data-z="clear" title="Biçimi temizle">${ic('x')}</button>
       ${ek}
     </div><div class="zed" contenteditable="true" role="textbox" aria-multiline="true" data-ph="${esc(src.placeholder||'')}"></div>`;
@@ -3500,11 +3501,12 @@ function zenginKur(){
         }
         const k=b.dataset.z;
         if(k==='geri'||k==='ileri'){ gecmisGit(k==='ileri'); return; }
-        if(k==='bosluk'){
+        if(k==='bosluk'||k==='musteri'){
+          const [a1,a2]=k==='bosluk'?['{{','}}']:['[[',']]'];
           const sel=getSelection(), secili=sel.toString().trim();
-          if(secili){ document.execCommand('insertText', false, '{{'+secili.replace(/[{}]/g,'')+'}}'); }
+          if(secili){ document.execCommand('insertText', false, a1+secili.replace(/[{}\[\]]/g,'')+a2); }
           else {
-            document.execCommand('insertText', false, '{{}}');
+            document.execCommand('insertText', false, a1+a2);
             const s2=getSelection(), n=s2.anchorNode;
             if(n&&n.nodeType===3&&s2.anchorOffset>=2){ const rg=document.createRange(); rg.setStart(n, s2.anchorOffset-2); rg.collapse(true); s2.removeAllRanges(); s2.addRange(rg); }
           }
@@ -4410,13 +4412,15 @@ function sablonYazdir(uid, antet, pencere){
   }
   const oto=sablonFormDegerleri(), ek=[], tut=h=>{ ek.push(h); return '§§'+(ek.length-1)+'§§'; };
   const y=yanit?.yanit;
+  // müşteri alanı: yanıt varsa değeri / imzası, yoksa elle doldurmak için boş çizgi
+  const musteriDeger=ad=>{ if(y?.imzalar?.[ad]&&/^data:image\/png;base64,/.test(y.imzalar[ad])) return tut(`<img class="sb-imza" src="${y.imzalar[ad]}" alt="">`); if(y?.alanlar?.[ad]) return esc(y.alanlar[ad]); return '<span class="sb-bos">&nbsp;</span>'; };
   const govde=zTemiz(String(r?.metin||'').replace(/\{\{([^}]+)\}\}/g,(t,k)=>{
     k=k.trim();
     if(/^qr$/i.test(k)) return aktif?tut(`<img class="sb-qr" src="${QR.dataUrl(disUrl(aktif.anahtar))}" alt="QR">`):'';
     const mm=k.match(/^m(?:ü|u)ş?teri\s*:\s*(.+)$/i);
-    if(mm){ const ad=mm[1].trim(); if(y?.imzalar?.[ad]&&/^data:image\/png;base64,/.test(y.imzalar[ad])) return tut(`<img class="sb-imza" src="${y.imzalar[ad]}" alt="">`); if(y?.alanlar?.[ad]) return esc(y.alanlar[ad]); return '<span class="sb-bos">&nbsp;</span>'; }
+    if(mm) return musteriDeger(mm[1].trim());
     const v=(r?.slot||{})[k]||oto[nrm(k)]; return v?esc(v):'<span class="sb-bos">&nbsp;</span>';
-  })).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'')
+  }).replace(/\[\[\s*([^\[\]]+?)\s*\]\]/g,(t,ad)=>musteriDeger(duz(ad).trim()))).replace(/§§(\d+)§§/g,(_,i)=>ek[+i]||'')
     +(y&&(y.karar||y.notu)?`<p class="sb-yanit"><b>Müşteri yanıtı:</b> ${y.karar==='red'?'Reddedildi':y.karar==='onay'?'Onaylandı':'Yanıtlandı'} · ${esc(zamanYaz(yanit.yanitZaman))}${y.notu?' · Not: '+esc(y.notu):''}</p>`:'');
   if(!duz(govde)&&!/<(img|table)/i.test(govde)) return toast('Şablon alanı boş; önce şablonu doldur');
   const sb=S.sablonlar.find(x=>x.id===r?.tur);
