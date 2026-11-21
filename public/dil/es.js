@@ -1480,5 +1480,21 @@ window.SOZLUK={
 "Kendi": "Propio",
 "Göreceğin bileşenleri aç / kapat, tutamaktan sürükleyerek sırala. Kendi grafiklerine tıklayınca düzenlenir. Yalnız senin ekranını etkiler.": "Activa o desactiva los componentes y arrástralos por el asa para ordenarlos. Haz clic en tus gráficos para editarlos. Solo afecta a tu pantalla.",
 "Kendi grafiğini ekle": "Añadir tu propio gráfico",
-"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Solo aparece en tu panel; tú eliges el tipo, la fuente y la agrupación. El gráfico nuevo se añade al final de la lista."
+"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Solo aparece en tu panel; tú eliges el tipo, la fuente y la agrupación. El gráfico nuevo se añade al final de la lista.",
+"Bakım": "Mantenimiento",
+"Arşiv temizliği · Depoya süpür": "Limpieza de archivo · Mover al almacenamiento",
+"Arşiv temizliği": "Limpieza de archivo",
+"Proje arşivlenince silinmiş kayıtları ve artıkları (bağlar, süresi geçmiş dış onaylar, eski giriş kayıtları) kendiliğinden kalıcı silinir. İşlem geçmişi silinmez. Önceden arşivlenmiş projeler için buradan çalıştır.": "Al archivar un proyecto, sus registros eliminados y restos (vínculos, aprobaciones externas caducadas, registros de inicio de sesión antiguos) se borran automáticamente. El historial se conserva. Ejecútalo aquí para proyectos archivados antes.",
+"{0} arşiv projesinde {1} silinmiş kayıt": "{1} registros eliminados en {0} proyectos archivados",
+"Şimdi temizle": "Limpiar ahora",
+"Depoya süpür": "Mover al almacenamiento",
+"3 yıldan uzun süredir arşivde olan projelerin veritabanına gömülü dosyaları (doküman, mesaj ekleri) firmanın bulut deposuna taşınır; kayıtta bağlantısı kalır. İmzalar taşınmaz.": "Los archivos incrustados en la base de datos (documentos, adjuntos de mensajes) de proyectos archivados hace más de 3 años se mueven al almacenamiento en la nube de la empresa; el registro conserva un enlace. Las firmas no se mueven.",
+"{0} proje · {1} dosya · {2}": "{0} proyectos · {1} archivos · {2}",
+"Hedef: {0}": "Destino: {0}",
+"Bulut depo bağlı değil. Ayarlar → Firma → Bulut depolar.": "No hay almacenamiento en la nube conectado. Ajustes → Empresa → Almacenamiento en la nube.",
+"Arşivdeki projelerin silinmiş kayıtları kalıcı silinecek. Devam edilsin mi?": "Los registros eliminados de los proyectos archivados se borrarán definitivamente. ¿Continuar?",
+"{0} silinmiş kayıt ve {1} artık satır temizlendi.": "Se eliminaron {0} registros borrados y {1} filas sobrantes.",
+"Gömülü dosyalar bulut depoya taşınacak. Devam edilsin mi?": "Los archivos incrustados se moverán al almacenamiento en la nube. ¿Continuar?",
+"Taşınıyor… {0} dosya": "Moviendo… {0} archivos",
+"{0} dosya taşındı ({1}); {2} hata.": "{0} archivos movidos ({1}); {2} errores."
 };

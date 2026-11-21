@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { HttpHata } from '../hata.js';
 import { json } from '../db.js';
+import { bulutDepo } from '../bakim.js';
 import { belirtecUret, csrfUret, CEREZ } from '../auth/oturum.js';
 import { config } from '../config.js';
 import { vapid } from '../push.js';
@@ -20,9 +21,6 @@ import { EkSema } from '../kurallar/ekler.js';
 import { misafirGirisEngeli, kayitGorur } from '../kurallar/misafir.js';
 import { eforDurum, eforOzet } from '../kurallar/efor.js';
 import { degerApi } from '../kurallar/degerler.js';
-import * as google from '../baglanti/google.js';
-import * as drive from '../baglanti/driveHesap.js';
-import * as ms from '../baglanti/microsoft.js';
 
 const ozet = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 const KOD_RE = /^[A-Za-z0-9_-]{43}$/;
@@ -130,15 +128,6 @@ mobil.post('/mobil/notlar/:id/tasi', async (req, res) => {
 
 // ---------- telefon için hafif özet ----------
 // Firmanın varsayılan deposu bulutsa ve bağlıysa büyük ekler oraya yüklenir (masaüstündeki bulutHazir ile aynı kural)
-async function bulutDepo(db) {
-  try {
-    const a = await db('ayarlar').where({ anahtar: 'firma' }).first();
-    const d = json.oku(a?.deger, {}).depo;
-    if (d === 'gdrive') { const [gd, g] = await Promise.all([drive.durum(db), google.durum(db)]); return gd.bagli || (g.bagli && g.drive) ? 'gdrive' : ''; }
-    if (d === 'onedrive') { const m = await ms.durum(db); return m.bagli && m.dosya ? 'onedrive' : ''; }
-  } catch (e) { console.error('mobil depo:', e.message); }
-  return '';
-}
 const iso = (x) => (x ? new Date(x).toISOString() : '');
 const duzMetin = (h) => String(h || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 const ekOzet = (L) => (Array.isArray(L) ? L.map((e) => ({ ad: e.ad || '', tur: e.depo ? String(e.tip || '').split('/')[0] || 'dosya' : String(e.url || '').slice(5, String(e.url || '').indexOf('/')) })) : []);

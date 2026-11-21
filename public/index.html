@@ -2316,6 +2316,47 @@ function ceviriHTML(bas){
     <p class="zaman">${destek?_t('Çeviri Chrome\'un bu bilgisayardaki çevirmeniyle yapılır; ilk kullanımda dil paketi indirilir. Ad dışarıya gönderilmez.'):_t('Otomatik çeviri için masaüstü Chrome (138 ve üstü) gerekir. Çevirileri aşağıya elle de yazabilirsin.')}</p>
     <div class="tbl"><table><thead><tr><th>${_t('Türkçe ad')}</th><th>${dil.toUpperCase()}</th></tr></thead><tbody>${L.map(x=>`<tr><td>${esc(x.ad)}<div class="zaman">${esc(x.tur)}</div></td><td><input data-cev="${dil}" data-ad="${esc(x.ad)}" value="${esc((c[dil]||{})[x.ad]||'')}" placeholder="${esc(_t(x.ad)!==x.ad?_t(x.ad):'')}" ${yon?'':'disabled'}></td></tr>`).join('')}</tbody></table></div>`;
 }
+// Ayarlar → Firma → Bakım (yönetici, sunucu modu): arşiv temizliği ve 3 yıl+ arşivde "Depoya süpür"
+function bakimYukle(zorla){
+  if(!API.acik||(ui.bakim&&!zorla)) return;
+  ui.bakim={yukleniyor:true, sonuc:(ui.bakim||{}).sonuc};
+  apiIstek('/bakim/ozet').then(o=>{ ui.bakim={...o, sonuc:ui.bakim.sonuc}; renderDrawer(); }).catch(e=>{ ui.bakim={hata:e.message}; renderDrawer(); });
+}
+function bakimHTML(bas){
+  bakimYukle();
+  const b=ui.bakim||{}, s=b.supur||{};
+  const govde=b.yukleniyor?`<p class="zaman">${_t('Yükleniyor…')}</p>`:b.hata?`<p class="zaman">${esc(sunucuHatasi(b.hata))}</p>`:`
+    <div class="lbl">${_t('Arşiv temizliği')}<p class="zaman">${_t('Proje arşivlenince silinmiş kayıtları ve artıkları (bağlar, süresi geçmiş dış onaylar, eski giriş kayıtları) kendiliğinden kalıcı silinir. İşlem geçmişi silinmez. Önceden arşivlenmiş projeler için buradan çalıştır.')}</p>
+      <p><b>${_t('{0} arşiv projesinde {1} silinmiş kayıt', b.arsivProje||0, b.silinmis||0)}</b></p>
+      <div class="rowbtns"><button type="button" class="btn sm" data-act="bakim-arsiv">${ic('uyari')}${_t('Şimdi temizle')}</button></div></div>
+    <div class="lbl">${_t('Depoya süpür')}<p class="zaman">${_t('3 yıldan uzun süredir arşivde olan projelerin veritabanına gömülü dosyaları (doküman, mesaj ekleri) firmanın bulut deposuna taşınır; kayıtta bağlantısı kalır. İmzalar taşınmaz.')}</p>
+      <p><b>${_t('{0} proje · {1} dosya · {2}', s.proje||0, s.dosya||0, boyutYaz(s.bayt)||'0 B')}</b></p>
+      ${s.depo?`<p class="zaman">${_t('Hedef: {0}', DEPO[s.depo]||s.depo)}</p>`:`<p class="zaman">${_t('Bulut depo bağlı değil. Ayarlar → Firma → Bulut depolar.')}</p>`}
+      <div class="rowbtns"><button type="button" class="btn sm pri" data-act="bakim-supur" ${s.dosya&&s.depo?'':'disabled'}>${ic('dosya')}${_t('Depoya süpür')}</button></div></div>`;
+  return bas(_t('Ayar'),_t('Bakım'))+govde+(b.sonuc?`<p class="zaman" role="status">${esc(b.sonuc)}</p>`:'');
+}
+async function bakimArsiv(dugme){
+  if(!confirm(_t('Arşivdeki projelerin silinmiş kayıtları kalıcı silinecek. Devam edilsin mi?'))) return;
+  dugme.disabled=true;
+  try{ const t=await apiIstek('/bakim/arsiv',{method:'POST', govde:{}}); ui.bakim={sonuc:_t('{0} silinmiş kayıt ve {1} artık satır temizlendi.', t.kayit, t.artik)}; await durumYukle(); }
+  catch(e){ toast(sunucuHatasi(e.message)); }
+  bakimYukle(true);
+}
+async function bakimSupur(dugme){
+  if(!confirm(_t('Gömülü dosyalar bulut depoya taşınacak. Devam edilsin mi?'))) return;
+  dugme.disabled=true; let t={tasinan:0,hata:0,bayt:0};
+  try{
+    for(let tur=0; tur<200; tur++){
+      const r=await apiIstek('/bakim/supur',{method:'POST', govde:{}});
+      t.tasinan+=r.tasinan; t.hata+=r.hata; t.bayt+=r.bayt;
+      dugme.textContent=_t('Taşınıyor… {0} dosya', t.tasinan);
+      if(!r.kalan||!r.tasinan) break;
+    }
+    ui.bakim={sonuc:_t('{0} dosya taşındı ({1}); {2} hata.', t.tasinan, boyutYaz(t.bayt)||'0 B', t.hata)};
+    await durumYukle();
+  }catch(e){ toast(sunucuHatasi(e.message)); ui.bakim=null; }
+  bakimYukle(true);
+}
 async function ceviriDoldur(dugme){
   const dil=ui.cevDil||'en';
   if(!('Translator' in self)) return toast(_t('Bu tarayıcıda otomatik çeviri yok; masaüstü Chrome gerekir.'));
@@ -3578,7 +3619,7 @@ function ayarHTML(){
   const tab=(id,ad)=>`<button type="button" class="btn ${ui.ayar===id?'on':''}" data-act="ayar-sek" data-v="${id}">${ad}</button>`;
   const bas=`<div class="phead"><span class="pic">${ic('ayar')}</span><div><h3>${_t('Ayarlar')}</h3></div></div><div class="tabs2">${tab('firma','Firma')}${tab('kullanici',_t('Kullanıcılar'))}${tab('yetki','Yetkiler')}${tab('durum','Durumlar')}${tab('modul',_t('Modüller'))}${tab('fonksiyon','Fonksiyonlar')}${tab('opsiyon','Opsiyonlar')}${tab('sablon',_t('Şablonlar'))}${tab('rehber','Rehber')}${tab('stok','Depo ve Stok')}${tab('pano','Panolar')}${tab('kiosk','Kiosklar')}${tab('cikti',_t('Çıktı formları'))}${tab('sema',_t('Şema'))}</div>`;
   const ipucu=`<p class="zaman">${_t('Sırayı sürükleyerek değiştir. Düzenlemek için satıra tıkla.')}</p>`;
-  if(ui.ayar==='firma') return bas+`<div class="liste">${secSatir('firma','firma',`<span class="harf" style="--c:var(--brand)">${ic('bina')}</span><span class="sp"><b>${esc(S.firma.ad)}</b><span class="zaman">${esc(S.firma.sub)}${_t('.iq-sense.com.tr · dosya deposu:')} ${esc(DEPO[S.firma.depo]||'Sunucu')}</span></span>`)}${secSatir('ceviri','adlar',`<span class="harf" style="--c:#6b5bd6">${ic('dunya')}</span><span class="sp"><b>${_t('Adların çevirileri')}</b><span class="zaman">${esc(ceviriOzet())}</span></span>`)}</div>`;
+  if(ui.ayar==='firma') return bas+`<div class="liste">${secSatir('firma','firma',`<span class="harf" style="--c:var(--brand)">${ic('bina')}</span><span class="sp"><b>${esc(S.firma.ad)}</b><span class="zaman">${esc(S.firma.sub)}${_t('.iq-sense.com.tr · dosya deposu:')} ${esc(DEPO[S.firma.depo]||'Sunucu')}</span></span>`)}${secSatir('ceviri','adlar',`<span class="harf" style="--c:#6b5bd6">${ic('dunya')}</span><span class="sp"><b>${_t('Adların çevirileri')}</b><span class="zaman">${esc(ceviriOzet())}</span></span>`)}${API.acik&&ben().rol==='yonetici'?secSatir('bakim','bakim',`<span class="harf" style="--c:#b26a00">${ic('uyari')}</span><span class="sp"><b>${_t('Bakım')}</b><span class="zaman">${_t('Arşiv temizliği · Depoya süpür')}</span></span>`):''}</div>`;
   if(ui.ayar==='kullanici') return bas+`<div class="panel dep-panel"><h4>${_t('Departmanlar')}</h4><p class="zaman">${_t('Kullanıcının bölümü (Servis, Üretim, Satış…). Kiosklar ve ekip panoları bu alana göre süzülür.')}</p><div class="dep-cipler">${S.departmanlar.map(d=>`<span class="dep-cip">${esc(d)}<em>${S.kullanicilar.filter(u=>u.departman===d).length}</em><button type="button" data-act="dep-sil" data-v="${esc(d)}" aria-label="${esc(d)} ${_t('kaldır')}">${ic('x')}</button></span>`).join('')}<input id="depYeni" class="mini" placeholder="${_t('Yeni departman')}" aria-label="${_t('Yeni departman')}"><button type="button" class="btn sm" data-act="dep-ekle">${ic('arti')}${_t('Ekle')}</button></div></div><div class="kutular"><button type="button" class="btn pri" data-act="yeni-ayar" data-tur="kullanici">${ic('arti')}${_t('Kullanıcı ekle')}</button>${S.kullanicilar.map(u=>secSatir('kullanici',u.id,`${av(u.ad)}<span class="sp"><b>${esc(u.ad)}</b><span class="zaman">${esc(u.unvan)}${u.departman?' · '+esc(u.departman):''} · ${u.rol==='yonetici'?_t('Yönetici'):'Personel'}${u.aktif===false?' · Pasif':''}</span></span>`,false,u.aktif===false?'pasif':'')).join('')}</div>`;
   if(ui.ayar==='yetki') return bas+`<div class="two" style="align-items:start"><div class="panel"><h4>${_t('Kullanıcı yetkileri')}</h4><p class="zaman">${_t('Modül başına Yok / Gör / Yaz; ayrıca onay ve dışa aktarma.')}</p><div class="liste">${S.kullanicilar.map(u=>secSatir('yetki',u.id,`${av(u.ad)}<span class="sp"><b>${esc(u.ad)}</b><span class="zaman">${u.rol==='yonetici'?_t('Tüm modüller'):esc(S.yetkiGruplari.find(g=>g.id===u.grup)?.ad||'Grupsuz')}</span></span>`,false,u.aktif===false?'pasif':'')).join('')}</div></div>
     <div class="panel"><h4>${_t('Yetki grupları')}</h4><p class="zaman">${_t('Fonksiyon düzeyinde Düzenle / Gör / Görme bu gruplara verilir (Modüller → fonksiyon satırı).')}</p><button type="button" class="btn sm" style="justify-self:start" data-act="yeni-ayar" data-tur="ygrup">${ic('arti')}${_t('Grup ekle')}</button><div class="liste">${S.yetkiGruplari.map(g=>secSatir('ygrup',g.id,`<span class="harf">${ic('ekip')}</span><span class="sp"><b>${esc(g.ad)}</b><span class="zaman">${S.kullanicilar.filter(u=>u.grup===g.id).length} ${_t('kişi')}</span></span>`)).join('')}</div></div></div>`;
@@ -3634,6 +3675,7 @@ function cekmeceHTML(){
     return bas(_t('Görünümüm'),m.ad)+`<p class="zaman">${_t('Bu seçimler yalnız senin ekranını etkiler. Kapalı alan kanban kartında ya da liste/Excel sütunlarında çıkmaz.')}</p><label class="lbl">${_t('Kayıt paneli açılışı')}<select data-panel-gen="${m.id}">${secOp([['yarim',_t('Yarım (sağda)')],['tam',_t('Tam ekran')]], panelTam(m.id)?'tam':'yarim')}</select><span class="zaman">${_t('Bu modülde kayıt açılınca sağ panelin genişliği. Paneldeki genişlet düğmesi yalnız o kayıt için değiştirir.')}</span></label><div class="tbl gorunum-tbl"><table><thead><tr><th>${_t('Alan')}</th><th>${_t('Kanban')}</th><th>${_t('Liste')}</th></tr></thead><tbody>${fns.map(f=>sat(f.uid,f.ad,FNIK[f.tip])).join('')}<tr><th colspan="3">${_t('Sistem alanları')}</th></tr>${SISTEM.map(x=>sat(x[0],x[1],x[2])).join('')}</tbody></table></div><button type="button" class="btn" data-act="gorunum-sifirla" data-id="${m.id}">${_t('Varsayılana dön')}</button>`;
   }
   if(c.tur==='ceviri') return ceviriHTML(bas);
+  if(c.tur==='bakim') return bakimHTML(bas);
   if(c.tur==='panoKisi'){
     const p=S.panolar.find(x=>x.id===c.id); if(!p) return '';
     const g=(ben().panoGizli||{})[p.id]||[];
@@ -6278,6 +6320,8 @@ function bagla(){
       case 'akt-sil': { const m=modul(b.dataset.mid); if(!m||!confirm(_t('Aktarım silinsin mi? Daha önce açılmış bağlı kayıtlar kalır.'))) return; m.aktarimlar=(m.aktarimlar||[]).filter(a=>a.id!==b.dataset.aid); persist(); renderMain(); return; }
       case 'cev-dil': { ui.cevDil=b.dataset.v; renderMain(); return; }
       case 'cev-doldur': { ceviriDoldur(b); return; }
+      case 'bakim-arsiv': { bakimArsiv(b); return; }
+      case 'bakim-supur': { bakimSupur(b); return; }
       case 'fiyat-onay': {
         if(!ui.form||!ui.form.id) return;
         const red=b.dataset.karar==='red';

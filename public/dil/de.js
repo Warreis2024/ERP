@@ -1480,5 +1480,21 @@ window.SOZLUK={
 "Kendi": "Eigene",
 "Göreceğin bileşenleri aç / kapat, tutamaktan sürükleyerek sırala. Kendi grafiklerine tıklayınca düzenlenir. Yalnız senin ekranını etkiler.": "Blende Bausteine ein oder aus und sortiere sie per Ziehen am Griff. Eigene Diagramme bearbeitest du per Klick. Betrifft nur deinen Bildschirm.",
 "Kendi grafiğini ekle": "Eigenes Diagramm hinzufügen",
-"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Nur auf deinem Dashboard sichtbar; Typ, Quelle und Gruppierung wählst du. Ein neues Diagramm kommt ans Ende der Liste."
+"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Nur auf deinem Dashboard sichtbar; Typ, Quelle und Gruppierung wählst du. Ein neues Diagramm kommt ans Ende der Liste.",
+"Bakım": "Wartung",
+"Arşiv temizliği · Depoya süpür": "Archivbereinigung · In Speicher verschieben",
+"Arşiv temizliği": "Archivbereinigung",
+"Proje arşivlenince silinmiş kayıtları ve artıkları (bağlar, süresi geçmiş dış onaylar, eski giriş kayıtları) kendiliğinden kalıcı silinir. İşlem geçmişi silinmez. Önceden arşivlenmiş projeler için buradan çalıştır.": "Wird ein Projekt archiviert, werden gelöschte Datensätze und Reste (Verknüpfungen, abgelaufene externe Freigaben, alte Anmeldeeinträge) automatisch endgültig entfernt. Der Verlauf bleibt erhalten. Für früher archivierte Projekte hier ausführen.",
+"{0} arşiv projesinde {1} silinmiş kayıt": "{1} gelöschte Datensätze in {0} archivierten Projekten",
+"Şimdi temizle": "Jetzt bereinigen",
+"Depoya süpür": "In Speicher verschieben",
+"3 yıldan uzun süredir arşivde olan projelerin veritabanına gömülü dosyaları (doküman, mesaj ekleri) firmanın bulut deposuna taşınır; kayıtta bağlantısı kalır. İmzalar taşınmaz.": "In der Datenbank eingebettete Dateien (Dokumente, Nachrichtenanhänge) von Projekten, die seit über 3 Jahren archiviert sind, werden in den Cloud-Speicher der Firma verschoben; der Datensatz behält einen Link. Unterschriften werden nicht verschoben.",
+"{0} proje · {1} dosya · {2}": "{0} Projekte · {1} Dateien · {2}",
+"Hedef: {0}": "Ziel: {0}",
+"Bulut depo bağlı değil. Ayarlar → Firma → Bulut depolar.": "Kein Cloud-Speicher verbunden. Einstellungen → Firma → Cloud-Speicher.",
+"Arşivdeki projelerin silinmiş kayıtları kalıcı silinecek. Devam edilsin mi?": "Gelöschte Datensätze archivierter Projekte werden endgültig entfernt. Fortfahren?",
+"{0} silinmiş kayıt ve {1} artık satır temizlendi.": "{0} gelöschte Datensätze und {1} Restzeilen entfernt.",
+"Gömülü dosyalar bulut depoya taşınacak. Devam edilsin mi?": "Eingebettete Dateien werden in den Cloud-Speicher verschoben. Fortfahren?",
+"Taşınıyor… {0} dosya": "Verschiebe… {0} Dateien",
+"{0} dosya taşındı ({1}); {2} hata.": "{0} Dateien verschoben ({1}); {2} Fehler."
 };

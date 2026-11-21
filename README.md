@@ -119,3 +119,10 @@ Kararlar ve tasarım: ERP projesi → `yapilacaklar.md`.
   - Kutu, modül açılınca en çok 2 dakikada bir kontrol edilir; "E-posta" düğmesiyle hemen de kontrol edilebilir. AI ile sınıflandırma sonra eklenecek.
 - [ ] **Performans ölçeği (adam/saat).** Efor verisi birikince panolara eklenecek; ölçüt henüz seçilmedi.
 - [ ] Muhasebe programına fatura aktarımı; yönetici izindeyken onay vekili.
+
+## Veritabanı bakımı (21.11.2026)
+
+- **Göç `20261121000003_bakim`**: `kayit_baglari(kaynak_id, aktarim)` tekil (aynı kayıt aynı aktarımla iki kez aktarılamaz; yarışta 409 döner); eksik indeksler (`degerler(fn_tip,kisi)`, `degerler(fn_tip,guncelleme)`, `log(modul_id,id)`, `kartlar/projeler.durum_id`, `kullanicilar.grup_id`, `proje_kisileri.kullanici_id`, `rehber_kisiler.firma_id`); PostgreSQL'de tüm saat dilimsiz zaman sütunları `timestamptz` (UTC kabul edilerek); `projeler.arsiv_tarihi`.
+- **Kişi bağları**: kişi/ekip alanları kullanıcıyı zaten **id** ile tutar (`degerler.kisi = u…`), ad değişikliği bağı bozmaz; rehber kişileri `kisi_id` (ks…) ile bağlıdır. Ada göre eşleşen eski satır yok.
+- **Arşiv temizliği** (`src/bakim.js` → `arsivTemizle`): proje arşivlenince o projenin silindi işaretli kayıtları, değerleri, bağları, dış onayları, form takipleri ve e-posta kayıtları kalıcı silinir; süresi geçmiş yanıtsız dış onaylar da silinir. İşlem günlüğü (`log`) silinmez, projeye "Arşiv bakımı" satırı yazılır. Önceden arşivlenmiş projeler için Ayarlar → Firma → **Bakım → Şimdi temizle** (kaydı olmayan bağlar ve 1 yıldan eski giriş kayıtları da temizlenir).
+- **Depoya süpür** (`depoyaSupur`): 3 yıldan uzun süredir arşivdeki projelerin veritabanına gömülü dosyaları (doküman `url` data URL'leri, mesaj ekleri) firmanın bulut deposuna (`NetERP/<proje kodu>`) yüklenir, kayıtta bulut bağlantısı kalır. İmzalar ve zengin metin içindeki resimler taşınmaz. Her istek ~20 sn / 40 satır işler; arayüz kalan bitene kadar tekrarlar. Uçlar: `GET /api/bakim/ozet`, `POST /api/bakim/arsiv`, `POST /api/bakim/supur` (yalnız yönetici).

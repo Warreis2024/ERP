@@ -1480,5 +1480,21 @@ window.SOZLUK={
 "Kendi": "Own",
 "Göreceğin bileşenleri aç / kapat, tutamaktan sürükleyerek sırala. Kendi grafiklerine tıklayınca düzenlenir. Yalnız senin ekranını etkiler.": "Turn the widgets you see on or off, and drag them by the handle to reorder. Click your own charts to edit them. Only affects your screen.",
 "Kendi grafiğini ekle": "Add your own chart",
-"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Only shown on your dashboard; you choose its type, source and grouping. A new chart is added to the end of the list."
+"Yalnız senin panonda görünür; türünü, kaynağını ve gruplamasını sen seçersin. Eklenen grafik listenin sonuna gelir.": "Only shown on your dashboard; you choose its type, source and grouping. A new chart is added to the end of the list.",
+"Bakım": "Maintenance",
+"Arşiv temizliği · Depoya süpür": "Archive cleanup · Sweep to storage",
+"Arşiv temizliği": "Archive cleanup",
+"Proje arşivlenince silinmiş kayıtları ve artıkları (bağlar, süresi geçmiş dış onaylar, eski giriş kayıtları) kendiliğinden kalıcı silinir. İşlem geçmişi silinmez. Önceden arşivlenmiş projeler için buradan çalıştır.": "When a project is archived, its deleted records and leftovers (links, expired external approvals, old login records) are purged automatically. The activity history is kept. Run it here for projects archived earlier.",
+"{0} arşiv projesinde {1} silinmiş kayıt": "{1} deleted records in {0} archived projects",
+"Şimdi temizle": "Clean up now",
+"Depoya süpür": "Sweep to storage",
+"3 yıldan uzun süredir arşivde olan projelerin veritabanına gömülü dosyaları (doküman, mesaj ekleri) firmanın bulut deposuna taşınır; kayıtta bağlantısı kalır. İmzalar taşınmaz.": "Files embedded in the database (documents, message attachments) of projects archived for more than 3 years are moved to the company cloud storage; the record keeps a link. Signatures are not moved.",
+"{0} proje · {1} dosya · {2}": "{0} projects · {1} files · {2}",
+"Hedef: {0}": "Target: {0}",
+"Bulut depo bağlı değil. Ayarlar → Firma → Bulut depolar.": "No cloud storage connected. Settings → Company → Cloud storage.",
+"Arşivdeki projelerin silinmiş kayıtları kalıcı silinecek. Devam edilsin mi?": "Deleted records of archived projects will be permanently removed. Continue?",
+"{0} silinmiş kayıt ve {1} artık satır temizlendi.": "{0} deleted records and {1} leftover rows removed.",
+"Gömülü dosyalar bulut depoya taşınacak. Devam edilsin mi?": "Embedded files will be moved to cloud storage. Continue?",
+"Taşınıyor… {0} dosya": "Moving… {0} files",
+"{0} dosya taşındı ({1}); {2} hata.": "{0} files moved ({1}); {2} errors."
 };

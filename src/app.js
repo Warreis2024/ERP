@@ -18,6 +18,7 @@ import bildirim from './routes/bildirim.js';
 import { mobil, cihazGenel } from './routes/mobil.js';
 import { acikYonetim, acikGenel } from './routes/acikForm.js';
 import ticket from './routes/ticket.js';
+import bakim from './routes/bakim.js';
 
 const kok = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const app = express();
@@ -76,6 +77,7 @@ api.use(bildirim);
 api.use(mobil);
 api.use(acikYonetim);
 api.use(ticket);
+api.use(bakim);
 api.use('/ayar/firma', firmaRouter);
 api.use('/ayar/kullanicilar', kullaniciRouter);
 api.use('/ayar', ayar);

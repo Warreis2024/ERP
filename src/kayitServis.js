@@ -9,6 +9,7 @@ import { tanimlar, kodUret, logYaz, yeniId, adCozucu, logApi } from './veri.js';
 import { kayitBildir, dilliBildir, FIYAT_METIN } from './bildirimServis.js';
 import { fiyatOnayIsle, fiyatEngeli, ANA_PB, pbNormal } from './kurallar/fiyatOnay.js';
 import { kurlar } from './kur.js';
+import { arsivTemizle } from './bakim.js';
 import { kapsamDeger, kayitGorur } from './kurallar/misafir.js';
 
 const IstemciId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional();
@@ -127,7 +128,7 @@ export async function kaydet(req, tur, id, govde) {
     if (!p) throw new HttpHata(400, 'Kayıt bir projeye bağlanmalı');
   }
 
-  let bildirim = null, fiyatBildir = [], aktarimLog = null;
+  let bildirim = null, fiyatBildir = [], aktarimLog = null, arsivlendi = false;
   const sonuc = await db.transaction(async (trx) => {
     const kayitId = mevcut?.id || veri.id || yeniId();
     const ortak = proj ? { projeId: kayitId, modulId: m.id, kartId: null } : { projeId: veri.projeId, modulId: m.id, kartId: kayitId };
@@ -167,6 +168,7 @@ export async function kaydet(req, tur, id, govde) {
     let kod = mevcut?.kod;
     if (proj) {
       const satir = { ad: veri.ad, durum_id: yeniDurum.id, kategori: veri.kategori || null, arsiv: !!veri.arsiv, guncelleyen: u.id, guncelleme: zaman };
+      if (!!veri.arsiv !== !!mevcut?.arsiv) { satir.arsiv_tarihi = veri.arsiv ? zaman : null; arsivlendi = !!veri.arsiv && !!mevcut; }
       if (mevcut) await trx('projeler').where({ id: kayitId }).update(satir);
       else { kod = await kodUret(trx, m); await trx('projeler').insert({ id: kayitId, kod, ...satir, olusturan: u.id, olusturma: zaman }); }
       const kisiler = [...new Set(veri.yonetici || [])].map((k) => ({ proje_id: kayitId, kullanici_id: k, rol: 'yonetici' }))
@@ -216,9 +218,11 @@ export async function kaydet(req, tur, id, govde) {
     }
     bildirim = { eski, yeni, projeId: ortak.projeId, kartId: ortak.kartId, kod, baslik: proj ? veri.ad : (yeni.find((r) => r.fnTip === 'light')?.metin || '') };
     return { id: kayitId, kod };
-  });
+  }).catch((e) => { if (e?.code === '23505' && /kayit_baglari/.test(e.constraint || e.message || '')) throw new HttpHata(409, 'Bu kayıt bu aktarımla zaten aktarıldı'); throw e; });
   // mobil bildirim: yeni mesaj ve işe atanma (yanıtı bozmaz, en çok birkaç saniye bekler)
   if (bildirim) await kayitBildir(req, bildirim);
+  // arşivlenen projenin silinmiş kayıtları ve artıkları kalıcı temizlenir (yanıtı bozmaz)
+  if (arsivlendi) { try { await arsivTemizle(req.db, sonuc.id, u); } catch (e) { console.error('arşiv bakımı:', e.message); } }
   for (const x of fiyatBildir) {
     await dilliBildir(req, [x.kisi], { baslik: sonuc.kod || '', metinler: FIYAT_METIN.bekliyor, args: [u.ad, `${x.satir.tutar} ${x.satir.para || 'TRY'}`], url: `/m/#${proj ? 'p' : 'k'}=${sonuc.id}`, etiket: 'fo:' + sonuc.id });
   }
